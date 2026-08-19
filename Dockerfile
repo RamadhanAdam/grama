@@ -20,8 +20,12 @@ RUN pip3 install --no-cache-dir .
 # CUDA Mamba kernel — only buildable here because this image assumes a CUDA-capable
 # node (e.g. Kinesis A100). This step will fail on a CPU-only build; comment out
 # for local/dev images and rely on the pure-PyTorch fallback instead.
-RUN pip3 install --no-cache-dir packaging mamba-ssm==2.2.2 causal-conv1d==1.4.0
+RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel packaging ninja
 
+RUN pip3 install --no-cache-dir --no-build-isolation \
+    mamba-ssm==2.2.2 \
+    causal-conv1d==1.4.0
+    
 COPY config/ ./config/
 COPY scripts/ ./scripts/
 
