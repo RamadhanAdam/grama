@@ -1,5 +1,5 @@
 # Base: pinned torch + matching CUDA wheel index (per past Kinesis Network setup notes).
-FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04
+FROM nvidia/cuda:12.4.1-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1
@@ -25,7 +25,7 @@ RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel packaging ninja
 RUN pip3 install --no-cache-dir --no-build-isolation \
     mamba-ssm==2.2.2 \
     causal-conv1d==1.4.0
-    
+
 COPY config/ ./config/
 COPY scripts/ ./scripts/
 
