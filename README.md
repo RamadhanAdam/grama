@@ -35,21 +35,29 @@ make install-cuda
 
 ## Dataset: CIC-IoV2024
 
-Not scriptable to download — UNB gates access behind a request form.
+Publicly downloadable (no request form required):
 
-1. Request access: https://www.unb.ca/cic/datasets/iov-dataset-2024.html
+1. Download: https://www.unb.ca/cic/datasets/iov-dataset-2024.html
 2. Place the downloaded CSV(s) in `data/raw/`
 3. Validate: `make data-check`
 
-Until then, validate the pipeline itself against synthetic data:
+**Dataset notes:**
+- Schema: `ID, DATA_0..DATA_7, label, category, specific_class` (no timestamp or DLC)
+- Classes: benign, DoS, spoofing-GAS, spoofing-RPM, spoofing-SPEED, spoofing-STEERING_WHEEL (6 total)
+- **Critical:** ~99.7% of 1.4M rows are exact duplicates (Stiawan et al., IJAIT 2024)
+  - Deduplication is automatically applied during preprocessing
+  - This prevents severe train/test data leakage
+- **No ECU labels:** The dataset does not publish CAN ID → ECU mappings
+  - Graph nodes are learned dynamically from data (see `src/grama/data/graph_builder.py`)
+
+To validate the pipeline without waiting for dataset download, use synthetic data:
 
 ```bash
 make train-synthetic
 ```
 
-This runs the full loop — client sampling, local GAT+Mamba training,
-HDBSCAN aggregation, round history — on random tensors with the correct
-shapes, so architecture bugs surface before real data is in hand.
+This runs end-to-end — client sampling, local GAT+Mamba training, HDBSCAN aggregation,
+round history — on random tensors with correct shapes, so architecture bugs surface early.
 
 ## Repo layout
 
@@ -75,14 +83,20 @@ All tests run on CPU with synthetic tensors — no dataset or GPU required.
 
 ## Key implementation notes / open TODOs
 
-- **CAN ID → ECU mapping** (`src/grama/data/graph_builder.py`) is currently
-  a placeholder. Replace `DEFAULT_CAN_ID_TO_ECU` once the real CIC-IoV2024
-  arbitration ID space is known.
+- **Graph node vocabulary** (`src/grama/data/graph_builder.py`) is now **data-driven**.
+  CAN IDs are discovered dynamically from the dataset (no hardcoded ECU name vocabulary).
+  This works around the fact that CICIoV2024 does not publish ECU-to-CAN-ID mappings.
+
+- **Deduplication** is applied automatically in `src/grama/data/preprocess.py`
+  before windowing. This is critical: without it, train/test sets will leak
+  duplicated frames, inflating accuracy artificially.
+
+- **Feature schema** (8 DATA bytes + frame_count + burst_flag = 10 features total)
+  matches the real CICIoV2024 release (see `config/data.yaml`).
+
 - **Mamba backend** auto-selects CUDA (`mamba-ssm`) when available, else
   falls back to a pure-PyTorch selective-scan implementation. Force one or
   the other via `config/model.yaml: mamba_block.backend`.
+
 - **Baseline comparison** (Mnkash et al. CNN-BiGRU+AWI) is scaffolded but
   not implemented — needed for the Table 1 / Sec 6.2.1 comparison.
-- **Feature dimensionality** (`gat_encoder.in_features` in `config/model.yaml`)
-  is a placeholder count; confirm against the real dataset's payload/derived
-  feature set once available.

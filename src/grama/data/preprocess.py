@@ -1,8 +1,12 @@
-"""Preprocessing: min-max normalization and sliding-window segmentation.
+"""Preprocessing: deduplication, min-max normalization, and sliding-window segmentation.
 
 Implements Sec 3.2 of the concept note:
+  - deduplication: drop ~99.7% of exact duplicate frames (critical to prevent train/test leakage)
   - payload bytes normalized to [0, 1] via min-max scaling (eq. 3)
   - continuous CAN frame streams segmented into sliding windows S_t = [s1..sW]
+
+NOTE: Real CICIoV2024 has NO timestamp column, so inter-arrival time is unavailable.
+Instead, we use frame count per window as a burst-intensity signal.
 """
 from __future__ import annotations
 
@@ -12,7 +16,21 @@ import numpy as np
 import pandas as pd
 
 
-PAYLOAD_COLS = [f"d{i}" for i in range(8)]
+PAYLOAD_COLS = [f"DATA_{i}" for i in range(8)]
+
+
+def deduplicate(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop exact duplicate rows.
+    
+    CICIoV2024 is ~99.7% duplicates (per Stiawan et al., IJAIT 2024).
+    Deduplication MUST happen before train/test split to avoid leakage.
+    """
+    n_before = len(df)
+    out = df.drop_duplicates(subset=PAYLOAD_COLS + ["ID", "label"], keep="first").reset_index(drop=True)
+    n_after = len(out)
+    pct_removed = 100 * (n_before - n_after) / max(n_before, 1)
+    print(f"Deduplicated: {n_before} → {n_after} rows ({pct_removed:.1f}% removed)")
+    return out
 
 
 def min_max_normalize(df: pd.DataFrame, columns: list[str] | None = None) -> pd.DataFrame:
@@ -29,13 +47,6 @@ def min_max_normalize(df: pd.DataFrame, columns: list[str] | None = None) -> pd.
     return out
 
 
-def add_inter_arrival_time(df: pd.DataFrame, timestamp_col: str = "timestamp") -> pd.DataFrame:
-    """delta_tau = tau_k - tau_k-1, used as an extra feature (Sec 3.1)."""
-    out = df.sort_values(timestamp_col).reset_index(drop=True)
-    out["delta_t"] = out[timestamp_col].diff().fillna(0.0)
-    return out
-
-
 @dataclass
 class Window:
     frames: pd.DataFrame       # the W rows belonging to this window
@@ -48,13 +59,16 @@ def sliding_windows(
     window_size: int,
     stride: int,
     label_col: str = "label",
-    can_id_col: str = "can_id",
+    can_id_col: str = "ID",
 ) -> list[Window]:
-    """Segment a (already time-sorted) frame stream into overlapping windows.
+    """Segment a frame stream into overlapping windows.
 
     A window is labeled by majority vote of its constituent frames' labels —
     if any attack frames dominate the window, the window is treated as that
     attack class, matching how a detector would see the traffic in practice.
+    
+    NOTE: No timestamp column in real CICIoV2024, so windows are segmented by
+    row order only (no explicit timing). Inter-arrival time is not available.
     """
     n = len(df)
     windows: list[Window] = []

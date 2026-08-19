@@ -1,40 +1,47 @@
 # CIC-IoV2024 dataset & preprocessing configuration
+# Real schema (UNB release): ID, DATA_0..DATA_7, label, category, specific_class
+# No timestamp, no DLC field in the actual release.
+# Dataset is 99.7% duplicates; dedup is CRITICAL before train/test split.
 
 dataset:
   name: "CIC-IoV2024"
   raw_dir: "data/raw"
   interim_dir: "data/interim"
   processed_dir: "data/processed"
-  # Expected raw CSV columns per the concept note (Sec 3.1). Adjust to match
-  # whatever column names the actual UNB release ships with.
+  # Real column names as shipped by UNB
   expected_columns:
-    - timestamp
-    - can_id
-    - dlc
-    - d0
-    - d1
-    - d2
-    - d3
-    - d4
-    - d5
-    - d6
-    - d7
+    - ID
+    - DATA_0
+    - DATA_1
+    - DATA_2
+    - DATA_3
+    - DATA_4
+    - DATA_5
+    - DATA_6
+    - DATA_7
     - label
+    - category
+    - specific_class
 
 labels:
-  benign: "BENIGN"
+  benign: "benign"
   attack_classes:
     - "DoS"
-    - "RPM_SPOOFING"
-    - "STEERING_ANGLE_SPOOFING"
-    - "REPLAY"
+    - "spoofing-GAS"
+    - "spoofing-RPM"
+    - "spoofing-SPEED"
+    - "spoofing-STEERING_WHEEL"
+  # Note: "Replay" was listed in concept note but does not exist in released data
 
 sliding_window:
   window_size: 64      # W: number of CAN frames per window
   stride: 32            # overlap between consecutive windows
+  # WARNING: The raw dataset is ~99.7% duplicates (per Stiawan et al., IJAIT 2024).
+  # Deduplication MUST happen before windowing to avoid severe train/test leakage.
 
 normalization:
   method: "min_max"     # eq. 3 in concept note
+  payload_columns: ["DATA_0", "DATA_1", "DATA_2", "DATA_3", "DATA_4", "DATA_5", "DATA_6", "DATA_7"]
   clip_range: [0.0, 1.0]
 
 split:

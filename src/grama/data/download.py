@@ -1,18 +1,19 @@
 """CIC-IoV2024 acquisition helper.
 
-CIC-IoV2024 is NOT available via a direct, scriptable download — the Canadian
-Institute for Cybersecurity (UNB) gates access behind a request form
-(name, affiliation, and intended research use). There is no public API or
-stable bulk-download URL to automate here without violating their access
-terms.
+CIC-IoV2024 is publicly downloadable from:
+  https://www.unb.ca/cic/datasets/iov-dataset-2024.html
+
+The dataset is directly accessible as CSV files (no request form required, contrary
+to earlier assumptions). Column schema:
+  ID, DATA_0, DATA_1, ..., DATA_7, label, category, specific_class
+
+This script validates that downloaded CSVs match the expected schema before
+preprocessing, catching malformed input early.
 
 Workflow:
-  1. Request access: https://www.unb.ca/cic/datasets/iov-dataset-2024.html
-  2. Once approved, download the released CSV(s) and place them under
-     `data/raw/` (see config/data.yaml: dataset.raw_dir).
-  3. Run this script to validate the files actually match what the rest of
-     the pipeline expects (expected columns, non-empty, label values present)
-     before wasting time debugging preprocessing on malformed input.
+  1. Download CSVs from https://www.unb.ca/cic/datasets/iov-dataset-2024.html
+  2. Place them in `data/raw/` (see config/data.yaml: dataset.raw_dir)
+  3. Run: python -m grama.data.download --check
 
 Usage:
     python -m grama.data.download --check
@@ -30,7 +31,7 @@ from grama.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-REQUEST_FORM_URL = "https://www.unb.ca/cic/datasets/iov-dataset-2024.html"
+DOWNLOAD_URL = "https://www.unb.ca/cic/datasets/iov-dataset-2024.html"
 
 
 def find_raw_files(raw_dir: Path) -> list[Path]:
@@ -66,8 +67,8 @@ def main() -> int:
     expected_columns = cfg.dataset["expected_columns"]
 
     if not args.check:
-        logger.info("CIC-IoV2024 requires manual request + download. See:")
-        logger.info("  %s", REQUEST_FORM_URL)
+        logger.info("CIC-IoV2024 is publicly downloadable:")
+        logger.info("  %s", DOWNLOAD_URL)
         logger.info("Place the downloaded CSV(s) in: %s", raw_dir.resolve())
         logger.info("Then re-run: python -m grama.data.download --check")
         return 0
@@ -75,7 +76,7 @@ def main() -> int:
     files = find_raw_files(raw_dir)
     if not files:
         logger.error("No CSV files found in %s.", raw_dir.resolve())
-        logger.error("Request the dataset first: %s", REQUEST_FORM_URL)
+        logger.error("Download the dataset from: %s", DOWNLOAD_URL)
         return 1
 
     all_ok = True

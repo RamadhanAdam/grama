@@ -1,23 +1,19 @@
 # GAT + Mamba + classifier head configuration
 
 graph:
-  # Fixed ECU node vocabulary. Extend/replace with the actual ECU-to-CAN-ID
-  # mapping once the real dataset's CAN ID set is known (Sec 3, Fig 1).
-  ecu_nodes:
-    - "ENGINE"
-    - "TRANSMISSION"
-    - "BRAKES"
-    - "STEERING"
-    - "ADAS"
-    - "GATEWAY"
-    - "INFOTAINMENT"
-    - "BODY_CONTROL"
-  # Edge construction: co-occurrence of two ECUs' CAN IDs within the same
+  # IMPORTANT: The real CICIoV2024 dataset does NOT publish ECU-to-CAN-ID mapping.
+  # Nodes must be inferred from the data itself (i.e., learn a CAN-ID vocabulary
+  # dynamically from unique IDs present in the dataset). Do NOT use a fixed ECU 
+  # name vocabulary — see graph_builder.py for data-driven node construction.
+  # 
+  # Edge construction: co-occurrence of two CAN IDs within the same
   # sliding window forms an edge (Sec 4.1, Phase 1).
   edge_construction: "cooccurrence_window"
 
 gat_encoder:
-  in_features: 11        # dlc + 8 payload bytes + 2 derived (delta_t, freq) — adjust to real feature count
+  # Real feature set: 8 DATA bytes + delta_t (inter-arrival time) + frame_count (burst intensity)
+  # = 10 features (NOT 11; no DLC in real schema).
+  in_features: 10
   hidden_features: 64
   out_features: 64        # d in Z_topo ∈ R^{W×d}
   num_heads: 4
@@ -35,5 +31,6 @@ mamba_block:
 
 classifier_head:
   hidden_dim: 32
-  num_classes: 5           # benign + 4 attack classes (multiclass); set to 2 for binary
+  # Real CICIoV2024 has 6 classes: benign + 5 attack types (DoS, spoofing-GAS, spoofing-RPM, spoofing-SPEED, spoofing-STEERING_WHEEL)
+  num_classes: 6
   dropout: 0.1
