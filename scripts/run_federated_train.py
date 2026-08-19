@@ -72,7 +72,7 @@ def main() -> int:
     fed_cfg = Config.from_yaml(args.federated_config)
     set_seed(42)
 
-    num_nodes = len(model_cfg.graph["ecu_nodes"])
+    num_nodes = model_cfg.graph["synthetic_num_nodes"]
     in_features = model_cfg.gat_encoder["in_features"]
     num_classes = model_cfg.classifier_head["num_classes"]
     num_clients = fed_cfg.simulation["num_clients"]

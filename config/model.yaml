@@ -9,6 +9,7 @@ graph:
   # Edge construction: co-occurrence of two CAN IDs within the same
   # sliding window forms an edge (Sec 4.1, Phase 1).
   edge_construction: "cooccurrence_window"
+  synthetic_num_nodes: 12
 
 gat_encoder:
   # Real feature set: 8 DATA bytes + delta_t (inter-arrival time) + frame_count (burst intensity)
