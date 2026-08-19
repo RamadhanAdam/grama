@@ -15,7 +15,7 @@ COPY src/ ./src/
 
 # Pin torch to a CUDA 12.4-matched wheel (mirrors past Kinesis Dockerfile convention).
 RUN pip3 install --no-cache-dir torch==2.4.1 --index-url https://download.pytorch.org/whl/cu124
-RUN pip3 install --no-cache-dir -e .
+RUN pip3 install --no-cache-dir .
 
 # CUDA Mamba kernel — only buildable here because this image assumes a CUDA-capable
 # node (e.g. Kinesis A100). This step will fail on a CPU-only build; comment out
