@@ -1,0 +1,44 @@
+# CIC-IoV2024 dataset & preprocessing configuration
+
+dataset:
+  name: "CIC-IoV2024"
+  raw_dir: "data/raw"
+  interim_dir: "data/interim"
+  processed_dir: "data/processed"
+  # Expected raw CSV columns per the concept note (Sec 3.1). Adjust to match
+  # whatever column names the actual UNB release ships with.
+  expected_columns:
+    - timestamp
+    - can_id
+    - dlc
+    - d0
+    - d1
+    - d2
+    - d3
+    - d4
+    - d5
+    - d6
+    - d7
+    - label
+
+labels:
+  benign: "BENIGN"
+  attack_classes:
+    - "DoS"
+    - "RPM_SPOOFING"
+    - "STEERING_ANGLE_SPOOFING"
+    - "REPLAY"
+
+sliding_window:
+  window_size: 64      # W: number of CAN frames per window
+  stride: 32            # overlap between consecutive windows
+
+normalization:
+  method: "min_max"     # eq. 3 in concept note
+  clip_range: [0.0, 1.0]
+
+split:
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  stratify_by_label: true
