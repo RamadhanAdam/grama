@@ -61,11 +61,11 @@ class AggregationResult:
 class LatentDensityAggregator:
     def __init__(
         self,
-        latent_dim: int = 8,
+        latent_dim: int = 2,
         autoencoder_hidden: int = 32,
         autoencoder_epochs: int = 10,
         min_cluster_size: int = 3,
-        min_samples: int = 2,
+        min_samples: int = 1,
         cluster_selection_epsilon: float = 0.0,
         device: str = "cpu",
     ):
