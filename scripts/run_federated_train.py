@@ -32,6 +32,25 @@ from grama.utils.seed import set_seed
 logger = get_logger(__name__)
 
 
+class RealWindowSequenceDataset(Dataset):
+    """Loads the tensors produced by scripts/build_real_dataset.py."""
+
+    def __init__(self, processed_path: str):
+        payload = torch.load(processed_path)
+        self.node_features = payload["node_features"]
+        self.adjacency = payload["adjacency"]
+        self.labels = payload["labels"]
+        self.num_nodes = payload["num_nodes"]
+        self.in_features = payload["in_features"]
+        self.num_classes = payload["num_classes"]
+
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+        return self.node_features[idx], self.adjacency[idx], self.labels[idx]
+
+
 class SyntheticWindowSequenceDataset(Dataset):
     """Random (node_features, adjacency, label) tuples with real GraMa shapes,
     for pipeline validation before the actual dataset is available."""
@@ -57,6 +76,9 @@ class SyntheticWindowSequenceDataset(Dataset):
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--synthetic", action="store_true", help="Use random data to validate the pipeline")
+    parser.add_argument("--real", action="store_true", help="Use the real preprocessed CIC-IoV2024 dataset")
+    parser.add_argument("--processed-path", default="data/processed/dataset.pt",
+                         help="Path to the .pt file from scripts/build_real_dataset.py (--real mode only)")
     parser.add_argument("--rounds", type=int, default=None, help="Override config/federated.yaml num_rounds")
     parser.add_argument("--model-config", default="config/model.yaml")
     parser.add_argument("--federated-config", default="config/federated.yaml")
@@ -71,30 +93,36 @@ def main() -> int:
                               "--rounds then means additional rounds to run from that point.")
     args = parser.parse_args()
 
-    if not args.synthetic:
-        logger.error("Real-data mode not wired yet — preprocessing depends on the actual CIC-IoV2024 "
-                      "column layout (see src/grama/data/download.py). Run with --synthetic for now.")
+    if not args.synthetic and not args.real:
+        logger.error("Pass --synthetic (random data, pipeline check) or --real (preprocessed "
+                      "CIC-IoV2024 from scripts/build_real_dataset.py).")
         return 1
 
     model_cfg = Config.from_yaml(args.model_config)
     fed_cfg = Config.from_yaml(args.federated_config)
     set_seed(42)
 
-    num_nodes = model_cfg.graph["synthetic_num_nodes"]
-    in_features = model_cfg.gat_encoder["in_features"]
-    num_classes = model_cfg.classifier_head["num_classes"]
     num_clients = fed_cfg.simulation["num_clients"]
 
-    logger.info("Building synthetic dataset: %d clients, %d ECU nodes, seq_len=%d", num_clients, num_nodes, args.seq_len)
-
-    full_dataset = SyntheticWindowSequenceDataset(
-        num_samples=num_clients * 40,
-        seq_len=args.seq_len,
-        num_nodes=num_nodes,
-        in_features=in_features,
-        num_classes=num_classes,
-        seed=42,
-    )
+    if args.real:
+        logger.info("Loading real dataset from %s", args.processed_path)
+        full_dataset = RealWindowSequenceDataset(args.processed_path)
+        num_nodes = full_dataset.num_nodes
+        logger.info("Real dataset: %d sequences, %d CAN-ID nodes, %d classes",
+                     len(full_dataset), num_nodes, full_dataset.num_classes)
+    else:
+        num_nodes = model_cfg.graph["synthetic_num_nodes"]
+        in_features = model_cfg.gat_encoder["in_features"]
+        num_classes = model_cfg.classifier_head["num_classes"]
+        logger.info("Building synthetic dataset: %d clients, %d ECU nodes, seq_len=%d", num_clients, num_nodes, args.seq_len)
+        full_dataset = SyntheticWindowSequenceDataset(
+            num_samples=num_clients * 40,
+            seq_len=args.seq_len,
+            num_nodes=num_nodes,
+            in_features=in_features,
+            num_classes=num_classes,
+            seed=42,
+        )
 
     client_indices = dirichlet_partition(
         labels=full_dataset.labels.numpy(),
