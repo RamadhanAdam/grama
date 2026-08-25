@@ -61,6 +61,14 @@ def main() -> int:
     parser.add_argument("--model-config", default="config/model.yaml")
     parser.add_argument("--federated-config", default="config/federated.yaml")
     parser.add_argument("--seq-len", type=int, default=8, help="Windows per sequence (synthetic mode only)")
+    parser.add_argument("--checkpoint-dir", default=None,
+                         help="Directory to write latest.pt + history.jsonl to after each round "
+                              "(or every --checkpoint-every rounds). Omit to disable checkpointing.")
+    parser.add_argument("--checkpoint-every", type=int, default=1,
+                         help="Write a checkpoint every N rounds (default: every round).")
+    parser.add_argument("--resume", default=None,
+                         help="Path to a checkpoint (e.g. <checkpoint-dir>/latest.pt) to resume from. "
+                              "--rounds then means additional rounds to run from that point.")
     args = parser.parse_args()
 
     if not args.synthetic:
@@ -124,9 +132,19 @@ def main() -> int:
         local_epochs=fed_cfg.simulation["local_epochs"],
     )
 
+    if args.resume:
+        prior_summaries = server.load_checkpoint(args.resume)
+        logger.info("Resumed: %d prior round(s) completed (last avg_local_loss=%.4f)",
+                     len(prior_summaries), prior_summaries[-1].avg_local_loss if prior_summaries else float("nan"))
+
     num_rounds = args.rounds or fed_cfg.simulation["num_rounds"]
-    logger.info("Starting federated training: %d rounds, %d/%d clients per round", num_rounds, server.clients_per_round, len(clients))
-    history = server.run(num_rounds)
+    logger.info(
+        "Running %d %sround(s) from round %d, %d/%d clients per round%s",
+        num_rounds, "additional " if args.resume else "",
+        server.last_round_num + 1, server.clients_per_round, len(clients),
+        f" | checkpointing to {args.checkpoint_dir} every {args.checkpoint_every} round(s)" if args.checkpoint_dir else "",
+    )
+    history = server.run(num_rounds, checkpoint_dir=args.checkpoint_dir, checkpoint_every=args.checkpoint_every)
 
     for record in history:
         logger.info(
@@ -137,7 +155,8 @@ def main() -> int:
             sum(1 for w in record.aggregation.trust_weights.values() if w == 0.0),
         )
 
-    logger.info("Done. This validated the pipeline end-to-end on synthetic data — swap in real CIC-IoV2024 tensors next.")
+    logger.info("Done — %d round(s) completed total. This validated the pipeline end-to-end on "
+                 "synthetic data; swap in real CIC-IoV2024 tensors next.", server.last_round_num)
     return 0
 
 

@@ -12,8 +12,9 @@ graph:
   synthetic_num_nodes: 12
 
 gat_encoder:
-  # Real feature set: 8 DATA bytes + delta_t (inter-arrival time) + frame_count (burst intensity)
-  # = 10 features (NOT 11; no DLC in real schema).
+  # Real feature set: 8 DATA bytes + frame_count + burst_flag = 10 features
+  # (NOT 11; no DLC and no timestamp/delta_t in the real CICIoV2024 schema —
+  # see graph_builder.py's CANIDGraph construction, which is the source of truth).
   in_features: 10
   hidden_features: 64
   out_features: 64        # d in Z_topo ∈ R^{W×d}
