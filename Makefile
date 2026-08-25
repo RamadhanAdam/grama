@@ -1,5 +1,4 @@
-.PHONY: install install-cuda data preprocess train train-synthetic baseline test lint docker-build clean
-
+.PHONY: install install-cuda data preprocess train train-synthetic baseline test lint docker-build clean zip
 PYTHON ?= python
 
 install:
@@ -38,3 +37,24 @@ docker-build:
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	rm -rf .pytest_cache .coverage htmlcov
+
+zip:
+	@echo "Creating grama.zip..."
+	@zip -r grama.zip . \
+		-x ".git/*" \
+		-x "*.pyc" \
+		-x "__pycache__/*" \
+		-x "*/__pycache__/*" \
+		-x ".pytest_cache/*" \
+		-x "htmlcov/*" \
+		-x ".coverage" \
+		-x "*.egg-info/*" \
+		-x "venv/*" \
+		-x ".venv/*" \
+		-x "data/*" \
+		-x "*.ckpt" \
+		-x "*.pt" \
+		-x "*.pth" \
+		-x ".DS_Store" \
+		-x "grama.zip"
+	@echo "Done: grama.zip"
