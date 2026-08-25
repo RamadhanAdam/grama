@@ -11,12 +11,12 @@ simulation:
 
 aggregator:
   # Server-side latent density defense (Sec 5.3 / eq. 11-15)
-  latent_dim: 8                 # dimensionality of phi(Δw_k) projection
+  latent_dim: 2                 # dimensionality of phi(Δw_k) projection
   autoencoder_hidden: 32
   autoencoder_epochs: 10          # trained once per round on incoming Δw's, or reused/warm-started
   hdbscan:
     min_cluster_size: 3
-    min_samples: 2
+    min_samples: 1
     cluster_selection_epsilon: 0.0
   # If HDBSCAN finds >1 non-noise cluster, the largest is treated as C_benign (eq. 13-15).
 
