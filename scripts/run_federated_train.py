@@ -33,13 +33,19 @@ logger = get_logger(__name__)
 
 
 class RealWindowSequenceDataset(Dataset):
-    """Loads the tensors produced by scripts/build_real_dataset.py."""
+    """Loads the tensors produced by scripts/build_real_dataset.py.
 
-    def __init__(self, processed_path: str):
-        payload = torch.load(processed_path)
-        self.node_features = payload["node_features"]
-        self.adjacency = payload["adjacency"]
-        self.labels = payload["labels"]
+    split: "train" (default, for federated training) or "test" (held out,
+    time-based per source file — for evaluation only, never train on this).
+    """
+
+    def __init__(self, processed_path: str, split: str = "train"):
+        payload = torch.load(processed_path, weights_only=False)
+        if f"{split}_labels" not in payload:
+            raise KeyError(f"No '{split}' split in {processed_path} — rebuild with scripts/build_real_dataset.py")
+        self.node_features = payload[f"{split}_node_features"]
+        self.adjacency = payload[f"{split}_adjacency"]
+        self.labels = payload[f"{split}_labels"]
         self.num_nodes = payload["num_nodes"]
         self.in_features = payload["in_features"]
         self.num_classes = payload["num_classes"]
