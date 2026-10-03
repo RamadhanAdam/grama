@@ -6,121 +6,122 @@
 <title>How GraMa works</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* Layout: a workshop manual. Numbered chapters (the order is the pipeline), text on the left, a live schematic sheet on the right. */
+/* Layout: one column, like the rest of ramadhanadam.github.io: an essay with live figures between the paragraphs. */
 :root {
-  --bg: #F1F3F4; --sheet: #FFFFFF; --ink: #131A21; --ink-2: #46525D; --ink-3: #7A8590; --rule: #D6DCE0;
-  --can-h: #B5740F; --can-l: #23805A; --attack: #C2352C; --model: #4251C4; --steer: #8A4FB0;
-  --tyre: #1C2329; --hub: #8A949D;
-  --display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
-  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --sheet: #fafaf8; --bg: #f2f1ee; --ink: #1a1a1a; --ink-2: #555049; --ink-3: #8c867c; --rule: #e0ddd8;
+  --accent: #8a3324;
+  --can-h: #a8741a; --can-l: #3d6e4e; --attack: #b5372a; --model: #2f5d8a; --steer: #6d4a8a;
+  --tyre: #2a2826; --hub: #9a948a;
+  --serif: "EB Garamond", Georgia, "Times New Roman", serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0D1216; --sheet: #141B21; --ink: #E4E9ED; --ink-2: #A7B1BA; --ink-3: #74808A; --rule: #26313B;
-    --can-h: #E0A33D; --can-l: #4DB582; --attack: #EE5D53; --model: #8E98F2; --steer: #BC8EDC; --tyre: #3A444D; --hub: #6B7680; color-scheme: dark;
+    --sheet: #141413; --bg: #1e1e1c; --ink: #e8e6e1; --ink-2: #b3aea5; --ink-3: #7d786f; --rule: #2c2b28;
+    --accent: #e3a77c; --can-h: #d6a24a; --can-l: #86b496; --attack: #e0705f; --model: #8fb3d9; --steer: #b39ad1;
+    --tyre: #3a3834; --hub: #6f6a62; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0D1216; --sheet: #141B21; --ink: #E4E9ED; --ink-2: #A7B1BA; --ink-3: #74808A; --rule: #26313B;
-  --can-h: #E0A33D; --can-l: #4DB582; --attack: #EE5D53; --model: #8E98F2; --steer: #BC8EDC; --tyre: #3A444D; --hub: #6B7680; color-scheme: dark;
+  --sheet: #141413; --bg: #1e1e1c; --ink: #e8e6e1; --ink-2: #b3aea5; --ink-3: #7d786f; --rule: #2c2b28;
+  --accent: #e3a77c; --can-h: #d6a24a; --can-l: #86b496; --attack: #e0705f; --model: #8fb3d9; --steer: #b39ad1;
+  --tyre: #3a3834; --hub: #6f6a62; color-scheme: dark;
 }
 * { box-sizing: border-box; }
-body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.6; margin: 0; padding: 0 20px; padding-block: 0; }
-.page { max-width: 1140px; margin: 0 auto; padding-block: 40px 64px; }
-a { color: var(--model); text-underline-offset: 3px; }
-a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--model); outline-offset: 2px; }
-code, .mono { font-family: var(--mono); font-size: 0.86em; }
-.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
-h1 { font-family: var(--display); font-weight: 600; font-size: clamp(2.6rem, 6vw, 4.2rem); line-height: 1; margin: 10px 0 14px; letter-spacing: 0.01em; text-wrap: balance; }
-h2 { font-family: var(--display); font-weight: 600; font-size: 2rem; line-height: 1.05; margin: 6px 0 14px; text-wrap: balance; }
-.lede { font-size: 1.12rem; color: var(--ink-2); max-width: 62ch; margin: 0; }
-.toc { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 26px 0 0; padding: 0; list-style: none; font-size: 15px; }
+body { background: var(--sheet); color: var(--ink); font-family: var(--serif); font-size: 20px; line-height: 1.6; margin: 0; padding: 0 20px; padding-block: 0; -webkit-font-smoothing: antialiased; }
+.page { max-width: 720px; margin: 0 auto; padding-block: 52px 64px; }
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+a:hover { text-decoration-color: currentColor; }
+a:focus-visible, button:focus-visible, input:focus-visible, g[role="button"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code { font-family: var(--mono); font-size: 0.74em; }
+.mono { font-family: var(--mono); }
+.byline { font-family: var(--mono); font-size: 0.68rem; color: var(--ink-3); letter-spacing: 0.04em; }
+h1 { font-weight: 500; font-size: 2.3rem; line-height: 1.1; margin: 8px 0 16px; letter-spacing: -0.005em; text-wrap: balance; }
+.lede { margin: 0; }
+.toc { list-style: none; margin: 22px 0 0; padding: 0; font-family: var(--mono); font-size: 0.68rem; display: flex; flex-wrap: wrap; gap: 4px 18px; text-transform: lowercase; }
 .toc a { color: var(--ink-2); text-decoration: none; }
-.toc a:hover { color: var(--model); }
-.toc .n { font-family: var(--mono); color: var(--ink-3); margin-right: 6px; font-size: 12px; }
-.ch { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 44px; padding-block: 56px; border-top: 1px solid var(--rule); scroll-margin-top: 12px; }
-.ch:first-of-type { margin-top: 44px; }
-.text p { margin: 0 0 14px; color: var(--ink-2); max-width: 62ch; }
-.text p strong { color: var(--ink); font-weight: 600; }
-.num { font-family: var(--mono); font-size: 12px; color: var(--ink-3); letter-spacing: 0.06em; }
-.code-ref { font-size: 14px; color: var(--ink-3); border-top: 1px dashed var(--rule); padding-top: 10px; margin-top: 18px; }
-.code-ref code { color: var(--ink-2); }
-.sheet { background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; min-width: 0; display: flex; flex-direction: column; gap: 12px; align-self: start; }
-.fig { overflow-x: auto; }
+.toc a:hover { color: var(--accent); }
+.toc .n { color: var(--ink-3); margin-right: 6px; }
+.ch { margin-top: 48px; scroll-margin-top: 16px; }
+h2 { font-family: var(--mono); font-weight: 400; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 14px; padding-bottom: 6px; border-bottom: 1px solid var(--rule); }
+h2 .n { margin-right: 10px; }
+.text p { margin: 0 0 14px; }
+.code-ref { font-size: 0.9rem; color: var(--ink-2); }
+.code-ref code { font-size: 0.8em; }
+.sheet { margin: 22px 0 6px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.fig { overflow-x: auto; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 10px 0; }
 .fig svg { display: block; width: 100%; min-width: 520px; height: auto; }
-#plot7 { max-width: 620px; margin: 0 auto; }
-#graph4 { max-width: 520px; margin: 0 auto; }
-.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
-.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 5px; overflow: hidden; }
-.seg button { font: 500 14px var(--body); color: var(--ink-2); background: transparent; border: 0; border-right: 1px solid var(--rule); padding: 6px 12px; cursor: pointer; }
-.seg button:last-child { border-right: 0; }
-.seg button[aria-pressed="true"] { background: var(--ink); color: var(--sheet); }
-.btn { font: 500 14px var(--body); color: var(--ink); background: transparent; border: 1px solid var(--rule); border-radius: 5px; padding: 6px 12px; cursor: pointer; }
-.btn:hover { border-color: var(--ink-3); }
-.ctl-label { font-size: 13px; color: var(--ink-3); }
-.caption { font-size: 13.5px; color: var(--ink-3); margin: 0; }
-.log { font-family: var(--mono); font-size: 12.5px; line-height: 1.55; background: var(--bg); border: 1px solid var(--rule); border-radius: 4px; padding: 8px 10px; height: calc(10 * 1.55em + 16px); overflow: hidden; white-space: pre; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+#plot7 { max-width: 600px; margin: 0 auto; }
+#graph4 { max-width: 480px; margin: 0 auto; }
+.controls { display: flex; flex-wrap: wrap; gap: 6px 22px; align-items: center; font-family: var(--mono); font-size: 0.66rem; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px 16px; }
+.seg button, .btn { font: 400 0.66rem var(--mono); color: var(--ink-3); background: none; border: 0; padding: 2px 0; cursor: pointer; text-transform: lowercase; letter-spacing: 0.02em; }
+.seg button:hover, .btn:hover { color: var(--accent); }
+.seg button[aria-pressed="true"] { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
+.btn::before { content: "↻ "; }
+.ctl-label { font-family: var(--mono); font-size: 0.66rem; color: var(--ink-3); text-transform: lowercase; }
+.caption { font-size: 0.88rem; font-style: italic; color: var(--ink-2); margin: 0; }
+.log { font-family: var(--mono); font-size: 0.62rem; line-height: 1.6; background: var(--bg); padding: 8px 10px; height: calc(10 * 1.6em + 16px); overflow: hidden; white-space: pre; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .log .id { color: var(--ink); font-weight: 500; }
 .log .atk, .log .atk .id { color: var(--attack); }
 .readouts { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: flex-start; }
-.meter { min-width: 180px; flex: 1; }
-.meter .track { height: 8px; background: var(--bg); border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+.meter { min-width: 170px; flex: 1; }
+.meter .track { height: 6px; background: var(--bg); margin-top: 6px; }
 .meter .fill { height: 100%; width: 0; background: var(--can-l); transition: width 0.25s linear, background 0.25s; }
-.speedo { font-family: var(--mono); }
-.speedo .v { font-size: 28px; font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
+.speedo { font-family: var(--mono); font-size: 0.66rem; color: var(--ink-3); }
+.speedo .v { font-size: 1.5rem; font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
 .speedo.bad .v { color: var(--attack); }
-.twocol { display: grid; grid-template-columns: minmax(0, 210px) minmax(0, 1fr); gap: 14px; }
-.frames { font-family: var(--mono); font-size: 12.5px; line-height: 1.5; margin: 0; padding: 0; list-style: none; }
-.frames li { padding: 0 6px; border-radius: 3px; color: var(--ink-3); white-space: nowrap; }
+.twocol { display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr); gap: 14px; }
+.frames { font-family: var(--mono); font-size: 0.6rem; line-height: 1.6; margin: 0; padding: 0; list-style: none; }
+.frames li { padding: 0 4px; color: var(--ink-3); white-space: nowrap; }
 .frames li.done { color: var(--ink-2); }
 .frames li.now { background: var(--bg); color: var(--ink); }
 .frames li.atk { color: var(--attack); }
-.feat { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; align-items: end; height: 64px; max-width: 340px; margin-top: 8px; border-bottom: 1px solid var(--rule); }
-.featx { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; max-width: 340px; font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); text-align: center; }
-.feat div { background: var(--model); opacity: 0.75; border-radius: 2px 2px 0 0; min-height: 2px; }
-.featinfo { font-size: 13.5px; color: var(--ink-2); }
-.bars { display: grid; grid-template-columns: 90px minmax(0, 1fr) 46px; gap: 6px 10px; align-items: center; font-size: 14px; }
-.bars .track { height: 10px; background: var(--bg); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+.feat { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; align-items: end; height: 60px; max-width: 320px; margin-top: 8px; border-bottom: 1px solid var(--rule); }
+.feat div { background: var(--model); opacity: 0.8; min-height: 2px; }
+.featx { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; max-width: 320px; font-family: var(--mono); font-size: 0.55rem; color: var(--ink-3); text-align: center; }
+.featinfo { font-size: 0.9rem; color: var(--ink-2); }
+.bars { display: grid; grid-template-columns: 80px minmax(0, 1fr) 44px; gap: 6px 10px; align-items: center; font-family: var(--mono); font-size: 0.62rem; color: var(--ink-2); }
+.bars .track { height: 8px; background: var(--bg); }
 .bars .fill { height: 100%; width: 0; background: var(--ink-3); transition: width 0.6s ease; }
-.bars .pct { font-family: var(--mono); font-size: 13px; color: var(--ink-3); text-align: right; font-variant-numeric: tabular-nums; }
-.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--ink-2); }
-.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
-.status { font-size: 14px; color: var(--ink-2); min-height: 1.6em; }
-.status b { color: var(--ink); font-weight: 600; }
-input[type="range"] { width: 220px; accent-color: var(--model); }
-.readline { font-size: 14px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-.readline b { color: var(--ink); font-weight: 600; }
-table { border-collapse: collapse; width: 100%; font-size: 14.5px; font-variant-numeric: tabular-nums; }
-th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
-th { font-weight: 600; color: var(--ink); font-size: 13px; }
+.bars .pct { color: var(--ink-3); text-align: right; font-variant-numeric: tabular-nums; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-family: var(--mono); font-size: 0.6rem; color: var(--ink-2); }
+.legend i { display: inline-block; width: 9px; height: 9px; margin-right: 5px; vertical-align: -1px; }
+.status { font-size: 0.9rem; color: var(--ink-2); min-height: 1.6em; }
+.status b { color: var(--ink); font-weight: 500; }
+input[type="range"] { width: 200px; accent-color: var(--accent); }
+.readline { font-size: 0.9rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.readline b { color: var(--ink); font-weight: 500; }
+table { border-collapse: collapse; width: 100%; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 5px 8px 5px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: var(--mono); font-weight: 400; font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
 td { color: var(--ink-2); }
 td.r, th.r { text-align: right; }
 .tablewrap { overflow-x: auto; }
-pre.cmd { font-family: var(--mono); font-size: 13px; background: var(--bg); border: 1px solid var(--rule); border-radius: 4px; padding: 10px 12px; overflow-x: auto; margin: 0; color: var(--ink); }
-footer { border-top: 1px solid var(--rule); padding-top: 18px; font-size: 14px; color: var(--ink-3); }
-svg .lbl { font: 500 14px var(--body); fill: var(--ink-2); }
-svg .lbl-s { font: 400 13px var(--body); fill: var(--ink-3); }
+pre.cmd { font-family: var(--mono); font-size: 0.62rem; background: var(--bg); padding: 10px 12px; overflow-x: auto; margin: 0; color: var(--ink); }
+footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 0.64rem; color: var(--ink-3); }
+footer a { color: var(--ink-2); }
+svg .lbl { font: 400 12.5px var(--mono); fill: var(--ink-2); }
+svg .lbl-s { font: 400 12px var(--mono); fill: var(--ink-3); }
 svg .mono-s { font: 500 12px var(--mono); fill: var(--ink); }
-svg .disp { font: 600 20px var(--display); fill: var(--ink); }
+svg .disp { font: 500 21px var(--serif); fill: var(--ink); }
 svg .ecu rect { fill: var(--sheet); stroke: var(--ink-3); stroke-width: 1; transition: fill 0.15s, stroke 0.15s; }
-svg .ecu text { font: 500 13px var(--body); fill: var(--ink); }
+svg .ecu text { font: 400 11.5px var(--mono); fill: var(--ink); }
 svg .ecu.tx rect { stroke: var(--can-h); fill: color-mix(in srgb, var(--can-h) 16%, var(--sheet)); }
 svg .ecu.atk rect { stroke: var(--attack); fill: color-mix(in srgb, var(--attack) 14%, var(--sheet)); }
 svg .ecu.atk text { fill: var(--attack); }
-@media (max-width: 1200px) { .ch { grid-template-columns: minmax(0, 1fr); gap: 22px; } .text p { max-width: 70ch; } }
-@media (max-width: 560px) { body { font-size: 16px; } .twocol { grid-template-columns: minmax(0, 1fr); } h2 { font-size: 1.7rem; } }
+@media (max-width: 560px) { body { font-size: 18px; } h1 { font-size: 1.9rem; } .twocol { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .meter .fill, .bars .fill { transition: none; } }
 </style>
 </head>
 <body>
 <div class="page">
   <header>
-    <div class="eyebrow">GraMa · federated intrusion detection for in-vehicle networks</div>
+    <div class="byline">GraMa · <a href="https://ramadhanadam.github.io">Ramadhan Adam Zome</a></div>
     <h1>How GraMa works</h1>
-    <p class="lede">A car's computers talk on a bus that trusts every message. GraMa watches that traffic as a graph that changes over time, learns across many cars without collecting their data, and keeps hacked cars from poisoning what everyone learns. Each chapter below runs live; the controls change what you see.</p>
+    <p class="lede">The computers in a car talk over a bus that trusts every message. GraMa watches that traffic, learns from many cars without collecting their data, and tries to keep hacked cars from spoiling what the others learn. The figures below run live, and most of them have controls.</p>
     <ol class="toc">
       <li><a href="#bus"><span class="n">01</span>Inside the car</a></li>
       <li><a href="#attacks"><span class="n">02</span>Attacks on the bus</a></li>
@@ -135,10 +136,9 @@ svg .ecu.atk text { fill: var(--attack); }
 
   <section class="ch" id="bus">
     <div class="text">
-      <div class="num">01</div>
-      <h2>Inside the car</h2>
-      <p>A modern car has dozens of small computers called <strong>ECUs</strong>: one for the engine, one for the brakes, one for the dashboard, and so on. They share one pair of wires, the <strong>CAN bus</strong>, and every message is heard by every ECU.</p>
-      <p>A message is tiny: an <strong>ID</strong> that says what it is about (and sets its priority; a lower ID wins) and up to <strong>8 bytes</strong> of data. There is no sender address and no signature. Any device on the bus can send any ID.</p>
+      <h2><span class="n">01</span>Inside the car</h2>
+      <p>A modern car has dozens of small computers called ECUs: one for the engine, one for the brakes, one for the dashboard, and so on. They share one pair of wires, the CAN bus, and every message is heard by every ECU.</p>
+      <p>A message is tiny: an ID that says what it is about (and sets its priority; a lower ID wins) and up to 8 bytes of data. There is no sender address and no signature. Any device on the bus can send any ID.</p>
       <p>The log under the car is what a diagnostic tool would print, in the same format as Linux <code>candump</code>: time, interface, ID in hex, length, then the bytes.</p>
       <p class="code-ref">The data: <a href="https://www.unb.ca/cic/datasets/iov-dataset-2024.html">CIC-IoV2024</a>, recorded on a 2019 Ford. The dataset doesn't say which ECU sends which ID, so the pairing in the picture is made up; the IDs are real ones from its benign traffic.</p>
     </div>
@@ -151,11 +151,10 @@ svg .ecu.atk text { fill: var(--attack); }
 
   <section class="ch" id="attacks">
     <div class="text">
-      <div class="num">02</div>
-      <h2>Attacks on the bus</h2>
-      <p>Anyone who gets a device onto the bus, through the diagnostic (OBD) port or a hacked ECU, can send messages too. CIC-IoV2024 records two kinds of attack.</p>
-      <p><strong>Denial of service:</strong> the attacker floods the bus with a high-priority ID. Real messages keep losing the race for the wire and arrive late or not at all.</p>
-      <p><strong>Spoofing:</strong> the attacker sends believable-looking messages with false values, here a speed, so whichever ECU trusts them acts on a lie. The dataset spoofs gas pedal, RPM, speed and steering-wheel data.</p>
+      <h2><span class="n">02</span>Attacks on the bus</h2>
+      <p>Anyone who gets a device onto the bus, through the diagnostic (OBD) port or a hacked ECU, can send messages too. CIC-IoV2024 has two kinds of attack.</p>
+      <p>In a denial of service attack, the attacker floods the bus with a high-priority ID, so real messages lose the race for the wire and arrive late or not at all.</p>
+      <p>In a spoofing attack, the attacker sends messages with false values, here a speed, and any ECU that trusts them acts on wrong data. The dataset spoofs gas pedal, RPM, speed and steering-wheel data.</p>
       <p>The frames in the log are the real attack frames from the dataset: DoS used ID <code>0x123</code> (291), and speed spoofing used <code>0x158</code> (344). None of the attack IDs ever appears in the car's normal traffic.</p>
       <p class="code-ref">In the code: the six CSV files are read by <code>src/grama/data/build.py</code>; each file's class comes from its name.</p>
     </div>
@@ -179,10 +178,9 @@ svg .ecu.atk text { fill: var(--attack); }
 
   <section class="ch" id="windows">
     <div class="text">
-      <div class="num">03</div>
-      <h2>Windows of traffic</h2>
-      <p>GraMa doesn't judge one message at a time. It cuts the stream into <strong>windows of 64 messages</strong>, each starting 32 messages after the last, so neighbouring windows overlap by half.</p>
-      <p>It then reads <strong>8 windows in a row</strong> as one sequence: 288 messages, well under a second of traffic on a busy bus. The sequence gets the label of its last window, so the question is always "is this happening now?".</p>
+      <h2><span class="n">03</span>Windows of traffic</h2>
+      <p>GraMa doesn't judge one message at a time. It cuts the stream into windows of 64 messages, each starting 32 messages after the last, so neighbouring windows overlap by half.</p>
+      <p>It then reads 8 windows in a row as one sequence: 288 messages, well under a second of traffic on a busy bus. The sequence gets the label of its last window, so the question is always "is this happening now?".</p>
       <p>Here the last part of the stream has spoofed frames mixed in (red), so the last windows, and therefore the sequence, count as an attack.</p>
       <p class="code-ref">In the code: <code>window_stream()</code> in <code>src/grama/data/build.py</code>; the sizes are in <code>config/data.yaml</code>.</p>
     </div>
@@ -194,11 +192,10 @@ svg .ecu.atk text { fill: var(--attack); }
 
   <section class="ch" id="graph">
     <div class="text">
-      <div class="num">04</div>
-      <h2>Traffic as a graph</h2>
-      <p>Each window becomes a small graph. Every message ID seen in the window is a <strong>node</strong>, and two IDs are joined by an <strong>edge</strong> when a message with one is followed directly by a message with the other. In normal driving the same IDs follow each other in the same rhythm, so the graph keeps a familiar shape.</p>
+      <h2><span class="n">04</span>Traffic as a graph</h2>
+      <p>Each window becomes a small graph. Every message ID seen in the window is a node, and two IDs are joined by an edge when a message with one is followed directly by a message with the other. In normal driving the same IDs follow each other in the same rhythm, so the graph keeps a familiar shape.</p>
       <p>Injected messages break that rhythm. The spoofed ID shows up as a new node wedged between the real ones, with edges to everything around it.</p>
-      <p>Each node also carries <strong>10 numbers</strong>: the average of each of its 8 bytes in this window, its share of the window's messages, and whether it sent more than an average node (a burst). Click a node to see them.</p>
+      <p>Each node also carries 10 numbers: the average of each of its 8 bytes in this window, its share of the window's messages, and whether it sent more than an average node (a burst). Click a node to see them.</p>
       <p class="code-ref">In the code: node features in <code>src/grama/data/build.py</code>, edges in <code>src/grama/data/dataset.py</code>. The real windows have 64 messages; this one shows 16.</p>
     </div>
     <div class="sheet">
@@ -207,7 +204,7 @@ svg .ecu.atk text { fill: var(--attack); }
           <button type="button" data-v="normal" aria-pressed="true">Normal window</button>
           <button type="button" data-v="spoof" aria-pressed="false">Window with spoofing</button>
         </div>
-        <button class="btn" type="button" id="replay4">Replay</button>
+        <button class="btn" type="button" id="replay4">replay</button>
       </div>
       <div class="twocol">
         <ol class="frames" id="frames4" aria-label="Messages in the window"></ol>
@@ -223,10 +220,9 @@ svg .ecu.atk text { fill: var(--attack); }
 
   <section class="ch" id="model">
     <div class="text">
-      <div class="num">05</div>
-      <h2>The model</h2>
-      <p><strong>Graph attention</strong> reads each window's graph. Every node looks at its neighbours and decides how much each one matters, then the nodes are combined into one summary of the window. A node with nothing like it in normal traffic stands out.</p>
-      <p><strong>Mamba</strong> then reads the 8 summaries in order and carries a memory from one to the next, so a change that builds over several windows is noticed. It is a state-space model: like a recurrent network, but built to stay fast on long sequences.</p>
+      <h2><span class="n">05</span>The model</h2>
+      <p>Graph attention reads each window's graph. Every node looks at its neighbours and decides how much each one matters, then the nodes are combined into one summary of the window. A node with nothing like it in normal traffic stands out.</p>
+      <p>Mamba then reads the 8 summaries in order and carries a memory from one to the next, so a change that builds over several windows is noticed. It is a state-space model, which works like a recurrent network but stays fast on long sequences.</p>
       <p>A small classifier turns the final memory into a verdict: normal, or which attack.</p>
       <p class="code-ref">In the code: <code>src/grama/models/gat_encoder.py</code>, <code>mamba_block.py</code> and <code>classifier_head.py</code>. About 78,000 numbers in total, about 300 KB.</p>
     </div>
@@ -244,9 +240,8 @@ svg .ecu.atk text { fill: var(--attack); }
 
   <section class="ch" id="federated">
     <div class="text">
-      <div class="num">06</div>
-      <h2>Learning across cars</h2>
-      <p>One car sees only its own traffic. To learn from many cars without collecting anyone's driving data, GraMa uses <strong>federated learning</strong>. Each round, some cars train the detector on their own traffic and send back only the change to the model, their <strong>update</strong>. The server combines the updates and sends the improved model to every car.</p>
+      <h2><span class="n">06</span>Learning across cars</h2>
+      <p>One car sees only its own traffic. To learn from many cars without collecting anyone's driving data, GraMa uses federated learning. Each round, some cars train the detector on their own traffic and send back only the change to the model, their update. The server combines the updates and sends the improved model to every car.</p>
       <p>Cars don't all see the same traffic. One might log mostly normal driving, another happened to be attacked a lot. The slider sets how different they are. Far left, each car sees mostly one kind of traffic; this is the hard case.</p>
       <p>In the experiments there are 20 cars, 10 take part in each round, and training runs for 30 rounds.</p>
       <p class="code-ref">In the code: <code>src/grama/federated/client.py</code> and <code>server.py</code>; the split between cars in <code>src/grama/data/federated_split.py</code> (a Dirichlet split, the standard way to make uneven clients).</p>
@@ -265,11 +260,10 @@ svg .ecu.atk text { fill: var(--attack); }
 
   <section class="ch" id="defence">
     <div class="text">
-      <div class="num">07</div>
-      <h2>Hacked cars and the defence</h2>
-      <p>A hacked car can send a poisoned update. The experiments try four ways: <strong>label flipping</strong> (train on wrong answers), <strong>targeted flipping</strong> (teach the model that attacks are normal), <strong>magnitude poisoning</strong> (blow the update up ten times) and <strong>ALIE</strong> ("a little is enough": a carefully small push that hides inside the honest spread).</p>
-      <p>Plain averaging (<strong>FedAvg</strong>) lets every update in. <strong>Norm clipping</strong> shrinks oversized ones. <strong>FLAME</strong> groups updates by direction and clips. <strong>GraMa's defence</strong> squeezes each update into a small map, finds the dense group of honest cars with HDBSCAN, and drops the ones far from it.</p>
-      <p>The picture is a 2D sketch: real updates have about 78,000 numbers each, so the groups overlap far more than here. How much they overlap, and which defence copes best, is what the experiments measure.</p>
+      <h2><span class="n">07</span>Hacked cars and the defence</h2>
+      <p>A hacked car can send a poisoned update. The experiments try four ways. Label flipping trains on wrong answers. Targeted flipping teaches the model that attacks are normal. Magnitude poisoning makes the update ten times bigger. ALIE ("a little is enough") makes a small push that hides inside the spread of the honest updates.</p>
+      <p>Plain averaging (FedAvg) lets every update in. Norm clipping shrinks oversized ones. FLAME groups updates by direction, then clips them. GraMa's defence squeezes each update into a small map, finds the dense group of honest cars with HDBSCAN, and drops the updates far from it.</p>
+      <p>The picture is a 2D sketch. Real updates have about 78,000 numbers each and overlap far more than these points do. How much they overlap, and which defence copes, is what the experiments measure.</p>
       <p class="code-ref">In the code: GraMa's defence in <code>src/grama/federated/aggregator.py</code>; FedAvg, median, trimmed mean, Multi-Krum, norm clipping and FLAME in <code>robust.py</code>; the attacks in <code>src/grama/attacks/poisoning.py</code>.</p>
     </div>
     <div class="sheet">
@@ -290,7 +284,7 @@ svg .ecu.atk text { fill: var(--attack); }
         <label class="ctl-label" for="share7">Hacked cars</label>
         <input type="range" id="share7" min="0" max="4" step="1" value="3">
         <span class="mono" id="shareval7" style="font-size:13px;color:var(--ink-2)">3 of 10</span>
-        <button class="btn" type="button" id="again7">New round</button>
+        <button class="btn" type="button" id="again7">new round</button>
       </div>
       <div class="fig"><svg id="plot7" viewBox="0 0 560 400" role="img" aria-label="Updates drawn as points: honest ones cluster together, hacked ones sit elsewhere; an arrow shows where the combined update ends up compared with the honest average." style="min-width:420px"></svg></div>
       <div class="readline" id="read7"></div>
@@ -305,10 +299,9 @@ svg .ecu.atk text { fill: var(--attack); }
 
   <section class="ch" id="experiments">
     <div class="text">
-      <div class="num">08</div>
-      <h2>What the experiments test</h2>
-      <p>Five questions, from the concept note's Section 6: does GraMa detect attacks as well as a CNN-BiGRU detector; how much uneven traffic across cars hurts; how each defence holds up as 10 to 40% of cars are hacked; which parts of GraMa matter (an ablation); and how small and fast it is.</p>
-      <p>Before any of that, the data needed a close look. Each attack file is a handful of distinct messages repeated in long runs, and the RPM and speed files end with messages on ID 513 that appear nowhere earlier. Testing on the last 20% of each file would put those runs only in the test set, and every model stopped at a macro-F1 of about 0.56. The test set is instead every fifth block of 1,000 messages, so every run of messages is seen in training.</p>
+      <h2><span class="n">08</span>What the experiments test</h2>
+      <p>The experiments follow Section 6 of the concept note. They compare GraMa with a CNN-BiGRU detector, measure how much uneven traffic across cars hurts, test each defence with 10 to 40% of cars hacked, remove parts of GraMa one at a time, and measure its size and speed.</p>
+      <p>The data needed care too. Each attack file is a handful of distinct messages repeated in long runs, and the RPM and speed files end with messages on ID 513 that appear nowhere earlier. Testing on the last 20% of each file puts those runs only in the test set, and every model stopped at a macro-F1 of about 0.56. So the test set is every fifth block of 1,000 messages, and every run of messages is seen in training.</p>
       <p class="code-ref">In the code: <code>src/grama/experiments/runner.py</code> and <code>report.py</code>; the profiles in <code>config/experiments.yaml</code>.</p>
     </div>
     <div class="sheet">
@@ -342,7 +335,7 @@ svg .ecu.atk text { fill: var(--attack); }
     </div>
   </section>
 
-  <footer>GraMa · code at <a href="https://github.com/RamadhanAdam/grama">github.com/RamadhanAdam/grama</a></footer>
+  <footer>GraMa · <a href="https://github.com/RamadhanAdam/grama">code on GitHub</a> · <a href="https://ramadhanadam.github.io">ramadhanadam.github.io</a></footer>
 </div>
 
 <script>
