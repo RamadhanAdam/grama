@@ -10,6 +10,10 @@ detector of Mnkash et al. (2026) with GAT + Mamba, and their adaptive weighting 
 latent-density aggregation, as laid out in my concept note *Redesigning Federated Intrusion
 Detection for IoV: The GraMa (Graph-Mamba) Architecture*.
 
+**How it works, visually:** [`docs/explainer.html`](docs/explainer.html) walks through the whole
+system with live, interactive figures: the car's CAN bus, the attacks, windows and graphs, the
+model, federated rounds, and a playground for the defences. Download it and open it in any browser.
+
 **Status:** the code is complete and tested (unit tests, plus full runs on synthetic CAN traffic).
 Results on CIC-IoV2024 come from running the `quick` and `full` profiles below on a GPU.
 

@@ -1,0 +1,899 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How GraMa works</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* Layout: a workshop manual. Numbered chapters (the order is the pipeline), text on the left, a live schematic sheet on the right. */
+:root {
+  --bg: #F1F3F4; --sheet: #FFFFFF; --ink: #131A21; --ink-2: #46525D; --ink-3: #7A8590; --rule: #D6DCE0;
+  --can-h: #B5740F; --can-l: #23805A; --attack: #C2352C; --model: #4251C4; --steer: #8A4FB0;
+  --tyre: #1C2329; --hub: #8A949D;
+  --display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D1216; --sheet: #141B21; --ink: #E4E9ED; --ink-2: #A7B1BA; --ink-3: #74808A; --rule: #26313B;
+    --can-h: #E0A33D; --can-l: #4DB582; --attack: #EE5D53; --model: #8E98F2; --steer: #BC8EDC; --tyre: #3A444D; --hub: #6B7680; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D1216; --sheet: #141B21; --ink: #E4E9ED; --ink-2: #A7B1BA; --ink-3: #74808A; --rule: #26313B;
+  --can-h: #E0A33D; --can-l: #4DB582; --attack: #EE5D53; --model: #8E98F2; --steer: #BC8EDC; --tyre: #3A444D; --hub: #6B7680; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.6; margin: 0; padding: 0 20px; padding-block: 0; }
+.page { max-width: 1140px; margin: 0 auto; padding-block: 40px 64px; }
+a { color: var(--model); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--model); outline-offset: 2px; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+h1 { font-family: var(--display); font-weight: 600; font-size: clamp(2.6rem, 6vw, 4.2rem); line-height: 1; margin: 10px 0 14px; letter-spacing: 0.01em; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 600; font-size: 2rem; line-height: 1.05; margin: 6px 0 14px; text-wrap: balance; }
+.lede { font-size: 1.12rem; color: var(--ink-2); max-width: 62ch; margin: 0; }
+.toc { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 26px 0 0; padding: 0; list-style: none; font-size: 15px; }
+.toc a { color: var(--ink-2); text-decoration: none; }
+.toc a:hover { color: var(--model); }
+.toc .n { font-family: var(--mono); color: var(--ink-3); margin-right: 6px; font-size: 12px; }
+.ch { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 44px; padding-block: 56px; border-top: 1px solid var(--rule); scroll-margin-top: 12px; }
+.ch:first-of-type { margin-top: 44px; }
+.text p { margin: 0 0 14px; color: var(--ink-2); max-width: 62ch; }
+.text p strong { color: var(--ink); font-weight: 600; }
+.num { font-family: var(--mono); font-size: 12px; color: var(--ink-3); letter-spacing: 0.06em; }
+.code-ref { font-size: 14px; color: var(--ink-3); border-top: 1px dashed var(--rule); padding-top: 10px; margin-top: 18px; }
+.code-ref code { color: var(--ink-2); }
+.sheet { background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; min-width: 0; display: flex; flex-direction: column; gap: 12px; align-self: start; }
+.fig { overflow-x: auto; }
+.fig svg { display: block; width: 100%; min-width: 520px; height: auto; }
+#plot7 { max-width: 620px; margin: 0 auto; }
+#graph4 { max-width: 520px; margin: 0 auto; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 5px; overflow: hidden; }
+.seg button { font: 500 14px var(--body); color: var(--ink-2); background: transparent; border: 0; border-right: 1px solid var(--rule); padding: 6px 12px; cursor: pointer; }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--sheet); }
+.btn { font: 500 14px var(--body); color: var(--ink); background: transparent; border: 1px solid var(--rule); border-radius: 5px; padding: 6px 12px; cursor: pointer; }
+.btn:hover { border-color: var(--ink-3); }
+.ctl-label { font-size: 13px; color: var(--ink-3); }
+.caption { font-size: 13.5px; color: var(--ink-3); margin: 0; }
+.log { font-family: var(--mono); font-size: 12.5px; line-height: 1.55; background: var(--bg); border: 1px solid var(--rule); border-radius: 4px; padding: 8px 10px; height: calc(10 * 1.55em + 16px); overflow: hidden; white-space: pre; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.log .id { color: var(--ink); font-weight: 500; }
+.log .atk, .log .atk .id { color: var(--attack); }
+.readouts { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: flex-start; }
+.meter { min-width: 180px; flex: 1; }
+.meter .track { height: 8px; background: var(--bg); border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+.meter .fill { height: 100%; width: 0; background: var(--can-l); transition: width 0.25s linear, background 0.25s; }
+.speedo { font-family: var(--mono); }
+.speedo .v { font-size: 28px; font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
+.speedo.bad .v { color: var(--attack); }
+.twocol { display: grid; grid-template-columns: minmax(0, 210px) minmax(0, 1fr); gap: 14px; }
+.frames { font-family: var(--mono); font-size: 12.5px; line-height: 1.5; margin: 0; padding: 0; list-style: none; }
+.frames li { padding: 0 6px; border-radius: 3px; color: var(--ink-3); white-space: nowrap; }
+.frames li.done { color: var(--ink-2); }
+.frames li.now { background: var(--bg); color: var(--ink); }
+.frames li.atk { color: var(--attack); }
+.feat { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; align-items: end; height: 64px; max-width: 340px; margin-top: 8px; border-bottom: 1px solid var(--rule); }
+.featx { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; max-width: 340px; font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); text-align: center; }
+.feat div { background: var(--model); opacity: 0.75; border-radius: 2px 2px 0 0; min-height: 2px; }
+.featinfo { font-size: 13.5px; color: var(--ink-2); }
+.bars { display: grid; grid-template-columns: 90px minmax(0, 1fr) 46px; gap: 6px 10px; align-items: center; font-size: 14px; }
+.bars .track { height: 10px; background: var(--bg); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+.bars .fill { height: 100%; width: 0; background: var(--ink-3); transition: width 0.6s ease; }
+.bars .pct { font-family: var(--mono); font-size: 13px; color: var(--ink-3); text-align: right; font-variant-numeric: tabular-nums; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.status { font-size: 14px; color: var(--ink-2); min-height: 1.6em; }
+.status b { color: var(--ink); font-weight: 600; }
+input[type="range"] { width: 220px; accent-color: var(--model); }
+.readline { font-size: 14px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.readline b { color: var(--ink); font-weight: 600; }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 600; color: var(--ink); font-size: 13px; }
+td { color: var(--ink-2); }
+td.r, th.r { text-align: right; }
+.tablewrap { overflow-x: auto; }
+pre.cmd { font-family: var(--mono); font-size: 13px; background: var(--bg); border: 1px solid var(--rule); border-radius: 4px; padding: 10px 12px; overflow-x: auto; margin: 0; color: var(--ink); }
+footer { border-top: 1px solid var(--rule); padding-top: 18px; font-size: 14px; color: var(--ink-3); }
+svg .lbl { font: 500 14px var(--body); fill: var(--ink-2); }
+svg .lbl-s { font: 400 13px var(--body); fill: var(--ink-3); }
+svg .mono-s { font: 500 12px var(--mono); fill: var(--ink); }
+svg .disp { font: 600 20px var(--display); fill: var(--ink); }
+svg .ecu rect { fill: var(--sheet); stroke: var(--ink-3); stroke-width: 1; transition: fill 0.15s, stroke 0.15s; }
+svg .ecu text { font: 500 13px var(--body); fill: var(--ink); }
+svg .ecu.tx rect { stroke: var(--can-h); fill: color-mix(in srgb, var(--can-h) 16%, var(--sheet)); }
+svg .ecu.atk rect { stroke: var(--attack); fill: color-mix(in srgb, var(--attack) 14%, var(--sheet)); }
+svg .ecu.atk text { fill: var(--attack); }
+@media (max-width: 1200px) { .ch { grid-template-columns: minmax(0, 1fr); gap: 22px; } .text p { max-width: 70ch; } }
+@media (max-width: 560px) { body { font-size: 16px; } .twocol { grid-template-columns: minmax(0, 1fr); } h2 { font-size: 1.7rem; } }
+@media (prefers-reduced-motion: reduce) { .meter .fill, .bars .fill { transition: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="eyebrow">GraMa · federated intrusion detection for in-vehicle networks</div>
+    <h1>How GraMa works</h1>
+    <p class="lede">A car's computers talk on a bus that trusts every message. GraMa watches that traffic as a graph that changes over time, learns across many cars without collecting their data, and keeps hacked cars from poisoning what everyone learns. Each chapter below runs live; the controls change what you see.</p>
+    <ol class="toc">
+      <li><a href="#bus"><span class="n">01</span>Inside the car</a></li>
+      <li><a href="#attacks"><span class="n">02</span>Attacks on the bus</a></li>
+      <li><a href="#windows"><span class="n">03</span>Windows of traffic</a></li>
+      <li><a href="#graph"><span class="n">04</span>Traffic as a graph</a></li>
+      <li><a href="#model"><span class="n">05</span>The model</a></li>
+      <li><a href="#federated"><span class="n">06</span>Learning across cars</a></li>
+      <li><a href="#defence"><span class="n">07</span>Hacked cars and the defence</a></li>
+      <li><a href="#experiments"><span class="n">08</span>What the experiments test</a></li>
+    </ol>
+  </header>
+
+  <section class="ch" id="bus">
+    <div class="text">
+      <div class="num">01</div>
+      <h2>Inside the car</h2>
+      <p>A modern car has dozens of small computers called <strong>ECUs</strong>: one for the engine, one for the brakes, one for the dashboard, and so on. They share one pair of wires, the <strong>CAN bus</strong>, and every message is heard by every ECU.</p>
+      <p>A message is tiny: an <strong>ID</strong> that says what it is about (and sets its priority; a lower ID wins) and up to <strong>8 bytes</strong> of data. There is no sender address and no signature. Any device on the bus can send any ID.</p>
+      <p>The log under the car is what a diagnostic tool would print, in the same format as Linux <code>candump</code>: time, interface, ID in hex, length, then the bytes.</p>
+      <p class="code-ref">The data: <a href="https://www.unb.ca/cic/datasets/iov-dataset-2024.html">CIC-IoV2024</a>, recorded on a 2019 Ford. The dataset doesn't say which ECU sends which ID, so the pairing in the picture is made up; the IDs are real ones from its benign traffic.</p>
+    </div>
+    <div class="sheet">
+      <div class="fig"><svg id="car1" viewBox="0 0 800 320" role="img" aria-label="A car in side view with nine ECUs connected to a two-wire CAN bus; dots travel along the bus as messages."></svg></div>
+      <p class="caption">Amber and green: the two wires of the bus (CAN-H and CAN-L). Each dot is one message spreading to every ECU.</p>
+      <div class="log" id="log1" aria-label="Live log of CAN messages"></div>
+    </div>
+  </section>
+
+  <section class="ch" id="attacks">
+    <div class="text">
+      <div class="num">02</div>
+      <h2>Attacks on the bus</h2>
+      <p>Anyone who gets a device onto the bus, through the diagnostic (OBD) port or a hacked ECU, can send messages too. CIC-IoV2024 records two kinds of attack.</p>
+      <p><strong>Denial of service:</strong> the attacker floods the bus with a high-priority ID. Real messages keep losing the race for the wire and arrive late or not at all.</p>
+      <p><strong>Spoofing:</strong> the attacker sends believable-looking messages with false values, here a speed, so whichever ECU trusts them acts on a lie. The dataset spoofs gas pedal, RPM, speed and steering-wheel data.</p>
+      <p>The frames in the log are the real attack frames from the dataset: DoS used ID <code>0x123</code> (291), and speed spoofing used <code>0x158</code> (344). None of the attack IDs ever appears in the car's normal traffic.</p>
+      <p class="code-ref">In the code: the six CSV files are read by <code>src/grama/data/build.py</code>; each file's class comes from its name.</p>
+    </div>
+    <div class="sheet">
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Attack mode" id="mode2">
+          <button type="button" data-v="normal" aria-pressed="true">Normal</button>
+          <button type="button" data-v="dos" aria-pressed="false">Denial of service</button>
+          <button type="button" data-v="spoof" aria-pressed="false">Speed spoofing</button>
+        </div>
+      </div>
+      <div class="fig"><svg id="car2" viewBox="0 0 800 320" role="img" aria-label="The same car with an attacker device plugged into the OBD port."></svg></div>
+      <div class="readouts">
+        <div class="meter"><span class="ctl-label">Bus load</span><div class="track"><div class="fill" id="load2"></div></div></div>
+        <div class="meter"><span class="ctl-label">Engine messages delivered</span><div class="track"><div class="fill" id="through2"></div></div></div>
+        <div class="speedo" id="speedo2"><span class="ctl-label">Dashboard shows</span><br><span class="v" id="speed2">62</span> km/h</div>
+      </div>
+      <div class="log" id="log2" aria-label="Live log of CAN messages under attack"></div>
+    </div>
+  </section>
+
+  <section class="ch" id="windows">
+    <div class="text">
+      <div class="num">03</div>
+      <h2>Windows of traffic</h2>
+      <p>GraMa doesn't judge one message at a time. It cuts the stream into <strong>windows of 64 messages</strong>, each starting 32 messages after the last, so neighbouring windows overlap by half.</p>
+      <p>It then reads <strong>8 windows in a row</strong> as one sequence: 288 messages, well under a second of traffic on a busy bus. The sequence gets the label of its last window, so the question is always "is this happening now?".</p>
+      <p>Here the last part of the stream has spoofed frames mixed in (red), so the last windows, and therefore the sequence, count as an attack.</p>
+      <p class="code-ref">In the code: <code>window_stream()</code> in <code>src/grama/data/build.py</code>; the sizes are in <code>config/data.yaml</code>.</p>
+    </div>
+    <div class="sheet">
+      <div class="fig"><svg id="win" viewBox="0 0 800 220" role="img" aria-label="A stream of 288 messages with a 64-message window sliding along it in steps of 32; eight windows make one sequence."></svg></div>
+      <p class="caption">Each thin bar is one message. The bracket is the current window; the boxes below fill as the window slides.</p>
+    </div>
+  </section>
+
+  <section class="ch" id="graph">
+    <div class="text">
+      <div class="num">04</div>
+      <h2>Traffic as a graph</h2>
+      <p>Each window becomes a small graph. Every message ID seen in the window is a <strong>node</strong>, and two IDs are joined by an <strong>edge</strong> when a message with one is followed directly by a message with the other. In normal driving the same IDs follow each other in the same rhythm, so the graph keeps a familiar shape.</p>
+      <p>Injected messages break that rhythm. The spoofed ID shows up as a new node wedged between the real ones, with edges to everything around it.</p>
+      <p>Each node also carries <strong>10 numbers</strong>: the average of each of its 8 bytes in this window, its share of the window's messages, and whether it sent more than an average node (a burst). Click a node to see them.</p>
+      <p class="code-ref">In the code: node features in <code>src/grama/data/build.py</code>, edges in <code>src/grama/data/dataset.py</code>. The real windows have 64 messages; this one shows 16.</p>
+    </div>
+    <div class="sheet">
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Which window" id="mode4">
+          <button type="button" data-v="normal" aria-pressed="true">Normal window</button>
+          <button type="button" data-v="spoof" aria-pressed="false">Window with spoofing</button>
+        </div>
+        <button class="btn" type="button" id="replay4">Replay</button>
+      </div>
+      <div class="twocol">
+        <ol class="frames" id="frames4" aria-label="Messages in the window"></ol>
+        <div class="fig"><svg id="graph4" viewBox="0 0 420 300" role="img" aria-label="Graph built from the window: nodes are message IDs, edges join IDs that follow each other." style="min-width:300px"></svg></div>
+      </div>
+      <div>
+        <div class="featinfo" id="featinfo4">Click a node to see its features.</div>
+        <div class="feat" id="feat4" aria-hidden="true"></div>
+        <div class="featx" aria-hidden="true"><span>b0</span><span>b1</span><span>b2</span><span>b3</span><span>b4</span><span>b5</span><span>b6</span><span>b7</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ch" id="model">
+    <div class="text">
+      <div class="num">05</div>
+      <h2>The model</h2>
+      <p><strong>Graph attention</strong> reads each window's graph. Every node looks at its neighbours and decides how much each one matters, then the nodes are combined into one summary of the window. A node with nothing like it in normal traffic stands out.</p>
+      <p><strong>Mamba</strong> then reads the 8 summaries in order and carries a memory from one to the next, so a change that builds over several windows is noticed. It is a state-space model: like a recurrent network, but built to stay fast on long sequences.</p>
+      <p>A small classifier turns the final memory into a verdict: normal, or which attack.</p>
+      <p class="code-ref">In the code: <code>src/grama/models/gat_encoder.py</code>, <code>mamba_block.py</code> and <code>classifier_head.py</code>. About 78,000 numbers in total, about 300 KB.</p>
+    </div>
+    <div class="sheet">
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Which sequence" id="mode5">
+          <button type="button" data-v="normal" aria-pressed="true">Normal driving</button>
+          <button type="button" data-v="attack" aria-pressed="false">Spoofing starts in window 6</button>
+        </div>
+      </div>
+      <div class="fig"><svg id="model5" viewBox="0 0 800 300" role="img" aria-label="Eight window graphs pass through graph attention into eight summaries, which Mamba reads in order while carrying a memory."></svg></div>
+      <div class="bars" id="bars5" aria-label="Verdict"></div>
+    </div>
+  </section>
+
+  <section class="ch" id="federated">
+    <div class="text">
+      <div class="num">06</div>
+      <h2>Learning across cars</h2>
+      <p>One car sees only its own traffic. To learn from many cars without collecting anyone's driving data, GraMa uses <strong>federated learning</strong>. Each round, some cars train the detector on their own traffic and send back only the change to the model, their <strong>update</strong>. The server combines the updates and sends the improved model to every car.</p>
+      <p>Cars don't all see the same traffic. One might log mostly normal driving, another happened to be attacked a lot. The slider sets how different they are. Far left, each car sees mostly one kind of traffic; this is the hard case.</p>
+      <p>In the experiments there are 20 cars, 10 take part in each round, and training runs for 30 rounds.</p>
+      <p class="code-ref">In the code: <code>src/grama/federated/client.py</code> and <code>server.py</code>; the split between cars in <code>src/grama/data/federated_split.py</code> (a Dirichlet split, the standard way to make uneven clients).</p>
+    </div>
+    <div class="sheet">
+      <div class="controls">
+        <label class="ctl-label" for="alpha6">How alike the cars' traffic is</label>
+        <input type="range" id="alpha6" min="0" max="7" step="1" value="2">
+        <span class="mono" id="alphaval6" style="font-size:13px;color:var(--ink-2)">alpha 0.5</span>
+      </div>
+      <div class="fig"><svg id="fl6" viewBox="0 0 800 320" role="img" aria-label="A server above five cars; each round the cars train, send updates up, the server combines them and sends the model back down."></svg></div>
+      <div class="status" id="status6"></div>
+      <div class="legend" id="legend6"></div>
+    </div>
+  </section>
+
+  <section class="ch" id="defence">
+    <div class="text">
+      <div class="num">07</div>
+      <h2>Hacked cars and the defence</h2>
+      <p>A hacked car can send a poisoned update. The experiments try four ways: <strong>label flipping</strong> (train on wrong answers), <strong>targeted flipping</strong> (teach the model that attacks are normal), <strong>magnitude poisoning</strong> (blow the update up ten times) and <strong>ALIE</strong> ("a little is enough": a carefully small push that hides inside the honest spread).</p>
+      <p>Plain averaging (<strong>FedAvg</strong>) lets every update in. <strong>Norm clipping</strong> shrinks oversized ones. <strong>FLAME</strong> groups updates by direction and clips. <strong>GraMa's defence</strong> squeezes each update into a small map, finds the dense group of honest cars with HDBSCAN, and drops the ones far from it.</p>
+      <p>The picture is a 2D sketch: real updates have about 78,000 numbers each, so the groups overlap far more than here. How much they overlap, and which defence copes best, is what the experiments measure.</p>
+      <p class="code-ref">In the code: GraMa's defence in <code>src/grama/federated/aggregator.py</code>; FedAvg, median, trimmed mean, Multi-Krum, norm clipping and FLAME in <code>robust.py</code>; the attacks in <code>src/grama/attacks/poisoning.py</code>.</p>
+    </div>
+    <div class="sheet">
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Attack" id="atk7">
+          <button type="button" data-v="flip" aria-pressed="false">Label flipping</button>
+          <button type="button" data-v="mag" aria-pressed="true">Magnitude ×10</button>
+          <button type="button" data-v="alie" aria-pressed="false">ALIE</button>
+        </div>
+        <div class="seg" role="group" aria-label="Defence" id="def7">
+          <button type="button" data-v="fedavg" aria-pressed="true">FedAvg</button>
+          <button type="button" data-v="clip" aria-pressed="false">Norm clipping</button>
+          <button type="button" data-v="flame" aria-pressed="false">FLAME</button>
+          <button type="button" data-v="ours" aria-pressed="false">GraMa</button>
+        </div>
+      </div>
+      <div class="controls">
+        <label class="ctl-label" for="share7">Hacked cars</label>
+        <input type="range" id="share7" min="0" max="4" step="1" value="3">
+        <span class="mono" id="shareval7" style="font-size:13px;color:var(--ink-2)">3 of 10</span>
+        <button class="btn" type="button" id="again7">New round</button>
+      </div>
+      <div class="fig"><svg id="plot7" viewBox="0 0 560 400" role="img" aria-label="Updates drawn as points: honest ones cluster together, hacked ones sit elsewhere; an arrow shows where the combined update ends up compared with the honest average." style="min-width:420px"></svg></div>
+      <div class="readline" id="read7"></div>
+      <div class="legend">
+        <span><i style="background:var(--can-l)"></i>honest update</span>
+        <span><i style="background:var(--attack)"></i>hacked update</span>
+        <span><i style="background:transparent;border:2px solid var(--ink)"></i>honest average (the goal)</span>
+        <span><i style="background:var(--model)"></i>what the server ends up with</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="ch" id="experiments">
+    <div class="text">
+      <div class="num">08</div>
+      <h2>What the experiments test</h2>
+      <p>Five questions, from the concept note's Section 6: does GraMa detect attacks as well as a CNN-BiGRU detector; how much uneven traffic across cars hurts; how each defence holds up as 10 to 40% of cars are hacked; which parts of GraMa matter (an ablation); and how small and fast it is.</p>
+      <p>Before any of that, the data needed a close look. Each attack file is a handful of distinct messages repeated in long runs, and the RPM and speed files end with messages on ID 513 that appear nowhere earlier. Testing on the last 20% of each file would put those runs only in the test set, and every model stopped at a macro-F1 of about 0.56. The test set is instead every fifth block of 1,000 messages, so every run of messages is seen in training.</p>
+      <p class="code-ref">In the code: <code>src/grama/experiments/runner.py</code> and <code>report.py</code>; the profiles in <code>config/experiments.yaml</code>.</p>
+    </div>
+    <div class="sheet">
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>File</th><th class="r">Messages</th><th class="r">Distinct</th><th>IDs used</th></tr></thead>
+          <tbody>
+            <tr><td>benign</td><td class="r">1,223,737</td><td class="r">3,547</td><td>72 different IDs</td></tr>
+            <tr><td>DoS</td><td class="r">74,663</td><td class="r">21</td><td>291</td></tr>
+            <tr><td>spoofing-GAS</td><td class="r">9,991</td><td class="r">2</td><td>513</td></tr>
+            <tr><td>spoofing-RPM</td><td class="r">54,900</td><td class="r">10</td><td>476, then 513 for the last 36%</td></tr>
+            <tr><td>spoofing-SPEED</td><td class="r">24,951</td><td class="r">5</td><td>344, then 513 for the last 20%</td></tr>
+            <tr><td>spoofing-STEERING_WHEEL</td><td class="r">19,977</td><td class="r">3</td><td>128</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Experiment</th><th>What varies</th></tr></thead>
+          <tbody>
+            <tr><td>Main</td><td>GraMa vs CNN-BiGRU; GraMa's defence vs FedAvg; one centralised model as the ceiling</td></tr>
+            <tr><td>Uneven traffic</td><td>Dirichlet alpha 0.05, 0.1, 0.5, 1, 100</td></tr>
+            <tr><td>Poisoning</td><td>4 attacks × 10–40% hacked × 7 ways of combining updates</td></tr>
+            <tr><td>Ablation</td><td>no residuals, no ID embeddings, mean pooling, co-occurrence edges, GRU instead of Mamba, no temporal model</td></tr>
+            <tr><td>Efficiency</td><td>parameters, size, time per sequence on one CPU thread and on a GPU</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="caption">291 training runs in the full profile, three seeds for most groups.</p>
+      <pre class="cmd">cd ~/grama && nohup python3 scripts/run_experiments.py --profile full --no-progress > full.log 2>&1 &</pre>
+    </div>
+  </section>
+
+  <footer>GraMa · code at <a href="https://github.com/RamadhanAdam/grama">github.com/RamadhanAdam/grama</a></footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    if (attrs) for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function rng(seed) {
+    let a = seed >>> 0;
+    return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  }
+  function gauss(r) { let u = 0, v = 0; while (u === 0) u = r(); while (v === 0) v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  const hex2 = n => n.toString(16).toUpperCase().padStart(2, "0");
+  const hex3 = n => n.toString(16).toUpperCase().padStart(3, "0");
+  function segmented(id, onChange) {
+    const g = document.getElementById(id);
+    const buttons = [...g.querySelectorAll("button")];
+    buttons.forEach(b => b.addEventListener("click", () => {
+      buttons.forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+      onChange(b.dataset.v);
+    }));
+    return () => buttons.find(b => b.getAttribute("aria-pressed") === "true").dataset.v;
+  }
+  function whenVisible(node, start, stop) {
+    if (!("IntersectionObserver" in window)) { start(); return; }
+    new IntersectionObserver(es => es.forEach(e => (e.isIntersecting ? start() : stop())), { threshold: 0.05 }).observe(node);
+  }
+
+  /* ---------- 01 and 02: the car and its bus ---------- */
+  const ECUS = [
+    { name: "Lights", x: 116, row: 0, id: 0x1A0, period: 520 },
+    { name: "Doors", x: 212, row: 0, id: 0x213, period: 640 },
+    { name: "Radio", x: 308, row: 0, id: 0x2C0, period: 900 },
+    { name: "Dashboard", x: 404, row: 0, id: 0x217, period: 260 },
+    { name: "Steering", x: 500, row: 0, id: 0x204, period: 180 },
+    { name: "Engine", x: 596, row: 0, id: 0x167, period: 140 },
+    { name: "OBD port", x: 280, row: 1, id: null, period: 0 },
+    { name: "Brakes", x: 380, row: 1, id: 0x214, period: 170 },
+    { name: "Airbag", x: 470, row: 1, id: 0x0F1, period: 760 },
+  ];
+  const BUS = { x0: 104, x1: 712, yH: 215, yL: 221 };
+  const BASE = {};
+  ECUS.forEach((e, i) => { if (e.id) { const r = rng(e.id); BASE[e.id] = Array.from({ length: 8 }, () => Math.floor(r() * 200)); } });
+  const DOS_FRAME = [14, 11, 4, 4, 3, 3, 8, 12];
+  const SPOOF_FRAME = [6, 12, 6, 51, 6, 26, 2, 54];
+
+  function drawCar(svg, withAttacker) {
+    el("line", { x1: 30, y1: 306, x2: 770, y2: 306, stroke: "var(--rule)", "stroke-width": 1.5, "stroke-dasharray": "6 6" }, svg);
+    el("path", { d: "M80,252 L80,206 Q84,186 112,180 L232,170 Q268,122 328,108 L498,104 Q556,106 606,158 L702,174 Q734,182 738,212 L738,252 Q738,264 724,264 L652,264 A52,52 0 0 0 548,264 L262,264 A52,52 0 0 0 158,264 L94,264 Q80,264 80,252 Z", fill: "var(--sheet)", stroke: "var(--ink-2)", "stroke-width": 1.6 }, svg);
+    el("path", { d: "M252,170 Q282,130 332,120 L404,118 L404,170 Z", fill: "color-mix(in srgb, var(--model) 9%, var(--sheet))", stroke: "var(--ink-3)", "stroke-width": 1 }, svg);
+    el("path", { d: "M418,118 L494,116 Q540,120 580,166 L418,170 Z", fill: "color-mix(in srgb, var(--model) 9%, var(--sheet))", stroke: "var(--ink-3)", "stroke-width": 1 }, svg);
+    [210, 600].forEach(cx => {
+      el("circle", { cx, cy: 264, r: 40, fill: "var(--tyre)", stroke: "var(--ink-3)", "stroke-width": 1 }, svg);
+      el("circle", { cx, cy: 264, r: 16, fill: "var(--hub)" }, svg);
+    });
+    el("line", { x1: BUS.x0, y1: BUS.yH, x2: BUS.x1, y2: BUS.yH, stroke: "var(--can-h)", "stroke-width": 2.5 }, svg);
+    el("line", { x1: BUS.x0, y1: BUS.yL, x2: BUS.x1, y2: BUS.yL, stroke: "var(--can-l)", "stroke-width": 2.5 }, svg);
+    const boxes = {};
+    ECUS.forEach(e => {
+      const y = e.row === 0 ? 184 : 226;
+      const cx = e.x + 38;
+      el("line", e.row === 0 ? { x1: cx, y1: 210, x2: cx, y2: BUS.yH } : { x1: cx, y1: BUS.yL, x2: cx, y2: 226 }, svg).setAttribute("stroke", "var(--ink-3)");
+      const g = el("g", { class: "ecu" }, svg);
+      el("rect", { x: e.x, y, width: 76, height: 26, rx: 4 }, g);
+      const t = el("text", { x: cx, y: y + 17, "text-anchor": "middle" }, g);
+      t.textContent = e.name;
+      boxes[e.name] = g;
+    });
+    let attacker = null;
+    if (withAttacker) {
+      el("line", { x1: 318, y1: 252, x2: 318, y2: 282, stroke: "var(--attack)", "stroke-width": 1.5, "stroke-dasharray": "4 3" }, svg);
+      attacker = el("g", { class: "ecu" }, svg);
+      el("rect", { x: 272, y: 282, width: 92, height: 24, rx: 4 }, attacker);
+      const t = el("text", { x: 318, y: 298, "text-anchor": "middle" }, attacker);
+      t.textContent = "attacker";
+    }
+    const dots = el("g", {}, svg);
+    return { boxes, attacker, dots };
+  }
+
+  function BusScene(svgId, logId, withAttacker) {
+    const svg = document.getElementById(svgId);
+    const log = document.getElementById(logId);
+    const parts = drawCar(svg, withAttacker);
+    const self = { mode: "normal", running: false, msgs: [], lines: [], acc: {}, sent: 0, lost: 0, recent: [], speedFake: false };
+    ECUS.forEach(e => { if (e.id) self.acc[e.name] = Math.random() * e.period; });
+    const t0 = performance.now();
+    function payload(id) {
+      const b = BASE[id].slice();
+      const t = (performance.now() - t0) / 1000;
+      b[0] = (b[0] + Math.floor(t * 7)) % 256; b[7] = Math.floor(t * 40) % 256;
+      if (id === 0x214) b[2] = 58 + Math.round(4 * Math.sin(t / 2));
+      return b;
+    }
+    function addLine(id, bytes, atk) {
+      const t = ((performance.now() - t0) / 1000).toFixed(3).padStart(8, " ");
+      self.lines.push({ text: `${t}  can0  `, id: hex3(id), rest: `   [8]  ${bytes.map(hex2).join(" ")}`, atk });
+      if (self.lines.length > 10) self.lines.shift();
+    }
+    function renderLog() {
+      log.replaceChildren(...self.lines.map(l => {
+        const d = document.createElement("div");
+        if (l.atk) d.className = "atk";
+        const s = document.createElement("span"); s.className = "id"; s.textContent = l.id;
+        d.append(l.text, s, l.rest);
+        return d;
+      }));
+    }
+    function send(fromX, id, atk, box) {
+      const now = performance.now();
+      self.msgs.push({ x: fromX, dir: -1, t: now, atk }, { x: fromX, dir: 1, t: now, atk });
+      addLine(id, atk ? (id === 0x123 ? DOS_FRAME : SPOOF_FRAME) : payload(id), atk);
+      self.recent.push(now);
+      if (box) { box.classList.add("tx"); setTimeout(() => box.classList.remove("tx"), 220); }
+    }
+    let last = performance.now(), raf = 0, atkAcc = 0;
+    function frame(now) {
+      const dt = Math.min(80, now - last); last = now;
+      const dos = self.mode === "dos", spoof = self.mode === "spoof";
+      ECUS.forEach(e => {
+        if (!e.id) return;
+        self.acc[e.name] += dt;
+        if (self.acc[e.name] >= e.period) {
+          self.acc[e.name] = Math.random() * e.period * 0.2;
+          if (dos && Math.random() < 0.8) { if (e.name === "Engine") self.lost++; return; }
+          if (e.name === "Engine") self.sent++;
+          send(e.x + 38, e.id, false, parts.boxes[e.name]);
+          if (e.id === 0x214) self.speedFake = false;
+        }
+      });
+      if (withAttacker && (dos || spoof)) {
+        atkAcc += dt;
+        const period = dos ? 20 : 230;
+        let burst = 0;
+        while (atkAcc >= period && burst < 6) {
+          atkAcc -= period; burst++;
+          send(318, dos ? 0x123 : 0x158, true, null);
+          if (spoof) self.speedFake = true;
+        }
+      }
+      if (parts.attacker) parts.attacker.classList.toggle("atk", dos || spoof);
+      // move dots
+      while (parts.dots.childNodes.length < self.msgs.length) el("circle", { r: 4.5 }, parts.dots);
+      while (parts.dots.childNodes.length > self.msgs.length) parts.dots.lastChild.remove();
+      const speed = 0.42;
+      self.msgs = self.msgs.filter(m => { const x = m.x + m.dir * speed * (now - m.t); return x > BUS.x0 && x < BUS.x1; });
+      self.msgs.forEach((m, i) => {
+        const c = parts.dots.childNodes[i];
+        c.setAttribute("cx", m.x + m.dir * speed * (now - m.t));
+        c.setAttribute("cy", (BUS.yH + BUS.yL) / 2);
+        c.setAttribute("fill", m.atk ? "var(--attack)" : "var(--ink)");
+      });
+      while (parts.dots.childNodes.length > self.msgs.length) parts.dots.lastChild.remove();
+      self.recent = self.recent.filter(t => now - t < 1000);
+      if (self.onTick) self.onTick(now);
+      renderLog();
+      raf = requestAnimationFrame(frame);
+    }
+    self.start = () => { if (self.running || reduced) return; self.running = true; last = performance.now(); raf = requestAnimationFrame(frame); };
+    self.stop = () => { self.running = false; cancelAnimationFrame(raf); };
+    self.prefill = () => {
+      [0x167, 0x204, 0x214, 0x217, 0x167, 0x1A0, 0x204, 0x214, 0x167, 0x213].forEach(id => addLine(id, payload(id), false));
+      renderLog();
+      [160, 300, 470, 640].forEach((x, i) => el("circle", { cx: x, cy: (BUS.yH + BUS.yL) / 2, r: 4.5, fill: "var(--ink)" }, parts.dots));
+    };
+    whenVisible(svg, self.start, self.stop);
+    return self;
+  }
+
+  const bus1 = BusScene("car1", "log1", false);
+  bus1.prefill();
+  const bus2 = BusScene("car2", "log2", true);
+  bus2.prefill();
+  const load2 = document.getElementById("load2"), through2 = document.getElementById("through2");
+  const speed2 = document.getElementById("speed2"), speedo2 = document.getElementById("speedo2");
+  let lastRead = 0;
+  bus2.onTick = now => {
+    if (now - lastRead < 250) return;
+    lastRead = now;
+    const perSec = bus2.recent.length;
+    const load = Math.min(1, perSec / 60);
+    load2.style.width = (load * 100).toFixed(0) + "%";
+    load2.style.background = load > 0.8 ? "var(--attack)" : "var(--can-l)";
+    const total = bus2.sent + bus2.lost;
+    const ok = total ? bus2.sent / total : 1;
+    through2.style.width = (ok * 100).toFixed(0) + "%";
+    through2.style.background = ok < 0.6 ? "var(--attack)" : "var(--can-l)";
+    const real = 58 + Math.round(4 * Math.sin(now / 2000));
+    const fake = bus2.mode === "spoof" && bus2.speedFake;
+    speed2.textContent = fake ? "213" : String(real);
+    speedo2.classList.toggle("bad", fake);
+    if (total > 40) { bus2.sent = Math.round(bus2.sent / 2); bus2.lost = Math.round(bus2.lost / 2); }
+  };
+  through2.style.width = "100%"; load2.style.width = "22%";
+  segmented("mode2", v => { bus2.mode = v; bus2.sent = 0; bus2.lost = 0; });
+
+  /* ---------- 03: windows ---------- */
+  (function () {
+    const svg = document.getElementById("win");
+    const N = 288, X0 = 40, W = 720, step = W / N;
+    const r = rng(7);
+    const shades = ["var(--ink-3)", "var(--ink-2)", "var(--rule)"];
+    for (let i = 0; i < N; i++) {
+      const atk = i >= 212 && i % 3 === 0;
+      el("rect", { x: (X0 + i * step).toFixed(2), y: 54, width: Math.max(1, step - 0.6).toFixed(2), height: 46, fill: atk ? "var(--attack)" : shades[Math.floor(r() * 3)] }, svg);
+    }
+    const bracket = el("rect", { x: X0, y: 44, width: 64 * step, height: 66, fill: "none", stroke: "var(--model)", "stroke-width": 2, rx: 3 }, svg);
+    const label = el("text", { x: X0, y: 36, class: "lbl" }, svg);
+    const boxes = [], texts = [];
+    for (let k = 0; k < 8; k++) {
+      const x = 40 + k * 90;
+      boxes.push(el("rect", { x, y: 146, width: 80, height: 36, rx: 4, fill: "var(--sheet)", stroke: "var(--rule)", "stroke-width": 1 }, svg));
+      const t = el("text", { x: x + 40, y: 169, "text-anchor": "middle", class: "lbl" }, svg);
+      t.textContent = "window " + (k + 1);
+      texts.push(t);
+    }
+    const seqLabel = el("text", { x: 400, y: 208, "text-anchor": "middle", class: "lbl-s" }, svg);
+    let k = 0, timer = 0;
+    function show(i) {
+      bracket.setAttribute("x", (X0 + i * 32 * step).toFixed(2));
+      const right = i >= 4;
+      label.setAttribute("x", (X0 + i * 32 * step + (right ? 64 * step : 0)).toFixed(2));
+      label.setAttribute("text-anchor", right ? "end" : "start");
+      label.textContent = `window ${i + 1}: messages ${i * 32 + 1}–${i * 32 + 64}`;
+      boxes.forEach((b, j) => {
+        const atk = j >= 6;
+        b.setAttribute("fill", j <= i ? (atk ? "color-mix(in srgb, var(--attack) 16%, var(--sheet))" : "color-mix(in srgb, var(--model) 12%, var(--sheet))") : "var(--sheet)");
+        b.setAttribute("stroke", j === i ? "var(--model)" : "var(--rule)");
+      });
+      seqLabel.textContent = i === 7 ? "8 windows = 288 messages = one sequence. Its label is its last window's: attack." : "";
+    }
+    function tick() { show(k); k = (k + 1) % 8; timer = setTimeout(tick, k === 0 ? 2600 : 900); }
+    show(7);
+    if (!reduced) whenVisible(svg, () => { if (!timer) { k = 0; tick(); } }, () => { clearTimeout(timer); timer = 0; });
+  })();
+
+  /* ---------- 04: window to graph ---------- */
+  (function () {
+    const svg = document.getElementById("graph4");
+    const list = document.getElementById("frames4");
+    const info = document.getElementById("featinfo4");
+    const feat = document.getElementById("feat4");
+    const normal = [0x167, 0x204, 0x217, 0x167, 0x214, 0x213, 0x167, 0x204, 0x217, 0x1A0, 0x167, 0x214, 0x204, 0x217, 0x167, 0x213];
+    const spoof = [0x167, 0x204, 0x158, 0x217, 0x167, 0x158, 0x214, 0x213, 0x158, 0x167, 0x204, 0x158, 0x217, 0x1A0, 0x158, 0x167];
+    const order = [0x167, 0x204, 0x217, 0x214, 0x213, 0x1A0];
+    const pos = {};
+    order.forEach((id, i) => { const a = -Math.PI / 2 + i * 2 * Math.PI / order.length; pos[id] = [210 + 120 * Math.cos(a), 150 + 108 * Math.sin(a)]; });
+    pos[0x158] = [210, 150];
+    const bytesFor = (id, i) => id === 0x158 ? SPOOF_FRAME : BASE[id === 0x1A0 ? 0x1A0 : id].map((b, j) => (b + (j === 7 ? i * 9 : 0)) % 256);
+    const edgesG = el("g", {}, svg), nodesG = el("g", {}, svg);
+    let seq = normal, i = 0, timer = 0, selected = null;
+    function build(upto) {
+      const counts = {}, edges = new Set();
+      for (let j = 0; j <= upto; j++) {
+        counts[seq[j]] = (counts[seq[j]] || 0) + 1;
+        if (j > 0 && seq[j] !== seq[j - 1]) edges.add([seq[j - 1], seq[j]].sort().join("-"));
+      }
+      edgesG.replaceChildren(); nodesG.replaceChildren();
+      edges.forEach(k => {
+        const [a, b] = k.split("-").map(Number);
+        const atk = a === 0x158 || b === 0x158;
+        el("line", { x1: pos[a][0], y1: pos[a][1], x2: pos[b][0], y2: pos[b][1], stroke: atk ? "var(--attack)" : "var(--ink-3)", "stroke-width": atk ? 1.6 : 1.2, opacity: atk ? 0.85 : 0.7 }, edgesG);
+      });
+      Object.keys(counts).map(Number).forEach(id => {
+        const g = el("g", { tabindex: 0, role: "button", "aria-label": "Node " + hex3(id) }, nodesG);
+        g.style.cursor = "pointer";
+        const atk = id === 0x158;
+        const rr = 13 + 2.6 * counts[id];
+        el("circle", { cx: pos[id][0], cy: pos[id][1], r: rr, fill: atk ? "color-mix(in srgb, var(--attack) 18%, var(--sheet))" : "color-mix(in srgb, var(--can-l) 16%, var(--sheet))", stroke: selected === id ? "var(--model)" : (atk ? "var(--attack)" : "var(--can-l)"), "stroke-width": selected === id ? 2.5 : 1.4 }, g);
+        const t = el("text", { x: pos[id][0], y: pos[id][1] + 4, "text-anchor": "middle", class: "mono-s" }, g);
+        t.textContent = hex3(id);
+        const pick = () => { selected = id; showFeatures(id, upto); build(upto); };
+        g.addEventListener("click", pick);
+        g.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); pick(); } });
+      });
+      [...list.children].forEach((li, j) => { li.className = (j < upto ? "done" : j === upto ? "now" : "") + (seq[j] === 0x158 ? " atk" : ""); });
+    }
+    function showFeatures(id, upto) {
+      const rows = [];
+      for (let j = 0; j <= upto; j++) if (seq[j] === id) rows.push(bytesFor(id, j));
+      const counts = {};
+      for (let j = 0; j <= upto; j++) counts[seq[j]] = (counts[seq[j]] || 0) + 1;
+      const active = Object.keys(counts).length;
+      const meanCount = (upto + 1) / active;
+      const means = Array.from({ length: 8 }, (_, b) => rows.reduce((s, r) => s + r[b], 0) / rows.length / 255);
+      const share = counts[id] / (upto + 1);
+      const burst = counts[id] > meanCount ? 1 : 0;
+      feat.replaceChildren(...means.map(m => { const d = document.createElement("div"); d.style.height = Math.max(4, m * 100) + "%"; if (id === 0x158) d.style.background = "var(--attack)"; return d; }));
+      info.innerHTML = `Node <span class="mono">${hex3(id)}</span>: 8 average byte values (bars, 0–255 scaled to 0–1), share of messages <span class="mono">${share.toFixed(2)}</span>, burst <span class="mono">${burst}</span>`;
+    }
+    function fill() {
+      list.replaceChildren(...seq.map((id, j) => { const li = document.createElement("li"); li.textContent = `${hex3(id)}  ${bytesFor(id, j).slice(0, 4).map(hex2).join(" ")} …`; return li; }));
+    }
+    function tick() {
+      build(i);
+      if (i === seq.length - 1) { if (selected === null) { selected = seq === spoof ? 0x158 : 0x167; showFeatures(selected, i); build(i); } timer = setTimeout(() => { i = 0; tick(); }, 3200); }
+      else { i++; timer = setTimeout(tick, 420); }
+    }
+    function restart(v) { clearTimeout(timer); seq = v === "spoof" ? spoof : normal; selected = null; i = 0; fill(); if (reduced) { build(seq.length - 1); selected = seq === spoof ? 0x158 : 0x167; showFeatures(selected, seq.length - 1); build(seq.length - 1); } else tick(); }
+    const mode = segmented("mode4", restart);
+    document.getElementById("replay4").addEventListener("click", () => restart(mode()));
+    fill(); build(seq.length - 1); selected = 0x167; showFeatures(0x167, seq.length - 1); build(seq.length - 1);
+    if (!reduced) whenVisible(svg, () => { if (!timer) restart(mode()); }, () => { clearTimeout(timer); timer = 0; });
+  })();
+
+  /* ---------- 05: the model ---------- */
+  (function () {
+    const svg = document.getElementById("model5");
+    const bars = document.getElementById("bars5");
+    const classes = ["benign", "DoS", "gas", "RPM", "speed", "steering"];
+    const finals = { normal: [97, 1, 0.5, 0.5, 0.5, 0.5], attack: [6, 1, 0.5, 1, 91, 0.5] };
+    const fills = [], pcts = [];
+    classes.forEach(c => {
+      const l = document.createElement("span"); l.textContent = c;
+      const tr = document.createElement("div"); tr.className = "track";
+      const f = document.createElement("div"); f.className = "fill"; tr.appendChild(f);
+      const p = document.createElement("span"); p.className = "pct"; p.textContent = "–";
+      bars.append(l, tr, p); fills.push(f); pcts.push(p);
+    });
+    const rowLabel = (y, text) => { const t = el("text", { x: 40, y, class: "lbl" }, svg); t.textContent = text; };
+    rowLabel(24, "Window graphs");
+    rowLabel(116, "Graph attention: one summary per window");
+    rowLabel(200, "Mamba: reads the summaries in order, carrying a memory");
+    const glyphs = [], tokens = [], cells = [], mem = [], links = [];
+    const r = rng(3);
+    for (let k = 0; k < 8; k++) {
+      const x = 40 + k * 92;
+      const g = el("g", {}, svg);
+      glyphs.push(el("rect", { x, y: 34, width: 72, height: 48, rx: 4, fill: "var(--sheet)", stroke: "var(--rule)", "stroke-width": 1 }, g));
+      const pts = Array.from({ length: 5 }, () => [x + 10 + r() * 52, 42 + r() * 32]);
+      pts.forEach((p, j) => { if (j) el("line", { x1: pts[j - 1][0], y1: pts[j - 1][1], x2: p[0], y2: p[1], stroke: "var(--ink-3)", "stroke-width": 0.8 }, g); });
+      pts.forEach(p => el("circle", { cx: p[0], cy: p[1], r: 3, fill: "var(--can-l)" }, g));
+      const atkDot = el("circle", { cx: x + 36, cy: 58, r: 4.5, fill: "var(--attack)" }, g);
+      atkDot.dataset.k = k;
+      g.dataset.atk = "";
+      glyphs[k].atkDot = atkDot;
+      tokens.push(el("rect", { x: x + 16, y: 126, width: 40, height: 26, rx: 3, fill: "var(--sheet)", stroke: "var(--rule)", "stroke-width": 1 }, svg));
+      cells.push(el("rect", { x, y: 210, width: 72, height: 30, rx: 4, fill: "var(--sheet)", stroke: "var(--rule)", "stroke-width": 1 }, svg));
+      mem.push(el("rect", { x: x + 8, y: 276, width: 56, height: 0, fill: "var(--model)", opacity: 0.7 }, svg));
+      if (k) links.push(el("line", { x1: x - 18, y1: 225, x2: x - 2, y2: 225, stroke: "var(--rule)", "stroke-width": 2 }, svg));
+    }
+    const memLbl = el("text", { x: 40, y: 294, class: "lbl-s" }, svg);
+    memLbl.textContent = "Bars under each step: how much evidence of an attack the memory is carrying";
+    let mode = "normal", step = 0, timer = 0;
+    const isAtk = k => mode === "attack" && k >= 5;
+    function paint() {
+      for (let k = 0; k < 8; k++) {
+        glyphs[k].atkDot.setAttribute("opacity", isAtk(k) ? 1 : 0);
+        glyphs[k].setAttribute("stroke", step === k ? "var(--model)" : "var(--rule)");
+        const tokOn = step > k;
+        tokens[k].setAttribute("fill", tokOn ? (isAtk(k) ? "color-mix(in srgb, var(--attack) 22%, var(--sheet))" : "color-mix(in srgb, var(--can-l) 20%, var(--sheet))") : "var(--sheet)");
+        const ci = step - 8;
+        cells[k].setAttribute("stroke", ci === k ? "var(--model)" : "var(--rule)");
+        cells[k].setAttribute("fill", ci >= k ? "color-mix(in srgb, var(--model) 12%, var(--sheet))" : "var(--sheet)");
+        if (k) links[k - 1].setAttribute("stroke", ci >= k ? "var(--model)" : "var(--rule)");
+        let m = 0;
+        if (ci >= k) { const seen = Math.max(0, Math.min(k, 7) - 4); m = mode === "attack" ? Math.min(30, seen * 10) : 2; }
+        mem[k].setAttribute("height", m); mem[k].setAttribute("y", 276 - m);
+      }
+      const done = step >= 16;
+      finals[mode].forEach((v, j) => { fills[j].style.width = done ? v + "%" : "0%"; fills[j].style.background = done && v > 50 ? (j === 0 ? "var(--can-l)" : "var(--attack)") : "var(--ink-3)"; pcts[j].textContent = done ? (v < 1 ? "<1%" : v + "%") : "–"; });
+    }
+    function tick() { paint(); step++; if (step > 22) step = 0; timer = setTimeout(tick, step === 1 ? 500 : 380); }
+    segmented("mode5", v => { mode = v; step = 0; if (reduced) { step = 16; paint(); } });
+    step = 16; paint();
+    if (!reduced) whenVisible(svg, () => { if (!timer) { step = 0; tick(); } }, () => { clearTimeout(timer); timer = 0; });
+  })();
+
+  /* ---------- 06: federated ---------- */
+  (function () {
+    const svg = document.getElementById("fl6");
+    const status = document.getElementById("status6");
+    const slider = document.getElementById("alpha6"), alphaval = document.getElementById("alphaval6");
+    const ALPHAS = [0.05, 0.1, 0.5, 1, 2, 5, 20, 100];
+    const CLASSES = [["benign", "var(--ink-3)"], ["DoS", "var(--attack)"], ["gas", "var(--can-h)"], ["RPM", "var(--can-l)"], ["speed", "var(--model)"], ["steering", "var(--steer)"]];
+    const TOTALS = [1770, 885, 118, 649, 295, 236];
+    document.getElementById("legend6").innerHTML = CLASSES.map(c => `<span><i style="background:${c[1]}"></i>${c[0]}</span>`).join("");
+    const server = el("rect", { x: 320, y: 20, width: 160, height: 52, rx: 5, fill: "color-mix(in srgb, var(--model) 10%, var(--sheet))", stroke: "var(--model)", "stroke-width": 1.4 }, svg);
+    const st = el("text", { x: 400, y: 44, "text-anchor": "middle", class: "disp" }, svg); st.textContent = "Server";
+    const st2 = el("text", { x: 400, y: 62, "text-anchor": "middle", class: "lbl-s" }, svg); st2.textContent = "combines updates";
+    const CX = [100, 250, 400, 550, 700];
+    const lines = [], progress = [], mixG = [];
+    CX.forEach((cx, i) => {
+      const tx = 400 + (cx - 400) * 0.28;
+      lines.push([cx, 196, tx, 76]);
+      el("line", { x1: cx, y1: 196, x2: tx, y2: 76, stroke: "var(--rule)", "stroke-width": 1.2 }, svg);
+      el("path", { d: `M${cx - 36},232 L${cx - 30},218 Q${cx - 22},206 ${cx - 8},206 L${cx + 10},206 Q${cx + 22},207 ${cx + 30},218 L${cx + 38},222 Q${cx + 42},224 ${cx + 42},230 L${cx + 42},236 L${cx - 36},236 Z`, fill: "var(--sheet)", stroke: "var(--ink-2)", "stroke-width": 1.4 }, svg);
+      el("circle", { cx: cx - 18, cy: 238, r: 7, fill: "var(--tyre)", stroke: "var(--ink-3)", "stroke-width": 1 }, svg);
+      el("circle", { cx: cx + 24, cy: 238, r: 7, fill: "var(--tyre)", stroke: "var(--ink-3)", "stroke-width": 1 }, svg);
+      el("rect", { x: cx - 30, y: 196, width: 60, height: 5, rx: 2, fill: "var(--bg)", stroke: "var(--rule)", "stroke-width": 0.8 }, svg);
+      progress.push(el("rect", { x: cx - 30, y: 196, width: 0, height: 5, rx: 2, fill: "var(--can-l)" }, svg));
+      const lt = el("text", { x: cx, y: 266, "text-anchor": "middle", class: "lbl" }, svg); lt.textContent = "Car " + (i + 1);
+      mixG.push(el("g", {}, svg));
+    });
+    const dots = CX.map(() => el("circle", { r: 5, fill: "var(--can-l)", opacity: 0 }, svg));
+    function gammaSample(a, r) {
+      if (a < 1) return gammaSample(a + 1, r) * Math.pow(r(), 1 / a);
+      const d = a - 1 / 3, c = 1 / Math.sqrt(9 * d);
+      for (;;) { let x, v; do { x = gauss(r); v = 1 + c * x; } while (v <= 0); v = v * v * v; const u = r(); if (u < 1 - 0.0331 * x * x * x * x) return d * v; if (Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v; }
+    }
+    function resample() {
+      const a = ALPHAS[+slider.value];
+      alphaval.textContent = "alpha " + a + (a <= 0.1 ? " (very different)" : a >= 20 ? " (almost alike)" : "");
+      const r = rng(11 + +slider.value);
+      const counts = CX.map(() => TOTALS.map(() => 0));
+      TOTALS.forEach((tot, c) => {
+        const g = CX.map(() => gammaSample(a, r)); const s = g.reduce((x, y) => x + y, 0) || 1;
+        g.forEach((v, i) => { counts[i][c] = tot * v / s; });
+      });
+      counts.forEach((row, i) => {
+        const tot = row.reduce((x, y) => x + y, 0) || 1;
+        let x = CX[i] - 50;
+        mixG[i].replaceChildren();
+        row.forEach((v, c) => { const w = 100 * v / tot; if (w > 0.3) el("rect", { x: x.toFixed(2), y: 276, width: w.toFixed(2), height: 12, fill: CLASSES[c][1] }, mixG[i]); x += w; });
+        el("rect", { x: CX[i] - 50, y: 276, width: 100, height: 12, fill: "none", stroke: "var(--rule)", "stroke-width": 0.8 }, mixG[i]);
+      });
+    }
+    slider.addEventListener("input", resample);
+    resample();
+    let round = 1, phase = 0, p = 0, timer = 0;
+    const phases = ["Each car trains the model on its own traffic", "Cars send their updates, never their traffic", "The server combines the updates", "The server sends the new model to every car"];
+    function frame() {
+      p += 1 / 30;
+      if (phase === 0) progress.forEach((b, i) => b.setAttribute("width", (60 * Math.min(1, p * (0.8 + 0.1 * i))).toFixed(1)));
+      dots.forEach((d, i) => {
+        const [x1, y1, x2, y2] = lines[i];
+        if (phase === 1 || phase === 3) {
+          const t = phase === 1 ? p : 1 - p;
+          d.setAttribute("cx", x1 + (x2 - x1) * t); d.setAttribute("cy", y1 + (y2 - y1) * t);
+          d.setAttribute("opacity", 1); d.setAttribute("fill", phase === 1 ? "var(--can-l)" : "var(--model)");
+        } else d.setAttribute("opacity", 0);
+      });
+      server.setAttribute("stroke-width", phase === 2 ? (1.4 + 2 * Math.sin(p * Math.PI)).toFixed(2) : 1.4);
+      status.innerHTML = `<b>Round ${round} of 30.</b> ${phases[phase]}.`;
+      if (p >= 1) { p = 0; phase = (phase + 1) % 4; if (phase === 0) { round = round % 30 + 1; progress.forEach(b => b.setAttribute("width", 0)); } }
+      timer = setTimeout(frame, 33);
+    }
+    status.innerHTML = `<b>Round 1 of 30.</b> ${phases[0]}.`;
+    if (!reduced) whenVisible(svg, () => { if (!timer) frame(); }, () => { clearTimeout(timer); timer = 0; });
+  })();
+
+  /* ---------- 07: the defence playground ---------- */
+  (function () {
+    const svg = document.getElementById("plot7");
+    const read = document.getElementById("read7");
+    const share = document.getElementById("share7"), shareval = document.getElementById("shareval7");
+    const X = x => 40 + (x + 2) / 5.5 * 490, Y = y => 370 - (y + 1.4) / 4 * 340;
+    const defs = el("defs", {}, svg);
+    const mk = el("marker", { id: "ah7", viewBox: "0 0 10 10", refX: 8, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" }, defs);
+    el("path", { d: "M1 1L9 5L1 9z", fill: "var(--model)" }, mk);
+    el("line", { x1: X(-2), y1: Y(0), x2: X(3.5), y2: Y(0), stroke: "var(--rule)" }, svg);
+    el("line", { x1: X(0), y1: Y(-1.4), x2: X(0), y2: Y(2.6), stroke: "var(--rule)" }, svg);
+    const o = el("text", { x: X(0) + 6, y: Y(0) + 16, class: "lbl-s" }, svg); o.textContent = "current model";
+    const layer = el("g", {}, svg);
+    let seed = 5;
+    const mu = [1.0, 0.55], sigma = 0.17, N = 10;
+    const norm = v => Math.hypot(v[0], v[1]);
+    const mean = pts => [pts.reduce((s, p) => s + p[0], 0) / pts.length, pts.reduce((s, p) => s + p[1], 0) / pts.length];
+    const median = a => { const s = a.slice().sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+    function alieZ(n, f) {
+      const s = Math.floor(n / 2 + 1) - f; const p = Math.min(Math.max((n - s) / n, 0.5), 0.999);
+      // inverse normal CDF (Acklam)
+      const a = [-39.6968302866538, 220.946098424521, -275.928510446969, 138.357751867269, -30.6647980661472, 2.50662827745924];
+      const b = [-54.4760987982241, 161.585836858041, -155.698979859887, 66.8013118877197, -13.2806815528857];
+      const c = [-0.00778489400243029, -0.322396458041136, -2.40075827716184, -2.54973253934373, 4.37466414146497, 2.93816398269878];
+      const d = [0.00778469570904146, 0.32246712907004, 2.445134137143, 3.75440866190742];
+      if (p < 0.02425) { const q = Math.sqrt(-2 * Math.log(p)); return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+      if (p > 1 - 0.02425) { const q = Math.sqrt(-2 * Math.log(1 - p)); return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+      const q = p - 0.5, rr = q * q;
+      return Math.max(0, (((((a[0] * rr + a[1]) * rr + a[2]) * rr + a[3]) * rr + a[4]) * rr + a[5]) * q / (((((b[0] * rr + b[1]) * rr + b[2]) * rr + b[3]) * rr + b[4]) * rr + 1));
+    }
+    function scenario(attack, f) {
+      const r = rng(seed);
+      const honestAll = Array.from({ length: N }, () => [mu[0] + sigma * gauss(r), mu[1] + sigma * gauss(r)]);
+      const pts = honestAll.map((p, i) => ({ v: p, bad: i >= N - f }));
+      if (f) {
+        if (attack === "mag") pts.forEach(p => { if (p.bad) p.v = [p.v[0] * 10, p.v[1] * 10]; });
+        if (attack === "flip") pts.forEach(p => { if (p.bad) p.v = [-0.8 * mu[0] + sigma * gauss(r), -0.8 * mu[1] + sigma * gauss(r)]; });
+        if (attack === "alie") {
+          const m = mean(honestAll), sd = [0, 1].map(j => Math.sqrt(honestAll.reduce((s, p) => s + (p[j] - m[j]) ** 2, 0) / N));
+          const z = alieZ(N, f);
+          pts.forEach(p => { if (p.bad) p.v = [m[0] - z * sd[0], m[1] - z * sd[1]]; });
+        }
+      }
+      return pts;
+    }
+    function aggregate(pts, rule) {
+      const vs = pts.map(p => p.v);
+      const mnorm = median(vs.map(norm));
+      const clip = v => { const n = norm(v); return n > mnorm ? [v[0] * mnorm / n, v[1] * mnorm / n] : v; };
+      let keep = pts.map(() => true), out;
+      if (rule === "fedavg") out = mean(vs);
+      if (rule === "clip") out = mean(vs.map(clip));
+      if (rule === "flame") {
+        const ang = vs.map(v => Math.atan2(v[1], v[0]));
+        let best = null;
+        ang.forEach(a0 => { const inG = ang.map(a => Math.abs(Math.atan2(Math.sin(a - a0), Math.cos(a - a0))) <= 0.45); const c = inG.filter(Boolean).length; if (!best || c > best.c) best = { c, inG }; });
+        if (best.c >= Math.floor(N / 2) + 1) keep = best.inG;
+        out = mean(vs.filter((_, i) => keep[i]).map(clip));
+      }
+      if (rule === "ours") {
+        const c = [median(vs.map(v => v[0])), median(vs.map(v => v[1]))];
+        const dist = vs.map(v => Math.hypot(v[0] - c[0], v[1] - c[1]));
+        const spread = median(dist) || 1e-9;
+        keep = dist.map(d => d <= 2.0 * spread);
+        out = mean(vs.filter((_, i) => keep[i]));
+      }
+      return { out, keep };
+    }
+    const atkSel = segmented("atk7", draw), defSel = segmented("def7", draw);
+    share.addEventListener("input", draw);
+    document.getElementById("again7").addEventListener("click", () => { seed += 1; draw(); });
+    function clampToPlot(v) {
+      const xmax = 3.4, ymax = 2.5;
+      const s = Math.min(1, v[0] > xmax ? xmax / v[0] : 1, v[1] > ymax ? ymax / v[1] : 1, v[0] < -1.9 ? -1.9 / v[0] : 1, v[1] < -1.3 ? -1.3 / v[1] : 1);
+      return { v: [v[0] * s, v[1] * s], clipped: s < 1 };
+    }
+    function draw() {
+      const f = +share.value;
+      shareval.textContent = f + " of 10";
+      const attack = atkSel(), rule = defSel();
+      const pts = scenario(attack, f);
+      const honest = pts.filter(p => !p.bad).map(p => p.v);
+      const target = mean(honest);
+      const { out, keep } = aggregate(pts, rule);
+      layer.replaceChildren();
+      const T = clampToPlot(out);
+      el("line", { x1: X(target[0]), y1: Y(target[1]), x2: X(T.v[0]), y2: Y(T.v[1]), stroke: "var(--ink-3)", "stroke-dasharray": "3 3" }, layer);
+      el("line", { x1: X(0), y1: Y(0), x2: X(T.v[0]), y2: Y(T.v[1]), stroke: "var(--model)", "stroke-width": 2.5, "marker-end": "url(#ah7)" }, layer);
+      if (T.clipped) { const t = el("text", { x: X(T.v[0]) - 4, y: Y(T.v[1]) + 26, "text-anchor": "end", class: "lbl-s" }, layer); t.textContent = "off the chart"; }
+      el("circle", { cx: X(target[0]), cy: Y(target[1]), r: 9, fill: "none", stroke: "var(--ink)", "stroke-width": 2 }, layer);
+      pts.forEach((p, i) => {
+        const P = clampToPlot(p.v);
+        const cx = X(P.v[0]), cy = Y(P.v[1]);
+        el("circle", { cx, cy, r: 6.5, fill: p.bad ? "var(--attack)" : "var(--can-l)", opacity: keep[i] ? 0.95 : 0.35 }, layer);
+        if (!keep[i]) { el("line", { x1: cx - 7, y1: cy - 7, x2: cx + 7, y2: cy + 7, stroke: "var(--ink)", "stroke-width": 1.6 }, layer); el("line", { x1: cx - 7, y1: cy + 7, x2: cx + 7, y2: cy - 7, stroke: "var(--ink)", "stroke-width": 1.6 }, layer); }
+        if (P.clipped) { const t = el("text", { x: cx + 10, y: cy + 4, class: "lbl-s" }, layer); t.textContent = "×10"; }
+      });
+      const hk = pts.filter((p, i) => !p.bad && keep[i]).length, bk = pts.filter((p, i) => p.bad && keep[i]).length;
+      const err = norm([out[0] - target[0], out[1] - target[1]]) / norm(target);
+      read.innerHTML = `Kept <b>${hk} of ${N - f}</b> honest updates and <b>${bk} of ${f}</b> hacked ones. The combined update is off the honest average by <b>${(err * 100).toFixed(0)}%</b>.`;
+    }
+    draw();
+  })();
+})();
+</script>
+</body>
+</html>
