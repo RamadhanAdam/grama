@@ -15,6 +15,7 @@ from typing import Callable
 
 import torch
 
+from grama.attacks.poisoning import alie_attack
 from grama.federated import checkpoint as ckpt
 from grama.federated.aggregator import AggregationResult, Aggregator
 from grama.federated.client import ClientUpdate, LocalClient
@@ -68,6 +69,10 @@ class FederatedServer:
                 "round %d | client %d | n=%d | local_loss=%.4f",
                 round_num, client.client_id, update.num_samples, update.local_loss,
             )
+
+        colluders = [i for i, c in enumerate(selected) if getattr(c, "attack", None) == "alie"]
+        if colluders:
+            updates = alie_attack(updates, colluders)
 
         param_shapes = {k: v.shape for k, v in self.global_state.items()}
         result = self.aggregator.aggregate(updates, param_shapes)

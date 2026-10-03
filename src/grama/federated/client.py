@@ -8,6 +8,8 @@ A client can be compromised (Sec 6.2.3). Then it poisons its own update:
   label_flip       trains on labels mapped to a wrong class (fixed per client)
   targeted_flip    trains with every attack labelled benign, to hide attacks
   magnitude_poison trains honestly, then scales Δw by poison_scale
+  alie             trains honestly; the server loop then swaps in the update
+                   the attackers craft together (see attacks/poisoning.py)
 """
 from __future__ import annotations
 
@@ -17,7 +19,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset, Subset
 
-ATTACKS = ("label_flip", "targeted_flip", "magnitude_poison")
+ATTACKS = ("label_flip", "targeted_flip", "magnitude_poison", "alie")
 
 
 @dataclass
@@ -102,7 +104,8 @@ class LocalClient:
         model.load_state_dict(global_state_dict)
         model.train()
 
-        optimizer = torch.optim.Adam(model.parameters(), lr=self.lr)
+        # The fused Adam kernel cuts per-step overhead on GPU; these models are small enough that it shows.
+        optimizer = torch.optim.Adam(model.parameters(), lr=self.lr, fused=str(self.device).startswith("cuda"))
         weight = self.class_weights.to(self.device) if self.class_weights is not None else None
         criterion = nn.CrossEntropyLoss(weight=weight)  # Sec 4.1 Phase 4: L(y_hat, y)
         generator = torch.Generator().manual_seed(self.seed * 1_000_003 + self.client_id * 1009 + self._round)

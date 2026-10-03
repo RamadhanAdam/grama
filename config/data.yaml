@@ -25,7 +25,17 @@ build:
   stride: 32             # step between windows (50% overlap)
   seq_len: 8             # L, windows per sequence fed to Mamba
   seq_stride: 2          # step between sequences, in windows
-  test_fraction: 0.2     # last 20% of every file, kept apart in time
+  # Train/test split, done per file before windowing, so no window crosses it.
+  #   "blocks"   every fifth block of block_rows rows goes to test (default)
+  #   "temporal" the last test_fraction of each file goes to test
+  # CIC-IoV2024 files are a few frames repeated in long segments, and the RPM
+  # and SPEED files end on CAN ID 513 with payloads found nowhere earlier. A
+  # temporal split puts those segments only in test, so no model can learn
+  # them: macro-F1 stops near 0.56 for every method. Blocks put every segment
+  # in both splits.
+  split: "blocks"
+  block_rows: 1000
+  test_fraction: 0.2
   max_nodes: 128         # CAN-ID vocabulary size, incl. one "other" node for rare/unseen IDs
   # Edges of the window graph (Sec 4.1, Phase 1):
   #   "transition"    i -- j when a frame of ID j directly follows one of ID i on the bus

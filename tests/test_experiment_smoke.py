@@ -31,3 +31,13 @@ def test_tiny_profile_end_to_end(tmp_path):
     summary = make_report(exp.out_dir).read_text()
     assert "Main comparison" in summary and "Efficiency" in summary
     assert (exp.out_dir / "figures" / "convergence.png").exists()
+
+
+def test_runs_on_another_dataset_build_are_not_resumed(tmp_path):
+    exp = Experiment("smoke", device="cpu", results_dir=tmp_path / "results")
+    exp.data_cfg["dataset"]["processed_dir"] = str(tmp_path / "processed")
+    exp.profile["data_overrides"] = {"max_rows_per_class": None, "synthetic_rows_per_class": 1500}
+    exp.prepare_data()
+    old = {"run_id": "grama-fedavg-a0.5-clean-f0-s0", "data_file": "cic_iov2024_oldsplit.pt"}
+    exp.runs_path.write_text(json.dumps(old) + "\n")
+    assert exp.done_ids() == set()

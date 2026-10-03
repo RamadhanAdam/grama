@@ -17,10 +17,11 @@ from pathlib import Path
 import numpy as np
 
 MODEL_LABEL = {"grama": "GraMa", "cnn_bigru": "CNN-BiGRU"}
-AGG_LABEL = {"hdbscan": "HDBSCAN", "fedavg": "FedAvg", "median": "Median",
-             "trimmed_mean": "Trimmed mean", "krum": "Multi-Krum", "central": "centralised"}
+AGG_LABEL = {"hdbscan": "HDBSCAN (ours)", "fedavg": "FedAvg", "median": "Median",
+             "trimmed_mean": "Trimmed mean", "krum": "Multi-Krum", "norm_clip": "Norm clipping",
+             "flame": "FLAME", "central": "centralised"}
 ATTACK_LABEL = {"label_flip": "Label flipping", "targeted_flip": "Targeted flipping (attack -> benign)",
-                "magnitude_poison": "Magnitude poisoning"}
+                "magnitude_poison": "Magnitude poisoning", "alie": "ALIE (crafted to look honest)"}
 METRIC_LABEL = {"accuracy": "Accuracy", "precision_macro": "Macro-P", "recall_macro": "Macro-R",
                 "f1_macro": "Macro-F1", "roc_auc": "ROC-AUC", "detection_rate": "Detection rate",
                 "false_alarm_rate": "False alarm rate"}
@@ -36,8 +37,9 @@ VARIANT_LABEL = {
 }
 # Okabe-Ito colours (readable in colour-blind vision and in greyscale print).
 COLORS = {"hdbscan": "#000000", "fedavg": "#E69F00", "median": "#56B4E9", "trimmed_mean": "#009E73",
-          "krum": "#D55E00", "central": "#777777"}
-MARKERS = {"hdbscan": "o", "fedavg": "s", "median": "^", "trimmed_mean": "v", "krum": "D", "central": "x"}
+          "krum": "#D55E00", "norm_clip": "#0072B2", "flame": "#CC79A7", "central": "#777777"}
+MARKERS = {"hdbscan": "o", "fedavg": "s", "median": "^", "trimmed_mean": "v", "krum": "D",
+           "norm_clip": "X", "flame": "P", "central": "x"}
 
 
 def method_label(model: str, agg: str) -> str:
@@ -117,10 +119,15 @@ def make_report(results_dir: str | Path) -> Path:
     all_runs = load_runs(results_dir)
     if not all_runs:
         raise FileNotFoundError(f"No runs in {results_dir / 'runs.jsonl'} yet.")
+    data = json.loads((results_dir / "dataset.json").read_text())
+    # Only runs on the current dataset build; older builds (e.g. another split) stay in the file but out of the tables.
+    if any("data_file" in r for r in all_runs):
+        all_runs = [r for r in all_runs if r.get("data_file") == data["data_file"]]
+        if not all_runs:
+            raise FileNotFoundError(f"No runs on the current dataset {data['data_file']} yet.")
     runs = [r for r in all_runs if not r.get("variant")]       # full model only
     ablation_runs = [r for r in all_runs if r.get("variant")]
     profile = json.loads((results_dir / "profile.json").read_text())
-    data = json.loads((results_dir / "dataset.json").read_text())
     eff_path = results_dir / "efficiency.json"
     eff = json.loads(eff_path.read_text()) if eff_path.exists() else None
     tables, fig_dir = results_dir / "tables", results_dir / "figures"
@@ -320,7 +327,7 @@ def make_report(results_dir: str | Path) -> Path:
         figures.append(("Macro-F1 under poisoning", _save(fig, fig_dir, "poisoning")))
 
         # defence quality for the rules that name clients
-        detecting = [a for a in pois["aggregators"] if a in ("hdbscan", "krum")]
+        detecting = [a for a in pois["aggregators"] if a in ("hdbscan", "krum", "flame")]
         if detecting:
             header = ["Attack", "Aggregator"] + [f"{int(round(f * 100))}% TPR / FPR" for f in fractions[1:]]
             rows = []
@@ -358,8 +365,8 @@ def make_report(results_dir: str | Path) -> Path:
                             _save(fig, fig_dir, "defence_rates")))
             write_csv(tables / "defence_rates.csv", header, rows)
             out.append("### Rejected updates\n\nTPR: share of compromised clients' updates rejected. "
-                       "FPR: share of honest clients' updates rejected. Median and trimmed mean work per "
-                       "coordinate and reject no client as a whole, so they are not listed.\n\n"
+                       "FPR: share of honest clients' updates rejected. Median, trimmed mean and norm clipping "
+                       "reject no client as a whole, so they are not listed.\n\n"
                        + md_table(header, rows) + "\n")
 
     # ---------------------------------------------------------------- 4. ablation
@@ -409,7 +416,12 @@ def make_report(results_dir: str | Path) -> Path:
             out.append(f"**{caption}**\n\n![{caption}]({path})\n")
 
     out.append("## Notes\n")
-    out.append("- Test sequences come from the last 20% of every file, after the training part in time.")
+    if data.get("split", "blocks") == "temporal":
+        out.append("- Split: the last 20% of every file tests. On CIC-IoV2024 this puts frames in the test set "
+                   "that never occur in training (the RPM and SPEED files end on CAN ID 513 with new payloads).")
+    else:
+        out.append(f"- Split: every fifth block of {data.get('block_rows', 1000)} rows in each file tests, the rest "
+                   "trains; windows never cross a block boundary.")
     out.append("- The CNN-BiGRU baseline is our implementation of that model family on the same "
                "sequences, trained with FedAvg; the original adaptive weighting (AWI) is not reproduced.")
     out.append("- The centralised row trains one model on all the training data with the same number "

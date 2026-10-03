@@ -10,7 +10,8 @@
 # aggregators hdbscan | fedavg | median | trimmed_mean | krum, or "central"
 # for one model trained on all the data with the same budget (upper bound).
 #
-# Attacks: label_flip | targeted_flip | magnitude_poison (Sec 6.2.3).
+# Aggregators: fedavg | median | trimmed_mean | krum | norm_clip | flame | hdbscan (ours).
+# Attacks: label_flip | targeted_flip | magnitude_poison | alie (Sec 6.2.3).
 # Ablation variants: no_residual | no_id_embedding | mean_pool |
 # cooccurrence_edges | gru_instead_of_mamba | no_temporal (see runner.VARIANTS).
 
@@ -31,9 +32,9 @@ profiles:
       alphas: [0.1, 100.0]
       aggregators: [hdbscan]
     poisoning:
-      attacks: [label_flip, magnitude_poison]
+      attacks: [magnitude_poison, alie]
       fractions: [0.25]
-      aggregators: [fedavg, median, krum, hdbscan]
+      aggregators: [fedavg, norm_clip, flame, hdbscan]
     ablation:
       aggregator: fedavg
       variants: [no_residual, cooccurrence_edges, no_temporal]
@@ -41,7 +42,7 @@ profiles:
   quick:
     about: >-
       Real data with the benign file capped at 150K rows, 10 clients, 15 rounds,
-      2 local epochs, one seed. About 20-40 minutes on a GPU. Good for a first look and for
+      2 local epochs, one seed. About 1.5 hours on an A100. About 20-40 minutes on a GPU. Good for a first look and for
       tuning before the full run.
     data: real
     data_overrides: {max_rows_per_class: {benign: 150000}}
@@ -54,21 +55,22 @@ profiles:
       alphas: [0.1, 0.5, 1.0, 100.0]
       aggregators: [hdbscan, fedavg]
     poisoning:
-      attacks: [label_flip, targeted_flip, magnitude_poison]
+      attacks: [label_flip, targeted_flip, magnitude_poison, alie]
       fractions: [0.2, 0.4]
-      aggregators: [fedavg, median, trimmed_mean, krum, hdbscan]
+      aggregators: [fedavg, median, trimmed_mean, krum, norm_clip, flame, hdbscan]
     ablation:
       aggregator: fedavg
       variants: [no_residual, no_id_embedding, mean_pool, cooccurrence_edges, gru_instead_of_mamba, no_temporal]
 
   full:
     about: >-
-      The paper setting: 20 clients, 10 per round, 50 rounds, 2 local epochs,
-      three seeds for the main and non-IID results, two for the attack grid.
-      Several hours on one GPU; run it in a terminal with `make full`.
+      The paper setting: 20 clients, 10 per round, 30 rounds, 2 local epochs,
+      three seeds for the main, non-IID and ablation results, two for the
+      attack grid. About 10-14 hours on one A100; run it from a terminal
+      with nohup (see the README).
     data: real
     data_overrides: {}
-    federated: {num_clients: 20, clients_per_round: 10, num_rounds: 50, local_epochs: 2}
+    federated: {num_clients: 20, clients_per_round: 10, num_rounds: 30, local_epochs: 2, local_batch_size: 64}
     eval_every: 5
     seeds: [0, 1, 2]
     main:
@@ -78,9 +80,9 @@ profiles:
       aggregators: [hdbscan, fedavg]
     poisoning:
       seeds: [0, 1]
-      attacks: [label_flip, targeted_flip, magnitude_poison]
+      attacks: [label_flip, targeted_flip, magnitude_poison, alie]
       fractions: [0.1, 0.2, 0.3, 0.4]
-      aggregators: [fedavg, median, trimmed_mean, krum, hdbscan]
+      aggregators: [fedavg, median, trimmed_mean, krum, norm_clip, flame, hdbscan]
     ablation:
       aggregator: fedavg
       variants: [no_residual, no_id_embedding, mean_pool, cooccurrence_edges, gru_instead_of_mamba, no_temporal]

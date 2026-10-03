@@ -89,3 +89,19 @@ def test_saved_payload_is_torch():
     payload = build_from_streams(streams, SETTINGS, CLASSES)
     assert isinstance(payload["splits"]["train"]["x"], torch.Tensor)
     assert payload["splits"]["train"]["frame_bytes"].dtype == torch.uint8
+
+
+def test_block_split_puts_every_segment_in_both_splits():
+    from grama.data.build import split_stream
+    n = 10_000
+    labels = np.zeros(n, dtype=np.int64)
+    s = Stream("x", 0, np.repeat(np.arange(4), n // 4), np.zeros((n, 8), np.uint8), labels)  # 4 segments
+    train, test = split_stream(s, {"split": "blocks", "block_rows": 500, "test_fraction": 0.2})
+    test_ids = set(np.concatenate([p.ids for p in test]).tolist())
+    train_ids = set(np.concatenate([p.ids for p in train]).tolist())
+    assert test_ids == train_ids == {0, 1, 2, 3}
+    assert sum(len(p) for p in test) == 2000 and sum(len(p) for p in train) == 8000
+    assert all(len(p) == 500 for p in test)                  # test pieces are single blocks
+
+    t_train, t_test = split_stream(s, {"split": "temporal", "test_fraction": 0.2})
+    assert set(t_test[0].ids.tolist()) == {3}                 # a time split only tests the last segment

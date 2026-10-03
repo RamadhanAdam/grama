@@ -43,8 +43,8 @@ instead, so you can see the whole thing work. Those numbers are not results.
 | Profile | Data | Setting | Runs | Time |
 |---|---|---|---|---|
 | `smoke` | synthetic CAN traffic | 8 clients, 6 per round, 6 rounds | 19 | ~5-10 min on a CPU |
-| `quick` | CIC-IoV2024, benign capped at 150K rows | 10 clients, 5 per round, 15 rounds, 1 seed | 49 | ~30-60 min on a GPU |
-| `full` | CIC-IoV2024, benign capped at 400K rows | 20 clients, 10 per round, 50 rounds, 3 seeds | 183 | several hours on a GPU |
+| `quick` | CIC-IoV2024, benign capped at 150K rows | 10 clients, 5 per round, 15 rounds, 1 seed | 77 | ~1.5 h on an A100 |
+| `full` | CIC-IoV2024, benign capped at 400K rows | 20 clients, 10 per round, 30 rounds, batch 64, 3 seeds (2 for the attack grid) | 291 | ~12-14 h on an A100 |
 
 Profiles live in `config/experiments.yaml`; change them there. Every finished run is appended
 to `results/<profile>/runs.jsonl` straight away, and runs already in that file are skipped. If
@@ -53,12 +53,14 @@ the kernel dies or the server shuts down, start again and it carries on where it
 For `full`, use a terminal rather than the notebook so a closed browser tab can't stop it:
 
 ```bash
-make full-background
+cd ~/grama && nohup python3 scripts/run_experiments.py --profile full --no-progress > full.log 2>&1 &
 ```
 
 ```bash
-tail -f results/full.log
+tail -f ~/grama/full.log
 ```
+
+If the server is stopped partway, run the same `nohup` line again; finished runs are skipped.
 
 ## From a terminal
 
@@ -83,13 +85,19 @@ make quick
 |---|---|---|
 | main | GraMa vs CNN-BiGRU, HDBSCAN vs FedAvg, and a centralised model as the ceiling | Sec 6.2.1 |
 | noniid | How skewed client data (Dirichlet alpha 0.05 to 100) affects GraMa | Sec 6.2.2 |
-| poisoning | Label flipping, targeted flipping (attacks labelled benign) and magnitude poisoning at 10-40% compromised clients, against FedAvg, median, trimmed mean, Multi-Krum and HDBSCAN | Sec 6.2.3 |
+| poisoning | Label flipping, targeted flipping (attacks labelled benign), magnitude poisoning and ALIE (Baruch et al., 2019) at 10-40% compromised clients, against FedAvg, median, trimmed mean, Multi-Krum, norm clipping, FLAME (Nguyen et al., 2022) and our HDBSCAN defence | Sec 6.2.3 |
 | ablation | GraMa with one part removed or swapped: no residuals, no CAN-ID embeddings, mean pooling, co-occurrence edges, GRU instead of Mamba, no temporal model | |
 | efficiency | Parameters, model size (one upload), latency per sequence on one CPU thread and on the GPU, throughput | Sec 6.1, 8.1 |
 
+**Our defence and FLAME.** Both cluster client updates with HDBSCAN. FLAME (Nguyen et al., USENIX
+Security 2022) clusters the raw updates by cosine distance, then clips them to the median norm and
+adds noise. Ours first maps the updates into a small latent space with an autoencoder fitted each
+round (phi, eq. 11) and clusters there, weighting kept clients by HDBSCAN membership (eq. 14) with no
+clipping or noise. FLAME is run as a baseline so the paper can show where the two differ.
+
 Each run reports accuracy, macro precision/recall/F1, ROC-AUC, detection rate (attack sequences
 flagged as an attack) and false alarm rate (benign sequences flagged), per-class F1, the confusion
-matrix, and test macro-F1 per round. For HDBSCAN and Multi-Krum it also counts how many
+matrix, and test macro-F1 per round. For HDBSCAN, FLAME and Multi-Krum it also counts how many
 compromised and honest updates were rejected.
 
 Output in `results/<profile>/`:
@@ -112,8 +120,9 @@ There is no timestamp and no DLC.
 1. Each file is one stream of frames in bus order, labelled by its file name.
 2. The benign file is capped (150K rows in `quick`, 400K in `full`) so it doesn't swamp the
    attacks.
-3. Each file is split in time: the first 80% trains, the last 20% tests. No window or sequence
-   crosses the split.
+3. Each file is cut into blocks of 1,000 rows; every fifth block tests and the rest train.
+   Windows are built inside a block, so none crosses the split (see below for why not a plain
+   time split).
 4. The CAN-ID vocabulary (the graph's nodes) and the byte scaling come from the training part only.
    IDs never seen in training share one "other" node.
 5. Windows of 64 frames, step 32. Each node gets 10 features per window: its mean scaled payload
@@ -122,12 +131,33 @@ There is no timestamp and no DLC.
 
 Exact duplicates are not removed. DoS and spoofing traffic is the same few frames repeated
 (spoofing-GAS: 9,991 rows, 2 distinct), so de-duplication would delete the attacks themselves.
-The time-based split is what keeps train and test apart.
+Keeping windows inside blocks is what keeps train and test apart.
 
-In the released files each attack file holds attack frames only, which makes the task easier than
-the road. `config/data.yaml` has an `injection` switch that interleaves attack frames with benign
-traffic from the same split (30% attack frames by default), the way an injection looks on a real
-bus. It is off by default; turning it on gives a harder second setting.
+**Why not a plain time split.** What the files contain:
+
+| File | Rows | Distinct frames | CAN IDs |
+|---|---|---|---|
+| benign | 1,223,737 | 3,547 | 72 |
+| DoS | 74,663 | 21 | 291 |
+| spoofing-GAS | 9,991 | 2 | 513 |
+| spoofing-RPM | 54,900 | 10 | 476, then 513 for the last 36% |
+| spoofing-SPEED | 24,951 | 5 | 344, then 513 for the last 20% |
+| spoofing-STEERING_WHEEL | 19,977 | 3 | 128 |
+
+Each attack file is a few frames repeated in long segments, and no attack ID ever appears in benign
+traffic. The RPM and SPEED files end on CAN ID 513, the GAS ID, with payloads that occur nowhere
+earlier. Hold out the last 20% of every file and those segments are only in the test set: no model
+can learn them, and every method we ran (centralised included) stopped at macro-F1 ~0.56 with RPM
+and SPEED wrong. With interleaved blocks every segment is in both splits and the centralised model
+scores 1.000. The time split is still available (`build.split: temporal` in `config/data.yaml`), and
+the `quick` profile run on 3 October 2026 used it, which is where the 0.56 comes from.
+
+Because attack IDs never appear in benign traffic, any model that sees the IDs separates attack from
+benign almost perfectly; this is a property of the dataset (see also CIC's FAQ on duplicates). The
+clean comparison is therefore close to the ceiling, and the interesting results are under poisoning
+and non-IID data. `config/data.yaml` also has an `injection` switch that interleaves attack frames
+with benign traffic; it is off by default, and with this dataset it doesn't make detection much
+harder, for the same reason.
 
 ## Choices that differ from the concept note
 

@@ -31,3 +31,16 @@ def test_magnitude_poison_scales_the_honest_update():
     assert bad.malicious and not honest.malicious
     for k in honest.delta_w:
         assert torch.allclose(bad.delta_w[k], honest.delta_w[k] * 10.0, atol=1e-6)
+
+
+def test_alie_sends_mean_minus_z_std_for_every_attacker():
+    from grama.attacks.poisoning import alie_attack, alie_z
+    from grama.federated.client import ClientUpdate
+    ups = [ClientUpdate(i, {"w": torch.tensor([float(i), 2.0 * i])}, 10, 0.1) for i in range(10)]
+    out = alie_attack(ups, [3, 7])
+    stack = torch.stack([u.delta_w["w"] for u in ups])
+    expected = stack.mean(0) - alie_z(10, 2) * stack.std(0, unbiased=False)
+    assert torch.allclose(out[3].delta_w["w"], expected) and torch.allclose(out[7].delta_w["w"], expected)
+    assert out[3].malicious and not out[0].malicious
+    assert torch.equal(out[0].delta_w["w"], ups[0].delta_w["w"])
+    assert alie_z(10, 1) == 0.0 and alie_z(10, 4) > alie_z(10, 2) > 0

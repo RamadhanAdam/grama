@@ -38,10 +38,29 @@ def test_krum_rejects_the_outlier():
     assert sum(res.trust_weights.values()) == pytest.approx(1.0)
 
 
-@pytest.mark.parametrize("name", ["fedavg", "median", "trimmed_mean", "krum", "hdbscan"])
+@pytest.mark.parametrize("name", ["fedavg", "median", "trimmed_mean", "krum", "norm_clip", "flame", "hdbscan"])
 def test_factory_builds_every_rule(name):
     cfg = {"aggregator": {"latent_dim": 2, "autoencoder_hidden": 8, "autoencoder_epochs": 5,
                           "hdbscan": {"min_cluster_size": 2, "min_samples": 1}}}
     agg = make_aggregator(name, cfg)
     res = agg.aggregate([upd(i, 0.1 * (i + 1)) for i in range(5)], SHAPES)
     assert set(res.global_delta) == {"a", "b"}
+
+
+def test_norm_clip_bounds_an_oversized_update():
+    from grama.federated.robust import NormClipAggregator
+    ups = [upd(i, 1.0) for i in range(4)] + [upd(9, 1000.0)]
+    res = NormClipAggregator().aggregate(ups, SHAPES)
+    assert torch.allclose(res.global_delta["a"], torch.ones(2, 2), atol=1e-5)
+
+
+def test_flame_drops_updates_pointing_the_other_way():
+    from grama.federated.robust import FlameAggregator
+    torch.manual_seed(0)
+    base = torch.randn(7)
+    honest = [ClientUpdate(i, {"a": (base[:4] + 0.05 * torch.randn(4)).reshape(2, 2),
+                               "b": base[4:] + 0.05 * torch.randn(3)}, 100, 0.1) for i in range(7)]
+    bad = [ClientUpdate(90 + i, {"a": -base[:4].reshape(2, 2) * 3, "b": -base[4:] * 3}, 100, 0.1) for i in range(3)]
+    res = FlameAggregator(noise_lambda=0.0).aggregate(honest + bad, SHAPES)
+    assert all(res.trust_weights[90 + i] == 0.0 for i in range(3))
+    assert sum(res.trust_weights[i] > 0 for i in range(7)) >= 6   # HDBSCAN may drop an edge point

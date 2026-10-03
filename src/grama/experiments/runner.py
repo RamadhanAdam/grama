@@ -158,6 +158,8 @@ class Experiment:
             **{k: self.meta[k] for k in ("source", "class_names", "num_nodes", "in_features",
                                           "window_size", "stride", "seq_len", "seq_stride",
                                           "edge_mode", "class_counts", "injection")},
+            "split": self.meta.get("split", "temporal"),
+            "block_rows": self.meta.get("block_rows"),
         }
         (self.out_dir / "dataset.json").write_text(json.dumps(info, indent=2))
         logger.info("Data: %s | %d nodes | train %d / test %d sequences | device %s",
@@ -222,12 +224,16 @@ class Experiment:
         return specs
 
     def done_ids(self) -> set[str]:
+        """Runs already finished on the current dataset file (runs on an older build don't count)."""
         if not self.runs_path.exists():
             return set()
+        current = self.data_path.name if self.meta is not None else None
         ids = set()
         for line in self.runs_path.read_text().splitlines():
             if line.strip():
-                ids.add(json.loads(line)["run_id"])
+                rec = json.loads(line)
+                if current is None or rec.get("data_file") == current:
+                    ids.add(rec["run_id"])
         return ids
 
     # ------------------------------------------------------------------ one run
@@ -288,7 +294,7 @@ class Experiment:
             per_round, local_epochs = 1, 1
             eval_every = max(1, rounds // 10)
         else:
-            aggregator = make_aggregator(spec.aggregator, self.fed_cfg, self.device)
+            aggregator = make_aggregator(spec.aggregator, self.fed_cfg, self.device, seed=spec.seed)
             if spec.aggregator == "hdbscan" and sim["clients_per_round"] < 5:
                 logger.warning("HDBSCAN with %d clients per round often finds no cluster at all; "
                                "use 5 or more.", sim["clients_per_round"])
@@ -316,6 +322,7 @@ class Experiment:
             **asdict(spec),
             "profile": self.profile_name,
             "data_source": self.meta["source"],
+            "data_file": self.data_path.name,
             "num_clients": len(client_ids),
             "compromised": sorted(compromised),
             "rounds": rounds,

@@ -35,6 +35,9 @@ aggregator:
   # Baseline rules (src/grama/federated/robust.py)
   trim_ratio: 0.2               # trimmed mean: share cut from each end, per coordinate
   krum_assumed_fraction: 0.4    # Multi-Krum: share of attackers it is built to tolerate
+  flame_noise_lambda: 0.001     # FLAME: noise std = lambda * median update norm (Nguyen et al., 2022)
 
 adversarial_eval:
   magnitude_poison_scale: 10.0  # Δw multiplier for magnitude poisoning
+  # ALIE (Baruch et al., 2019) needs no setting: z comes from the number of
+  # clients and attackers in the round.

@@ -4,8 +4,9 @@ Steps (Sec 3.2 and Sec 4.1 Phase 1 of the concept note):
   1. find the CSVs anywhere under data/raw (zip and tar.xz archives are unpacked first)
   2. one stream of frames per file, labelled from the file name
   3. optional cap on rows per class (the benign file alone has 1.2M rows)
-  4. time-based split per stream: the first 80% trains, the last 20% tests,
-     so no window or sequence straddles the two
+  4. split every stream into train and test without any window crossing
+     between them: interleaved blocks by default (every fifth block of
+     1,000 rows tests), or a plain time split (last 20% tests)
   5. optional: interleave attack frames with benign traffic, the way a real
      injection attack looks on the bus (harder than the released files,
      where each attack file holds attack frames only)
@@ -282,6 +283,40 @@ def inject_into_benign(attack: Stream, benign: Stream, ratio: float, rng) -> Str
     return Stream(attack.name, attack.class_idx, ids, payload, labels)
 
 
+def split_stream(s: Stream, settings: dict) -> tuple[list[Stream], list[Stream]]:
+    """Cut one stream into train pieces and test pieces.
+
+    "blocks" (default): blocks of block_rows rows, every k-th block to test
+    (k = 1 / test_fraction). Each recorded segment of a file then shows up in
+    both splits, and windows are built inside a piece, so none crosses over.
+    "temporal": the last test_fraction of the stream tests. On CIC-IoV2024 this
+    puts frames in the test set that never occur in training (the RPM and SPEED
+    files end on CAN ID 513 with new payloads), which caps every model.
+    """
+    method = settings.get("split", "blocks")
+    test_fraction = settings["test_fraction"]
+    n = len(s)
+    if method not in ("blocks", "temporal"):
+        raise ValueError(f"split must be 'blocks' or 'temporal', got {method!r}")
+    rows = int(settings.get("block_rows", 1000))
+    every = max(2, round(1 / test_fraction))
+    n_blocks = -(-n // rows)
+    if method == "temporal" or n_blocks < every:
+        cut = int(n * (1 - test_fraction))
+        return [s.slice(0, cut)], [s.slice(cut, None)]
+    is_test = [b % every == every - 1 for b in range(n_blocks)]
+    train, test = [], []
+    b = 0
+    while b < n_blocks:
+        e = b
+        while e + 1 < n_blocks and is_test[e + 1] == is_test[b]:
+            e += 1
+        piece = s.slice(b * rows, min((e + 1) * rows, n))
+        (test if is_test[b] else train).append(piece)
+        b = e + 1
+    return train, test
+
+
 def fit_vocabulary(train_ids: np.ndarray, max_nodes: int) -> np.ndarray:
     """Most frequent CAN IDs in train (max_nodes - 1 of them). Every other ID maps to one 'other' node."""
     values, counts = np.unique(train_ids, return_counts=True)
@@ -353,9 +388,9 @@ def build_from_streams(streams: list[Stream], settings: dict, class_names: list[
 
     split_streams = {"train": [], "test": []}
     for s in streams:
-        cut = int(len(s) * (1 - settings["test_fraction"]))
-        split_streams["train"].append(s.slice(0, cut))
-        split_streams["test"].append(s.slice(cut, None))
+        train_pieces, test_pieces = split_stream(s, settings)
+        split_streams["train"].extend(train_pieces)
+        split_streams["test"].extend(test_pieces)
 
     inj = settings.get("injection") or {}
     if inj.get("enabled"):
@@ -379,7 +414,7 @@ def build_from_streams(streams: list[Stream], settings: dict, class_names: list[
     splits, counts = {}, {}
     for split, ss in split_streams.items():
         xs, fids, fbytes, starts, labels = [], [], [], [], []
-        offset = 0
+        offset, skipped_rows = 0, 0
         for s in ss:
             payload_norm = ((s.payload.astype(np.float32) - lo) / span).clip(0.0, 1.0)
             out = window_stream(
@@ -388,7 +423,7 @@ def build_from_streams(streams: list[Stream], settings: dict, class_names: list[
                 num_classes=num_classes, min_attack_frames=settings.get("min_attack_frames", 1),
             )
             if out is None or len(out["x"]) < L:
-                logger.warning("%s/%s: too short for one sequence, skipped", s.name, split)
+                skipped_rows += len(s)   # a piece too short for one sequence (e.g. a file's last block)
                 continue
             nw = len(out["x"])
             seq_starts = np.arange(0, nw - L + 1, settings["seq_stride"])
@@ -400,6 +435,8 @@ def build_from_streams(streams: list[Stream], settings: dict, class_names: list[
             offset += nw
         if not labels:
             raise ValueError(f"No sequences in the {split} split. Use more rows or a smaller window.")
+        if skipped_rows:
+            logger.info("%s: %d rows in pieces too short for a sequence were left out", split, skipped_rows)
         y = np.concatenate(labels)
         splits[split] = {
             "x": torch.from_numpy(np.concatenate(xs)),
@@ -422,6 +459,8 @@ def build_from_streams(streams: list[Stream], settings: dict, class_names: list[
         "class_counts": counts,
         "streams": [s.name for s in streams],
         **{k: settings[k] for k in ("window_size", "stride", "seq_len", "seq_stride", "edge_mode")},
+        "split": settings.get("split", "blocks"),
+        "block_rows": settings.get("block_rows", 1000),
         "injection": inj if inj.get("enabled") else None,
     }
     return {"meta": meta, "splits": splits}
