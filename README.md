@@ -10,6 +10,9 @@ detector of Mnkash et al. (2026) with GAT + Mamba, and their adaptive weighting 
 latent-density aggregation, as laid out in my concept note *Redesigning Federated Intrusion
 Detection for IoV: The GraMa (Graph-Mamba) Architecture*.
 
+**Status:** the code is complete and tested (unit tests, plus full runs on synthetic CAN traffic).
+Results on CIC-IoV2024 come from running the `quick` and `full` profiles below on a GPU.
+
 ## Running it on JupyterHub
 
 In a JupyterHub terminal, once:
@@ -198,6 +201,11 @@ docs/architecture.md     which file implements which equation of the concept not
 ```bash
 make test
 ```
+
+## License
+
+MIT, see [LICENSE](LICENSE). If you use this code, please cite the paper once it's out; until then,
+link to this repository.
 
 ## Data reference
 
