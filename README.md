@@ -1,85 +1,133 @@
 # GraMa
 
-Federated intrusion detection for in-vehicle CAN traffic.
+Federated intrusion detection for in-vehicle CAN traffic, using graph attention and Mamba, with an
+HDBSCAN-based defence against poisoned clients.
 
-Each car trains a small detector on its own traffic. The detector turns every window of CAN
-messages into a graph of message IDs, reads it with a graph attention network, and follows the
-windows over time with a Mamba model. Cars send only model updates to a server, and the server
-clusters those updates with HDBSCAN to leave out cars that look poisoned.
+Each vehicle trains a local detector. The detector turns every window of CAN messages into a graph
+of message IDs, encodes it with a graph attention network, and models the sequence of windows with
+a Mamba state-space model. Vehicles share only model updates. The server clusters the updates with
+HDBSCAN in a learned latent space and leaves out those that fall outside the main cluster.
 
-This repository has the code and experiments for my paper on GraMa, which replaces the CNN-BiGRU
-detector and AWI aggregation of Mnkash et al. (2026). For a visual walk-through, see
-[How GraMa works](https://ramadhanadam.github.io/grama/explainer.html).
+An interactive explanation of the whole system is at
+[ramadhanadam.github.io/grama](https://ramadhanadam.github.io/grama/explainer.html).
 
-## Running it
+## Requirements
 
-On JupyterHub, or any machine with a GPU:
+- Python 3.10 or newer
+- PyTorch 2.1 or newer
+- A CUDA GPU is recommended for the full experiments. Everything also runs on a CPU, more slowly.
+- Optional: `mamba-ssm` for the fused Mamba kernel. Without it, a pure PyTorch implementation is used.
+
+## Installation
 
 ```bash
 git clone https://github.com/RamadhanAdam/grama.git
 cd grama
-python3 -m pip install -r requirements.txt
+pip install -r requirements.txt
 ```
-
-Put the data in `data/raw/` (see below). Then open `GraMa.ipynb` and run all cells, or start a
-profile from the terminal:
-
-```bash
-nohup python3 scripts/run_experiments.py --profile full --no-progress > full.log 2>&1 &
-```
-
-Results go to `results/<profile>/`: `summary.md`, the tables as CSV and the figures as PDF and
-PNG. Each finished run is saved straight away, so if the job stops, run the same command again
-and it carries on.
-
-| Profile | What it is | Runs | Time |
-|---|---|---|---|
-| `smoke` | synthetic CAN traffic, to check that everything works | 19 | about 5 min on a CPU |
-| `quick` | real data, short runs | 77 | about 1.5 h on an A100 |
-| `full` | the paper setting | 291 | about 12 h on an A100 |
-
-The profiles are in `config/experiments.yaml`.
 
 ## Data
 
-CIC-IoV2024 (Neto et al., 2024), from the
-[CIC website](https://www.unb.ca/cic/datasets/iov-dataset-2024.html). The download asks for a
-short form, and the links only work in the browser you registered in. I use the six CSVs in the
-`decimal` folder. Put them, or the whole `.tar.xz`, in `data/raw/` and check them with:
+The experiments use [CIC-IoV2024](https://www.unb.ca/cic/datasets/iov-dataset-2024.html)
+(Neto et al., 2024), which requires a free registration on the CIC website. Download the six CSV
+files from the `decimal` folder (or the full `CICIoV2024.tar.xz`) and place them in `data/raw/`.
+To check that the files are complete:
 
 ```bash
-PYTHONPATH=src python3 -m grama.data.download
+PYTHONPATH=src python -m grama.data.download
 ```
 
-Train and test come from interleaved blocks of 1,000 messages in each file; every fifth block is
-for testing. A plain time split doesn't work on this dataset. [docs/notes.md](docs/notes.md) explains why,
-along with the other places where the code differs from the concept note.
+Each file is split into blocks of 1,000 messages, and every fifth block is held out for testing.
+See [docs/notes.md](docs/notes.md) for why a chronological split is not used on this dataset.
+
+## Usage
+
+Run all experiments of a profile:
+
+```bash
+python scripts/run_experiments.py --profile quick
+```
+
+| Profile | Description | Runs | Time (one A100) |
+|---|---|---|---|
+| `smoke` | synthetic CAN traffic, checks the pipeline end to end | 19 | about 5 min (CPU) |
+| `quick` | CIC-IoV2024, short runs, one seed | 77 | about 1.5 h |
+| `full` | the setting used in the paper | 291 | about 12 h |
+
+Finished runs are saved as they complete, so an interrupted profile resumes where it stopped when the
+same command is run again. For long runs, start it in the background, for example with
+`nohup ... &` or inside `tmux`. Profiles are defined in `config/experiments.yaml`.
+
+The same pipeline can be run from the notebook `GraMa.ipynb`. To train and evaluate a single
+configuration:
+
+```bash
+python scripts/run_federated_train.py --profile quick --aggregator hdbscan --attack label_flip --fraction 0.2
+```
+
+## Results
+
+Each profile writes to `results/<profile>/`:
+
+- `summary.md`: all tables and figures on one page
+- `tables/`: CSV files for every table
+- `figures/`: PDF and PNG figures
+- `runs.jsonl`: one record per run, including per-round metrics
+
+To rebuild the tables and figures from saved runs:
+
+```bash
+PYTHONPATH=src python -m grama.experiments.report results/quick
+```
 
 ## Experiments
 
-- Main: GraMa against a CNN-BiGRU detector, with and without the HDBSCAN defence, and a
-  centralised model for reference
-- Non-IID data: Dirichlet alpha from 0.05 to 100
-- Poisoning: label flipping, targeted flipping, magnitude poisoning and ALIE, with 10 to 40% of
-  cars hacked, against FedAvg, median, trimmed mean, Multi-Krum, norm clipping, FLAME and HDBSCAN
-- Ablation: parts of GraMa removed or swapped one at a time
-- Efficiency: model size, latency and throughput
+- Main comparison: GraMa against a CNN-BiGRU detector, with FedAvg and with the HDBSCAN defence,
+  plus a centralised model as a reference.
+- Non-IID data: client data split with a Dirichlet distribution, alpha from 0.05 to 100.
+- Poisoning: label flipping, targeted label flipping, magnitude poisoning and ALIE, with 10 to 40%
+  of clients compromised, against FedAvg, coordinate-wise median, trimmed mean, Multi-Krum, norm
+  clipping, FLAME and the HDBSCAN defence.
+- Ablation: residual connections, CAN-ID embeddings, attention pooling, edge type, and the
+  temporal model, each removed or replaced in turn.
+- Efficiency: parameters, model size, latency and throughput.
 
-## Layout
+Metrics: accuracy, macro precision, recall and F1, ROC-AUC, detection rate, false alarm rate,
+per-class F1 and confusion matrices. For defences that reject clients, the share of compromised and
+honest updates rejected is also reported.
+
+## Project structure
 
 ```
-GraMa.ipynb    runs everything
-config/        settings and experiment profiles
-src/grama/     data, models, federated learning, attacks, evaluation, experiment runner
+config/        data, model and federated settings; experiment profiles
+src/grama/
+  data/        dataset builder, sequence dataset, data check, Dirichlet split
+  models/      GAT encoder, Mamba block, GraMa model, CNN-BiGRU baseline
+  federated/   client, server, HDBSCAN aggregator, baseline aggregators
+  attacks/     poisoning attacks
+  eval/        metrics, latency benchmark
+  experiments/ experiment runner and report
 scripts/       command-line entry points
 tests/         unit tests (CPU only, no data needed)
-docs/          explainer.html, notes.md, architecture.md
+docs/          explainer, implementation notes, mapping to the concept note
 ```
 
-Run the tests with `python3 -m pytest`.
+## Tests
+
+```bash
+python -m pytest
+```
+
+## Citation
+
+A paper describing GraMa is in preparation. Until it is published, please cite this repository.
+
+The dataset:
+
+> E. C. P. Neto, H. Taslimasa, S. Dadkhah, S. Iqbal, P. Xiong, T. Rahman and A. A. Ghorbani.
+> CICIoV2024: Advancing realistic IDS approaches against DoS and spoofing attack in IoV CAN bus.
+> *Internet of Things* 26 (2024) 101209.
 
 ## License
 
-MIT. The dataset is from E. C. P. Neto, H. Taslimasa, S. Dadkhah, S. Iqbal, P. Xiong, T. Rahman
-and A. A. Ghorbani, "CICIoV2024: Advancing realistic IDS approaches against DoS and spoofing attack
-in IoV CAN bus", Internet of Things 26 (2024) 101209.
+MIT. See [LICENSE](LICENSE).
