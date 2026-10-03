@@ -104,8 +104,7 @@ class LocalClient:
         model.load_state_dict(global_state_dict)
         model.train()
 
-        # The fused Adam kernel cuts per-step overhead on GPU; these models are small enough that it shows.
-        optimizer = torch.optim.Adam(model.parameters(), lr=self.lr, fused=str(self.device).startswith("cuda"))
+        optimizer = torch.optim.Adam(model.parameters(), lr=self.lr)
         weight = self.class_weights.to(self.device) if self.class_weights is not None else None
         criterion = nn.CrossEntropyLoss(weight=weight)  # Sec 4.1 Phase 4: L(y_hat, y)
         generator = torch.Generator().manual_seed(self.seed * 1_000_003 + self.client_id * 1009 + self._round)
