@@ -1,196 +1,50 @@
-"""Main federated training entrypoint.
+"""Train one federated run and print its test metrics.
 
-Until CIC-IoV2024 is downloaded and wired through preprocess.py /
-graph_builder.py, run with --synthetic to validate the full pipeline
-(client sampling, local training, HDBSCAN aggregation, round loop) on
-random data with the right shapes. This is how you sanity-check the
-architecture end-to-end without the dataset.
+    python scripts/run_federated_train.py --profile smoke
+    python scripts/run_federated_train.py --profile quick --aggregator krum --attack label_flip --fraction 0.2
 
-Usage:
-    python scripts/run_federated_train.py --synthetic --rounds 5
+Uses the data and federated settings of the chosen profile. For the paper
+results use scripts/run_experiments.py, which runs and saves every setting.
 """
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
-import torch
-from torch.utils.data import Dataset
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "src"))
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
-
-from grama.data.federated_split import dirichlet_partition
-from grama.federated.aggregator import LatentDensityAggregator
-from grama.federated.client import LocalClient
-from grama.federated.server import FederatedServer
-from grama.models.classifier_head import GraMaLocalModel
-from grama.utils.config import Config
-from grama.utils.logging import get_logger
-from grama.utils.seed import set_seed
-
-logger = get_logger(__name__)
-
-
-class RealWindowSequenceDataset(Dataset):
-    """Loads the tensors produced by scripts/build_real_dataset.py.
-
-    split: "train" (default, for federated training) or "test" (held out,
-    time-based per source file — for evaluation only, never train on this).
-    """
-
-    def __init__(self, processed_path: str, split: str = "train"):
-        payload = torch.load(processed_path, weights_only=False)
-        if f"{split}_labels" not in payload:
-            raise KeyError(f"No '{split}' split in {processed_path} — rebuild with scripts/build_real_dataset.py")
-        self.node_features = payload[f"{split}_node_features"]
-        self.adjacency = payload[f"{split}_adjacency"]
-        self.labels = payload[f"{split}_labels"]
-        self.num_nodes = payload["num_nodes"]
-        self.in_features = payload["in_features"]
-        self.num_classes = payload["num_classes"]
-
-    def __len__(self):
-        return len(self.labels)
-
-    def __getitem__(self, idx):
-        return self.node_features[idx], self.adjacency[idx], self.labels[idx]
-
-
-class SyntheticWindowSequenceDataset(Dataset):
-    """Random (node_features, adjacency, label) tuples with real GraMa shapes,
-    for pipeline validation before the actual dataset is available."""
-
-    def __init__(self, num_samples: int, seq_len: int, num_nodes: int, in_features: int, num_classes: int, seed: int):
-        g = torch.Generator().manual_seed(seed)
-        self.node_features = torch.rand(num_samples, seq_len, num_nodes, in_features, generator=g)
-        # Random symmetric adjacency with self-loops, mimicking graph_builder.py's output shape.
-        adj = (torch.rand(num_samples, seq_len, num_nodes, num_nodes, generator=g) > 0.6).float()
-        adj = torch.maximum(adj, adj.transpose(-1, -2))
-        for i in range(num_nodes):
-            adj[..., i, i] = 1.0
-        self.adjacency = adj
-        self.labels = torch.randint(0, num_classes, (num_samples,), generator=g)
-
-    def __len__(self):
-        return len(self.labels)
-
-    def __getitem__(self, idx):
-        return self.node_features[idx], self.adjacency[idx], self.labels[idx]
+from grama.experiments.runner import Experiment, RunSpec  # noqa: E402
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--synthetic", action="store_true", help="Use random data to validate the pipeline")
-    parser.add_argument("--real", action="store_true", help="Use the real preprocessed CIC-IoV2024 dataset")
-    parser.add_argument("--processed-path", default="data/processed/dataset.pt",
-                         help="Path to the .pt file from scripts/build_real_dataset.py (--real mode only)")
-    parser.add_argument("--rounds", type=int, default=None, help="Override config/federated.yaml num_rounds")
-    parser.add_argument("--model-config", default="config/model.yaml")
-    parser.add_argument("--federated-config", default="config/federated.yaml")
-    parser.add_argument("--seq-len", type=int, default=8, help="Windows per sequence (synthetic mode only)")
-    parser.add_argument("--checkpoint-dir", default=None,
-                         help="Directory to write latest.pt + history.jsonl to after each round "
-                              "(or every --checkpoint-every rounds). Omit to disable checkpointing.")
-    parser.add_argument("--checkpoint-every", type=int, default=1,
-                         help="Write a checkpoint every N rounds (default: every round).")
-    parser.add_argument("--resume", default=None,
-                         help="Path to a checkpoint (e.g. <checkpoint-dir>/latest.pt) to resume from. "
-                              "--rounds then means additional rounds to run from that point.")
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--profile", default="smoke")
+    parser.add_argument("--model", default="grama", choices=["grama", "cnn_bigru"])
+    parser.add_argument("--aggregator", default="hdbscan",
+                        choices=["hdbscan", "fedavg", "median", "trimmed_mean", "krum", "central"])
+    parser.add_argument("--alpha", type=float, default=None, help="Dirichlet alpha (default: config)")
+    parser.add_argument("--attack", default=None, choices=["label_flip", "targeted_flip", "magnitude_poison"])
+    parser.add_argument("--fraction", type=float, default=0.2, help="share of compromised clients")
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--device", default=None)
     args = parser.parse_args()
 
-    if not args.synthetic and not args.real:
-        logger.error("Pass --synthetic (random data, pipeline check) or --real (preprocessed "
-                      "CIC-IoV2024 from scripts/build_real_dataset.py).")
-        return 1
-
-    model_cfg = Config.from_yaml(args.model_config)
-    fed_cfg = Config.from_yaml(args.federated_config)
-    set_seed(42)
-
-    num_clients = fed_cfg.simulation["num_clients"]
-
-    if args.real:
-        logger.info("Loading real dataset from %s", args.processed_path)
-        full_dataset = RealWindowSequenceDataset(args.processed_path)
-        num_nodes = full_dataset.num_nodes
-        logger.info("Real dataset: %d sequences, %d CAN-ID nodes, %d classes",
-                     len(full_dataset), num_nodes, full_dataset.num_classes)
-    else:
-        num_nodes = model_cfg.graph["synthetic_num_nodes"]
-        in_features = model_cfg.gat_encoder["in_features"]
-        num_classes = model_cfg.classifier_head["num_classes"]
-        logger.info("Building synthetic dataset: %d clients, %d ECU nodes, seq_len=%d", num_clients, num_nodes, args.seq_len)
-        full_dataset = SyntheticWindowSequenceDataset(
-            num_samples=num_clients * 40,
-            seq_len=args.seq_len,
-            num_nodes=num_nodes,
-            in_features=in_features,
-            num_classes=num_classes,
-            seed=42,
-        )
-
-    client_indices = dirichlet_partition(
-        labels=full_dataset.labels.numpy(),
-        num_clients=num_clients,
-        alpha=fed_cfg.simulation["non_iid_alpha"],
-        seed=42,
-    )
-
-    def model_factory():
-        return GraMaLocalModel(model_cfg.gat_encoder, model_cfg.mamba_block, model_cfg.classifier_head)
-
-    clients = []
-    for cid, idxs in enumerate(client_indices):
-        if len(idxs) == 0:
-            continue
-        subset = torch.utils.data.Subset(full_dataset, idxs.tolist())
-        clients.append(LocalClient(
-            client_id=cid,
-            dataset=subset,
-            batch_size=fed_cfg.simulation["local_batch_size"],
-            lr=fed_cfg.simulation["local_lr"],
-        ))
-
-    aggregator = LatentDensityAggregator(**fed_cfg.aggregator["hdbscan"] | {
-        "latent_dim": fed_cfg.aggregator["latent_dim"],
-        "autoencoder_hidden": fed_cfg.aggregator["autoencoder_hidden"],
-        "autoencoder_epochs": fed_cfg.aggregator["autoencoder_epochs"],
-    })
-
-    server = FederatedServer(
-        model_factory=model_factory,
-        clients=clients,
-        aggregator=aggregator,
-        clients_per_round=fed_cfg.simulation["clients_per_round"],
-        local_epochs=fed_cfg.simulation["local_epochs"],
-    )
-
-    if args.resume:
-        prior_summaries = server.load_checkpoint(args.resume)
-        logger.info("Resumed: %d prior round(s) completed (last avg_local_loss=%.4f)",
-                     len(prior_summaries), prior_summaries[-1].avg_local_loss if prior_summaries else float("nan"))
-
-    num_rounds = args.rounds or fed_cfg.simulation["num_rounds"]
-    logger.info(
-        "Running %d %sround(s) from round %d, %d/%d clients per round%s",
-        num_rounds, "additional " if args.resume else "",
-        server.last_round_num + 1, server.clients_per_round, len(clients),
-        f" | checkpointing to {args.checkpoint_dir} every {args.checkpoint_every} round(s)" if args.checkpoint_dir else "",
-    )
-    history = server.run(num_rounds, checkpoint_dir=args.checkpoint_dir, checkpoint_every=args.checkpoint_every)
-
-    for record in history:
-        logger.info(
-            "round %d done | avg_local_loss=%.4f | benign_cluster=%s | rejected=%d",
-            record.round_num,
-            record.avg_local_loss,
-            record.aggregation.benign_cluster_id,
-            sum(1 for w in record.aggregation.trust_weights.values() if w == 0.0),
-        )
-
-    logger.info("Done — %d round(s) completed total. This validated the pipeline end-to-end on "
-                 "synthetic data; swap in real CIC-IoV2024 tensors next.", server.last_round_num)
+    exp = Experiment(args.profile, root=ROOT, device=args.device,
+                     results_dir=ROOT / "results" / f"{args.profile}_single")
+    exp.prepare_data()
+    alpha = args.alpha if args.alpha is not None else float(exp.sim["non_iid_alpha"])
+    spec = RunSpec(args.model, args.aggregator, alpha, args.attack,
+                   args.fraction if args.attack else 0.0, args.seed)
+    record = exp.run_one(spec)
+    for h in record["history"]:
+        f1 = h.get("f1_macro")
+        print(f"round {h['round']:3d}  loss {h['loss']:.4f}  rejected {h['num_rejected']}/{h['num_malicious']} malicious"
+              + (f"  test macro-F1 {f1:.4f}" if f1 is not None else ""))
+    final = {k: v for k, v in record["final"].items() if not isinstance(v, list)}
+    print(json.dumps({"run": spec.run_id, "final": final, "defence": record["defence"]}, indent=2))
     return 0
 
 

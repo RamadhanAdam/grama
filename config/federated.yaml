@@ -1,4 +1,5 @@
-# Federated simulation configuration (custom loop, not FedAvg-shaped)
+# Federated simulation (custom loop, see src/grama/federated/server.py).
+# Profiles in config/experiments.yaml override the simulation numbers.
 
 simulation:
   num_clients: 20
@@ -8,21 +9,32 @@ simulation:
   local_batch_size: 32
   local_lr: 0.001
   non_iid_alpha: 0.5          # Dirichlet concentration; lower = more skewed (Sec 6.2.2)
+  class_weighting: "none"     # "none" or "balanced" (inverse class frequency in the train split)
 
 aggregator:
-  # Server-side latent density defense (Sec 5.3 / eq. 11-15)
-  latent_dim: 2                 # dimensionality of phi(Δw_k) projection
+  # Latent density defence (Sec 5.3, eq. 11-15)
+  latent_dim: 2                 # dimension of phi(Δw_k)
   autoencoder_hidden: 32
-  autoencoder_epochs: 10          # trained once per round on incoming Δw's, or reused/warm-started
+  autoencoder_epochs: 200       # phi is fitted from scratch on each round's updates
+  autoencoder_lr: 0.001
+  normalize_updates: true       # centre Δw across clients and scale to order-1 entries before phi
+  phi_input: "all"              # "all" parameters, or "last_layer" (final layer weight + bias only)
   hdbscan:
     min_cluster_size: 3
     min_samples: 1
-    cluster_selection_epsilon: 0.0
-  # If HDBSCAN finds >1 non-noise cluster, the largest is treated as C_benign (eq. 13-15).
+    # Latent points are scaled to their median spread first (standardize_latent),
+    # so epsilon is in "typical spreads". Lower catches more subtle attackers
+    # and rejects more honest clients; see the README for measured trade-offs.
+    cluster_selection_epsilon: 2.0
+    # Must be true: with no attackers the honest updates are one cluster, and
+    # sklearn's default (false) would label them all noise.
+    allow_single_cluster: true
+    standardize_latent: true
+  # The largest non-noise HDBSCAN cluster is taken as C_benign (eq. 13-15).
+
+  # Baseline rules (src/grama/federated/robust.py)
+  trim_ratio: 0.2               # trimmed mean: share cut from each end, per coordinate
+  krum_assumed_fraction: 0.4    # Multi-Krum: share of attackers it is built to tolerate
 
 adversarial_eval:
-  compromised_fractions: [0.10, 0.20, 0.30, 0.40]
-  attack_types:
-    - "label_flip"
-    - "magnitude_poison"
-  magnitude_poison_scale: 10.0
+  magnitude_poison_scale: 10.0  # Δw multiplier for magnitude poisoning

@@ -42,6 +42,8 @@ class RoundSummary:
     benign_cluster_id: int | None
     num_rejected: int
     num_participants: int
+    num_malicious: int = 0
+    metrics: dict | None = None
 
 
 def round_summary_from_history(record) -> RoundSummary:
@@ -53,6 +55,8 @@ def round_summary_from_history(record) -> RoundSummary:
         benign_cluster_id=record.aggregation.benign_cluster_id,
         num_rejected=sum(1 for w in record.aggregation.trust_weights.values() if w == 0.0),
         num_participants=len(record.participating_clients),
+        num_malicious=len(getattr(record, "malicious_clients", [])),
+        metrics=getattr(record, "metrics", None),
     )
 
 

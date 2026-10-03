@@ -1,22 +1,12 @@
-"""CIC-IoV2024 acquisition helper.
+"""Checks that CIC-IoV2024 is in data/raw and says what to do if it isn't.
 
-CIC-IoV2024 is publicly downloadable from:
+The dataset (Neto et al., Internet of Things, 2024) is on the CIC site:
   https://www.unb.ca/cic/datasets/iov-dataset-2024.html
+The download page asks for a name and email, then links the files. Put the
+zip (or the extracted folders) in data/raw/. Any folder depth works, and
+zips are unpacked automatically. Only the decimal CSVs are used.
 
-The dataset is directly accessible as CSV files (no request form required, contrary
-to earlier assumptions). Column schema:
-  ID, DATA_0, DATA_1, ..., DATA_7, label, category, specific_class
-
-This script validates that downloaded CSVs match the expected schema before
-preprocessing, catching malformed input early.
-
-Workflow:
-  1. Download CSVs from https://www.unb.ca/cic/datasets/iov-dataset-2024.html
-  2. Place them in `data/raw/` (see config/data.yaml: dataset.raw_dir)
-  3. Run: python -m grama.data.download --check
-
-Usage:
-    python -m grama.data.download --check
+    python -m grama.data.download          # check, print what's there
 """
 from __future__ import annotations
 
@@ -26,71 +16,65 @@ from pathlib import Path
 
 import pandas as pd
 
+from grama.data.build import class_index, find_csv_files, unpack_archives
 from grama.utils.config import Config
-from grama.utils.logging import get_logger
-
-logger = get_logger(__name__)
 
 DOWNLOAD_URL = "https://www.unb.ca/cic/datasets/iov-dataset-2024.html"
+REQUIRED = ["ID"] + [f"DATA_{i}" for i in range(8)]
 
 
-def find_raw_files(raw_dir: Path) -> list[Path]:
-    return sorted(raw_dir.glob("*.csv"))
+def check(raw_dir: Path, class_names: list[str], verbose: bool = True) -> bool:
+    """True when every class has a readable CSV under raw_dir."""
+    say = print if verbose else (lambda *a, **k: None)
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    unpack_archives(raw_dir)
+    files = find_csv_files(raw_dir)
+    if not files:
+        say(f"No CSV files in {raw_dir.resolve()}.\n")
+        say("To get CIC-IoV2024:")
+        say(f"  1. Open {DOWNLOAD_URL} and fill in the short form at the bottom.")
+        say("  2. Download the dataset (the 'decimal' CSVs are the ones used here).")
+        say(f"  3. Put the zip or the CSVs in {raw_dir.resolve()} (any folder layout).")
+        say("     On JupyterHub, drag the files into that folder in the file browser,")
+        say("     or upload with the Upload button.")
+        return False
 
-
-def validate_file(path: Path, expected_columns: list[str]) -> tuple[bool, str]:
-    try:
-        df = pd.read_csv(path, nrows=5)
-    except Exception as e:  # noqa: BLE001 - surface any parse error to the user
-        return False, f"could not parse as CSV: {e}"
-
-    cols_lower = {c.strip().lower() for c in df.columns}
-    expected_lower = {c.lower() for c in expected_columns}
-    missing = expected_lower - cols_lower
-    if missing:
-        return False, f"missing expected columns: {sorted(missing)} (found: {sorted(cols_lower)})"
-
-    if df.empty:
-        return False, "file parsed but contains no rows"
-
-    return True, "ok"
+    found: dict[int, Path] = {}
+    ok = True
+    for f in files:
+        try:
+            head = pd.read_csv(f, nrows=5)
+        except Exception as e:  # noqa: BLE001 - report any parse error
+            say(f"  {f.name}: can't read it ({e})")
+            ok = False
+            continue
+        cols = {c.strip() for c in head.columns}
+        missing = [c for c in REQUIRED if c not in cols]
+        cls = class_index(f.stem, class_names)
+        size = f.stat().st_size / 2**20
+        if missing:
+            say(f"  {f.name}: missing columns {missing}")
+            ok = False
+        elif cls is None:
+            say(f"  {f.name} ({size:.0f} MB): class not in the name, rows will be labelled from their label columns")
+        else:
+            found[cls] = f
+            say(f"  {f.name} ({size:.0f} MB) -> {class_names[cls]}")
+    missing_classes = [c for i, c in enumerate(class_names) if i not in found]
+    if missing_classes:
+        say(f"\nNo file found for: {missing_classes}")
+    return ok and not missing_classes
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true", help="Validate files already placed in data/raw/")
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--config", default="config/data.yaml")
+    parser.add_argument("--check", action="store_true", help="kept for old commands; checking is the default")
     args = parser.parse_args()
-
     cfg = Config.from_yaml(args.config)
-    raw_dir = Path(cfg.dataset["raw_dir"])
-    expected_columns = cfg.dataset["expected_columns"]
-
-    if not args.check:
-        logger.info("CIC-IoV2024 is publicly downloadable:")
-        logger.info("  %s", DOWNLOAD_URL)
-        logger.info("Place the downloaded CSV(s) in: %s", raw_dir.resolve())
-        logger.info("Then re-run: python -m grama.data.download --check")
-        return 0
-
-    files = find_raw_files(raw_dir)
-    if not files:
-        logger.error("No CSV files found in %s.", raw_dir.resolve())
-        logger.error("Download the dataset from: %s", DOWNLOAD_URL)
-        return 1
-
-    all_ok = True
-    for f in files:
-        ok, msg = validate_file(f, expected_columns)
-        level = logger.info if ok else logger.error
-        level("%s: %s", f.name, msg)
-        all_ok &= ok
-
-    if all_ok:
-        logger.info("All %d file(s) look valid. Ready for preprocessing.", len(files))
-        return 0
-    logger.error("One or more files failed validation. Check column names against config/data.yaml.")
-    return 1
+    ok = check(Path(cfg.dataset["raw_dir"]), cfg["classes"])
+    print("\nData looks complete." if ok else "\nData not ready yet (see above).")
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

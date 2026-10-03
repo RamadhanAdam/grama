@@ -1,7 +1,12 @@
-"""Preprocessing: deduplication, min-max normalization, and sliding-window segmentation.
+"""Preprocessing on pandas frames: deduplication, min-max normalization, sliding windows.
 
-Implements Sec 3.2 of the concept note:
-  - deduplication: drop ~99.7% of exact duplicate frames (critical to prevent train/test leakage)
+Readable, per-window versions of Sec 3.2 of the concept note, kept for the
+tests and for reading. The experiments use the vectorised builder in
+grama/data/build.py, which does the same windowing and scaling much faster.
+
+  - deduplication: available but NOT used by the builder. CIC-IoV2024 attack
+    traffic is a few frames repeated, so dropping duplicates removes the
+    attacks; a time-based train/test split is used instead.
   - payload bytes normalized to [0, 1] via min-max scaling (eq. 3)
   - continuous CAN frame streams segmented into sliding windows S_t = [s1..sW]
 
@@ -20,11 +25,7 @@ PAYLOAD_COLS = [f"DATA_{i}" for i in range(8)]
 
 
 def deduplicate(df: pd.DataFrame) -> pd.DataFrame:
-    """Drop exact duplicate rows.
-    
-    CICIoV2024 is ~99.7% duplicates (per Stiawan et al., IJAIT 2024).
-    Deduplication MUST happen before train/test split to avoid leakage.
-    """
+    """Drop exact duplicate rows (CIC-IoV2024 is ~99.7% duplicates, Stiawan et al., IJAIT 2024)."""
     n_before = len(df)
     out = df.drop_duplicates(subset=PAYLOAD_COLS + ["ID", "label"], keep="first").reset_index(drop=True)
     n_after = len(out)

@@ -1,38 +1,41 @@
-# GAT + Mamba + classifier head configuration
+# GAT + Mamba + classifier head, and the CNN-BiGRU baseline.
+#
+# Graph nodes are CAN IDs, learned from the data: CIC-IoV2024 does not
+# publish which ECU sends which ID. Edges: see config/data.yaml build.edge_mode.
+# in_features and num_classes are read from the built dataset at run time.
 
 graph:
-  # IMPORTANT: The real CICIoV2024 dataset does NOT publish ECU-to-CAN-ID mapping.
-  # Nodes must be inferred from the data itself (i.e., learn a CAN-ID vocabulary
-  # dynamically from unique IDs present in the dataset). Do NOT use a fixed ECU 
-  # name vocabulary — see graph_builder.py for data-driven node construction.
-  # 
-  # Edge construction: co-occurrence of two CAN IDs within the same
-  # sliding window forms an edge (Sec 4.1, Phase 1).
-  edge_construction: "cooccurrence_window"
-  synthetic_num_nodes: 12
+  synthetic_num_nodes: 12   # only for scripts/run_federated_train.py --synthetic
 
 gat_encoder:
-  # Real feature set: 8 DATA bytes + frame_count + burst_flag = 10 features
-  # (NOT 11; no DLC and no timestamp/delta_t in the real CICIoV2024 schema —
-  # see graph_builder.py's CANIDGraph construction, which is the source of truth).
-  in_features: 10
+  in_features: 10         # 8 mean payload bytes + frame share + burst flag
   hidden_features: 64
   out_features: 64        # d in Z_topo ∈ R^{W×d}
   num_heads: 4
   dropout: 0.1
   leaky_relu_slope: 0.2   # eq. 4-5
-  activation: "elu"        # sigma in eq. 6
+  activation: "elu"       # sigma in eq. 6
+  residual: true          # add W_res x_i to each layer (keeps a node's own signal on dense graphs)
+  node_embedding_dim: 8   # learned embedding per CAN ID, appended to its features (0 = off)
+  pooling: "attention"    # "attention" or "mean" over active nodes -> one token per window
 
 mamba_block:
-  d_model: 64              # must match gat_encoder.out_features
-  d_state: 16               # SSM state expansion factor (N in eq. 7-10)
-  d_conv: 4                  # local conv width before selective scan
-  expand: 2                   # inner expansion factor
-  dt_rank: "auto"              # rank for Δ_t projection (eq. 9)
-  backend: "auto"               # "cuda" | "torch" | "auto" (auto = try cuda, fall back to torch)
+  d_model: 64             # must match gat_encoder.out_features
+  d_state: 16             # SSM state size (N in eq. 7-10)
+  d_conv: 4               # local conv width before the selective scan
+  expand: 2               # inner expansion factor
+  dt_rank: "auto"         # rank of the Δ_t projection (eq. 9)
+  backend: "auto"         # "cuda" | "torch" | "auto" (cuda kernel if mamba-ssm is installed)
+  temporal: "mamba"       # "mamba", or "gru" / "none" for the ablation
 
 classifier_head:
   hidden_dim: 32
-  # Real CICIoV2024 has 6 classes: benign + 5 attack types (DoS, spoofing-GAS, spoofing-RPM, spoofing-SPEED, spoofing-STEERING_WHEEL)
-  num_classes: 6
+  num_classes: 6          # benign + DoS + 4 spoofing classes
+  dropout: 0.1
+
+baseline:                 # CNN-BiGRU (src/grama/models/baseline.py)
+  id_dim: 16
+  conv_channels: 64
+  gru_hidden: 32
+  head_hidden: 32
   dropout: 0.1

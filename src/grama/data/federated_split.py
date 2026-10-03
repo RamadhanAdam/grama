@@ -50,8 +50,4 @@ def client_label_distribution(labels: np.ndarray, client_indices: list[np.ndarra
     heterogeneity before burning compute on a full federated run.
     """
     num_classes = int(labels.max()) + 1
-    dist = np.zeros((len(client_indices), num_classes), dtype=int)
-    for i, idxs in enumerate(client_indices):
-        for c in labels[idxs]:
-            dist[i, c] += 1
-    return dist
+    return np.stack([np.bincount(labels[idxs], minlength=num_classes) for idxs in client_indices])

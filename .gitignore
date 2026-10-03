@@ -15,6 +15,10 @@ data/interim/*
 data/processed/*
 !data/processed/.gitkeep
 
+# Experiment outputs (zip them with `make pack` to download)
+results/
+results_*.zip
+
 # Model artifacts & logs
 checkpoints/
 runs/

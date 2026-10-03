@@ -1,60 +1,70 @@
-.PHONY: install install-cuda data preprocess train train-synthetic baseline test lint docker-build clean zip
-PYTHON ?= python
+# GraMa. `make help` lists the targets.
+#
+# Works without installing the package: src/ is put on PYTHONPATH here.
 
-install:
-	pip install -e . --break-system-packages
+PYTHON ?= python3
+PROFILE ?= quick
+export PYTHONPATH := $(CURDIR)/src:$(PYTHONPATH)
 
-install-cuda:
-	pip install -e ".[cuda]" --break-system-packages
+.PHONY: help setup setup-cuda check-data data smoke quick full full-background report test lint notebook pack clean
 
-data:
+help:
+	@echo "make setup            install the dependencies (once)"
+	@echo "make setup-cuda       also build the mamba-ssm CUDA kernel (optional, slow to build)"
+	@echo "make check-data       check that CIC-IoV2024 is in data/raw"
+	@echo "make data             build the processed dataset for PROFILE (default: quick)"
+	@echo "make smoke            whole pipeline on synthetic data, a few minutes on a CPU"
+	@echo "make quick            real data, short runs (about 30 min on a GPU)"
+	@echo "make full             the paper runs (hours); see also full-background"
+	@echo "make full-background  the paper runs, detached, logging to results/full.log"
+	@echo "make report           rebuild tables and figures for PROFILE from saved runs"
+	@echo "make notebook         run GraMa.ipynb top to bottom without opening it"
+	@echo "make pack             zip results/PROFILE for download"
+	@echo "make test             unit tests"
+
+setup:
+	$(PYTHON) -m pip install -q -r requirements.txt
+	$(PYTHON) -m pip install -q pytest ruff
+
+setup-cuda: setup
+	$(PYTHON) -m pip install --no-build-isolation causal-conv1d mamba-ssm
+
+check-data:
 	$(PYTHON) -m grama.data.download
 
-data-check:
-	$(PYTHON) -m grama.data.download --check
+data:
+	$(PYTHON) scripts/build_dataset.py --profile $(PROFILE)
 
-preprocess:
-	bash scripts/run_preprocess.sh
+smoke:
+	$(PYTHON) scripts/run_experiments.py --profile smoke
 
-train-synthetic:
-	$(PYTHON) scripts/run_federated_train.py --synthetic --rounds 5
+quick:
+	$(PYTHON) scripts/run_experiments.py --profile quick
 
-train:
-	$(PYTHON) scripts/run_federated_train.py
+full:
+	$(PYTHON) scripts/run_experiments.py --profile full
 
-baseline:
-	$(PYTHON) scripts/run_baseline_cnn_bigru.py
+full-background:
+	@mkdir -p results
+	nohup $(PYTHON) scripts/run_experiments.py --profile full --no-progress > results/full.log 2>&1 &
+	@echo "Started. Follow it with: tail -f results/full.log"
+
+report:
+	$(PYTHON) -m grama.experiments.report results/$(PROFILE)
+
+notebook:
+	$(PYTHON) -m jupyter nbconvert --to notebook --execute --inplace GraMa.ipynb --ExecutePreprocessor.timeout=-1
+
+pack:
+	cd results && zip -qr ../results_$(PROFILE).zip $(PROFILE) -x "$(PROFILE)/models/*"
+	@echo "Wrote results_$(PROFILE).zip"
 
 test:
-	pytest -v --cov=src/grama tests/
+	$(PYTHON) -m pytest -q
 
 lint:
-	ruff check src/ tests/ scripts/
-
-docker-build:
-	docker build -t grama:latest .
+	$(PYTHON) -m ruff check src tests scripts
 
 clean:
-	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
-	rm -rf .pytest_cache .coverage htmlcov
-
-zip:
-	@echo "Creating grama.zip..."
-	@zip -r grama.zip . \
-		-x ".git/*" \
-		-x "*.pyc" \
-		-x "__pycache__/*" \
-		-x "*/__pycache__/*" \
-		-x ".pytest_cache/*" \
-		-x "htmlcov/*" \
-		-x ".coverage" \
-		-x "*.egg-info/*" \
-		-x "venv/*" \
-		-x ".venv/*" \
-		-x "data/*" \
-		-x "*.ckpt" \
-		-x "*.pt" \
-		-x "*.pth" \
-		-x ".DS_Store" \
-		-x "grama.zip"
-	@echo "Done: grama.zip"
+	find . -type d -name __pycache__ -prune -exec rm -rf {} +
+	rm -rf .pytest_cache .ruff_cache htmlcov .coverage

@@ -1,5 +1,9 @@
 """Maps CAN traffic windows to a dynamic directed graph G = (V, E, X).
 
+Per-window reference version, kept for the tests and for reading. The
+experiments build node features in grama/data/build.py and edges in
+grama/data/dataset.py, over a vocabulary shared by all windows.
+
 Nodes V = CAN IDs (learned dynamically from data; no fixed ECU vocabulary).
 Edges E = temporal message propagation paths — here, co-occurrence of two
 CAN IDs within the same sliding window (Sec 4.1, Phase 1 / Fig. 1).

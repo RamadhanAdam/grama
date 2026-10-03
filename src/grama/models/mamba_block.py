@@ -24,6 +24,13 @@ import torch.nn.functional as F
 from grama.utils.logging import get_logger
 
 logger = get_logger(__name__)
+_announced: set[str] = set()
+
+
+def _announce(backend: str, message: str) -> None:
+    if backend not in _announced:
+        _announced.add(backend)
+        logger.info(message)
 
 
 def _cuda_mamba_available() -> bool:
@@ -68,14 +75,28 @@ class _PureTorchSelectiveScan(nn.Module):
 
         self.out_proj = nn.Linear(self.d_inner, d_model)
 
+    def _causal_conv(self, x: torch.Tensor, L: int) -> torch.Tensor:
+        """Same result as self.conv1d(x)[..., :L], written as K shifted multiply-adds.
+
+        PyTorch's CPU backward for depthwise Conv1d is very slow (most of a
+        training step); with K = 4 taps the explicit sum is far cheaper and
+        uses the same weights, so checkpoints are unchanged.
+        """
+        K = self.conv1d.kernel_size[0]
+        w = self.conv1d.weight.squeeze(1)  # (d_inner, K)
+        xp = F.pad(x, (K - 1, 0))
+        out = self.conv1d.bias.unsqueeze(-1)
+        for k in range(K):
+            out = out + w[:, k: k + 1] * xp[..., k: k + L]
+        return out
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """x: (B, L, d_model) -> (B, L, d_model)"""
         B, L, _ = x.shape
         xz = self.in_proj(x)  # (B, L, 2*d_inner)
         x_in, z = xz.chunk(2, dim=-1)
 
-        x_in = x_in.transpose(1, 2)  # (B, d_inner, L)
-        x_in = self.conv1d(x_in)[..., :L]
+        x_in = self._causal_conv(x_in.transpose(1, 2), L)  # (B, d_inner, L)
         x_in = F.silu(x_in).transpose(1, 2)  # (B, L, d_inner)
 
         x_dbl = self.x_proj(x_in)  # (B, L, dt_rank + 2*d_state)
@@ -138,11 +159,11 @@ class MambaBlock(nn.Module):
             use_cuda = False
 
         if use_cuda:
-            logger.info("MambaBlock: using CUDA fused kernel (mamba-ssm).")
+            _announce("cuda", "MambaBlock: using the CUDA kernel (mamba-ssm).")
             self.impl = _CudaMambaWrapper(d_model, d_state, d_conv, expand)
             self.backend_used = "cuda"
         else:
-            logger.info("MambaBlock: using pure-PyTorch selective-scan fallback.")
+            _announce("torch", "MambaBlock: using the pure-PyTorch selective scan.")
             self.impl = _PureTorchSelectiveScan(d_model, d_state, d_conv, expand, dt_rank)
             self.backend_used = "torch"
 

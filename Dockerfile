@@ -33,5 +33,6 @@ RUN python3.11 -m pip install --no-cache-dir --no-build-isolation mamba-ssm==2.2
 
 COPY config/ ./config/
 COPY scripts/ ./scripts/
+COPY Makefile requirements.txt GraMa.ipynb ./
 
-CMD ["python3.11", "scripts/run_federated_train.py", "--synthetic"]
+CMD ["python3.11", "scripts/run_experiments.py", "--profile", "smoke"]

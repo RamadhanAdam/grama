@@ -47,7 +47,16 @@ class DeltaAutoencoder(nn.Module):
 
 
 def flatten_delta(delta_w: dict[str, torch.Tensor]) -> torch.Tensor:
-    return torch.cat([v.flatten() for v in delta_w.values()])
+    return torch.cat([v.flatten().float() for v in delta_w.values()])
+
+
+def unflatten_delta(flat: torch.Tensor, param_shapes: dict[str, torch.Size]) -> dict[str, torch.Tensor]:
+    out, i = {}, 0
+    for name, shape in param_shapes.items():
+        n = int(torch.Size(shape).numel())
+        out[name] = flat[i: i + n].reshape(shape).cpu()
+        i += n
+    return out
 
 
 @dataclass
@@ -58,7 +67,29 @@ class AggregationResult:
     benign_cluster_id: int | None
 
 
-class LatentDensityAggregator:
+class Aggregator:
+    """Common interface: aggregate(updates, param_shapes) -> AggregationResult.
+
+    detects_clients says whether the rule names clients it rejects (a zero
+    trust weight). Median and trimmed mean work per coordinate and reject
+    nobody as a whole, so detection rates are not defined for them.
+    """
+
+    name = "base"
+    detects_clients = False
+
+    def aggregate(self, updates: list[ClientUpdate], param_shapes: dict[str, torch.Size]) -> "AggregationResult":
+        raise NotImplementedError
+
+    @staticmethod
+    def apply(global_state_dict: dict, result: "AggregationResult") -> dict:
+        return apply_state_dict_delta(global_state_dict, result.global_delta, scale=1.0)
+
+
+class LatentDensityAggregator(Aggregator):
+    name = "hdbscan"
+    detects_clients = True
+
     def __init__(
         self,
         latent_dim: int = 2,
@@ -66,21 +97,33 @@ class LatentDensityAggregator:
         autoencoder_epochs: int = 10,
         min_cluster_size: int = 3,
         min_samples: int = 1,
-        cluster_selection_epsilon: float = 0.0,
+        cluster_selection_epsilon: float = 2.0,
+        autoencoder_lr: float = 1e-3,
+        normalize: bool = True,
+        allow_single_cluster: bool = True,
+        standardize_latent: bool = True,
+        phi_input: str = "all",
         device: str = "cpu",
     ):
+        if phi_input not in ("all", "last_layer"):
+            raise ValueError(f"phi_input must be 'all' or 'last_layer', got {phi_input!r}")
         self.latent_dim = latent_dim
         self.autoencoder_hidden = autoencoder_hidden
         self.autoencoder_epochs = autoencoder_epochs
         self.min_cluster_size = min_cluster_size
         self.min_samples = min_samples
         self.cluster_selection_epsilon = cluster_selection_epsilon
+        self.autoencoder_lr = autoencoder_lr
+        self.normalize = normalize
+        self.allow_single_cluster = allow_single_cluster
+        self.standardize_latent = standardize_latent
+        self.phi_input = phi_input
         self.device = device
 
     def _train_autoencoder(self, flat_deltas: torch.Tensor) -> DeltaAutoencoder:
         input_dim = flat_deltas.shape[1]
         ae = DeltaAutoencoder(input_dim, self.autoencoder_hidden, self.latent_dim).to(self.device)
-        optimizer = torch.optim.Adam(ae.parameters(), lr=1e-3)
+        optimizer = torch.optim.Adam(ae.parameters(), lr=self.autoencoder_lr)
         criterion = nn.MSELoss()
 
         for _ in range(self.autoencoder_epochs):
@@ -96,21 +139,49 @@ class LatentDensityAggregator:
             raise ValueError("aggregate() called with no client updates")
 
         client_ids = [u.client_id for u in updates]
-        flat = torch.stack([flatten_delta(u.delta_w) for u in updates]).to(self.device)  # (K, P)
+        if self.phi_input == "last_layer":
+            # Only the final layer's weight and bias (Tolpegin et al., 2020,
+            # found label flipping easiest to see there).
+            names = list(updates[0].delta_w)[-2:]
+            flat = torch.stack([torch.cat([u.delta_w[n].flatten().float() for n in names]) for u in updates])
+        else:
+            flat = torch.stack([flatten_delta(u.delta_w) for u in updates])  # (K, P)
+        flat = flat.to(self.device)
+        if self.normalize:
+            # Raw Δw entries are ~1e-3 to 1e-5, far too small for phi to learn
+            # from in a few steps (it ends up a random projection). Centre the
+            # updates across clients, then scale so the median update has norm
+            # sqrt(P), i.e. entries of order 1. One scalar for the whole round,
+            # so relative sizes are kept and an oversized update still stands out.
+            flat = flat - flat.mean(dim=0, keepdim=True)
+            median_norm = flat.norm(dim=1).median().clamp(min=1e-12)
+            flat = flat * (flat.shape[1] ** 0.5) / median_norm
 
         # eq. 11: project to latent space.
         ae = self._train_autoencoder(flat)
         with torch.no_grad():
             latent, _ = ae(flat)
         latent_np = latent.cpu().numpy()
+        if self.standardize_latent:
+            # Express the latent points in units of their typical spread (median
+            # distance to the median point). phi is refitted every round, so its
+            # raw scale means nothing; after this, cluster_selection_epsilon reads
+            # as "within that many typical spreads".
+            centre = np.median(latent_np, axis=0)
+            spread = np.median(np.linalg.norm(latent_np - centre, axis=1))
+            latent_np = (latent_np - centre) / max(float(spread), 1e-12)
 
         # eq. 12-13: HDBSCAN uses mutual-reachability distance internally to
         # find the most persistent dense cluster(s); sklearn's HDBSCAN
         # implements this directly (Campello et al. 2013).
         clusterer = HDBSCAN(
-            min_cluster_size=self.min_cluster_size,
+            min_cluster_size=max(2, min(self.min_cluster_size, len(updates))),
             min_samples=self.min_samples,
             cluster_selection_epsilon=self.cluster_selection_epsilon,
+            # With no attackers, the honest updates form ONE cluster. sklearn's
+            # default refuses a single cluster and calls every point noise,
+            # which would reject every update and freeze the global model.
+            allow_single_cluster=self.allow_single_cluster,
         )
         labels = clusterer.fit_predict(latent_np)
         probabilities = getattr(clusterer, "probabilities_", np.ones_like(labels, dtype=float))
@@ -121,7 +192,7 @@ class LatentDensityAggregator:
         # persistent honest-vehicle cluster per eq. 13's stability argument).
         non_noise = labels[labels != -1]
         if len(non_noise) == 0:
-            logger.warning("HDBSCAN found no clusters (all noise) — treating all updates as untrusted this round.")
+            logger.debug("HDBSCAN found no clusters (all noise); the global model is kept as is this round.")
             benign_cluster_id = None
         else:
             values, counts = np.unique(non_noise, return_counts=True)
@@ -139,7 +210,7 @@ class LatentDensityAggregator:
 
         rejected = [cid for cid, w in trust_weights.items() if w == 0.0]
         if rejected:
-            logger.info("Aggregator rejected %d/%d client update(s) as adversarial/noise: %s",
+            logger.debug("Aggregator rejected %d/%d client update(s) as adversarial/noise: %s",
                         len(rejected), len(client_ids), rejected)
 
         # eq. 15: w_global^(t+1) = w_global^(t) + sum_k alpha_k * Δw_k
@@ -149,7 +220,7 @@ class LatentDensityAggregator:
             if alpha_k == 0.0:
                 continue
             for name, tensor in u.delta_w.items():
-                global_delta[name] += alpha_k * tensor
+                global_delta[name] += alpha_k * tensor.float().cpu()
 
         return AggregationResult(
             global_delta=global_delta,
@@ -157,7 +228,3 @@ class LatentDensityAggregator:
             cluster_labels=cluster_labels,
             benign_cluster_id=benign_cluster_id,
         )
-
-    @staticmethod
-    def apply(global_state_dict: dict, result: AggregationResult) -> dict:
-        return apply_state_dict_delta(global_state_dict, result.global_delta, scale=1.0)

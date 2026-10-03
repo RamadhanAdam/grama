@@ -1,20 +1,22 @@
 """Custom federated round orchestration (Sec 4.1, Phase 5 end-to-end).
 
-Deliberately not built on Flower/FedAvg assumptions — the aggregation step
-here is HDBSCAN-latent-density-based, not a simple weighted mean, so a
-purpose-built loop is simpler to reason about (and to test) than bending
-a general FL framework's aggregation hook to fit eq. 11-15.
+Not built on Flower: the aggregation step here can be HDBSCAN over latent
+updates rather than a weighted mean, and a purpose-built loop is simpler to
+reason about (and to test) than bending a framework's aggregation hook to
+fit eq. 11-15. Any aggregator with the Aggregator interface plugs in.
 """
 from __future__ import annotations
 
 import os
 import random
+import time
 from dataclasses import dataclass, field
+from typing import Callable
 
 import torch
 
 from grama.federated import checkpoint as ckpt
-from grama.federated.aggregator import AggregationResult, LatentDensityAggregator
+from grama.federated.aggregator import AggregationResult, Aggregator
 from grama.federated.client import ClientUpdate, LocalClient
 from grama.utils.logging import get_logger
 
@@ -27,16 +29,22 @@ class RoundHistory:
     participating_clients: list[int]
     avg_local_loss: float
     aggregation: AggregationResult
+    malicious_clients: list[int] = field(default_factory=list)
+    rejected_clients: list[int] = field(default_factory=list)
+    metrics: dict | None = None      # test metrics of the new global model, when evaluated
+    seconds: float = 0.0
 
 
 @dataclass
 class FederatedServer:
-    model_factory: callable            # zero-arg -> fresh model instance
+    model_factory: Callable            # zero-arg -> fresh model instance
     clients: list[LocalClient]
-    aggregator: LatentDensityAggregator
+    aggregator: Aggregator
     clients_per_round: int
     local_epochs: int
     seed: int = 42
+    eval_fn: Callable | None = None    # global_state -> metrics dict
+    eval_every: int = 1
     history: list[RoundHistory] = field(default_factory=list)
     last_round_num: int = field(default=0, init=False, repr=False)
 
@@ -49,13 +57,14 @@ class FederatedServer:
         k = min(self.clients_per_round, len(self.clients))
         return self.rng.sample(self.clients, k)
 
-    def run_round(self, round_num: int) -> RoundHistory:
+    def run_round(self, round_num: int, evaluate: bool = False) -> RoundHistory:
+        start = time.perf_counter()
         selected = self.sample_clients()
         updates: list[ClientUpdate] = []
         for client in selected:
             update = client.local_train(self.model_factory, self.global_state, self.local_epochs)
             updates.append(update)
-            logger.info(
+            logger.debug(
                 "round %d | client %d | n=%d | local_loss=%.4f",
                 round_num, client.client_id, update.num_samples, update.local_loss,
             )
@@ -64,13 +73,17 @@ class FederatedServer:
         result = self.aggregator.aggregate(updates, param_shapes)
         self.global_state = self.aggregator.apply(self.global_state, result)
 
-        avg_loss = sum(u.local_loss for u in updates) / len(updates)
         record = RoundHistory(
             round_num=round_num,
             participating_clients=[c.client_id for c in selected],
-            avg_local_loss=avg_loss,
+            avg_local_loss=sum(u.local_loss for u in updates) / len(updates),
             aggregation=result,
+            malicious_clients=[u.client_id for u in updates if u.malicious],
+            rejected_clients=[cid for cid, w in result.trust_weights.items() if w == 0.0],
         )
+        if evaluate and self.eval_fn is not None:
+            record.metrics = self.eval_fn(self.global_state)
+        record.seconds = time.perf_counter() - start
         self.history.append(record)
         return record
 
@@ -95,7 +108,8 @@ class FederatedServer:
         start = self.last_round_num + 1
         end = self.last_round_num + num_rounds
         for r in range(start, end + 1):
-            record = self.run_round(r)
+            evaluate = r == end or (self.eval_every > 0 and r % self.eval_every == 0)
+            record = self.run_round(r, evaluate=evaluate)
             self.last_round_num = r
             if checkpoint_dir:
                 summary = ckpt.round_summary_from_history(record)
