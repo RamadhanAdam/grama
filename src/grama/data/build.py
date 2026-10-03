@@ -1,7 +1,7 @@
 """Builds the window dataset from CIC-IoV2024 CSVs, or from synthetic CAN traffic.
 
 Steps (Sec 3.2 and Sec 4.1 Phase 1 of the concept note):
-  1. find the CSVs anywhere under data/raw (zip files are unpacked first)
+  1. find the CSVs anywhere under data/raw (zip and tar.xz archives are unpacked first)
   2. one stream of frames per file, labelled from the file name
   3. optional cap on rows per class (the benign file alone has 1.2M rows)
   4. time-based split per stream: the first 80% trains, the last 20% tests,
@@ -72,23 +72,83 @@ def class_index(name: str, class_names: list[str]) -> int | None:
     return None
 
 
+ARCHIVE_SUFFIXES = (".zip", ".tar", ".tar.gz", ".tgz", ".tar.xz", ".txz", ".tar.bz2")
+
+
+def _is_decimal(name: str) -> bool:
+    n = name.lower()
+    return "decimal" in n and "hexadecimal" not in n
+
+
+def _archive_folder(archive: Path) -> Path:
+    name = archive.name
+    for suffix in sorted(ARCHIVE_SUFFIXES, key=len, reverse=True):
+        if name.lower().endswith(suffix):
+            return archive.with_name(name[: -len(suffix)])
+    return archive.with_suffix("")
+
+
+def _check_inside(target: Path, names: list[str]) -> None:
+    root = target.resolve()
+    for name in names:
+        dest = (target / name).resolve()
+        if root not in dest.parents and dest != root:
+            raise ValueError(f"Refusing to unpack {name}: path leaves {target}")
+
+
 def unpack_archives(raw_dir: Path) -> None:
-    """Unzip every .zip under raw_dir next to itself, once."""
-    for archive in sorted(raw_dir.rglob("*.zip")):
-        target = archive.with_suffix("")
+    """Unpack every archive under raw_dir (zip, tar, tar.gz, tar.xz) next to itself, once.
+
+    The CIC release (CICIoV2024.tar.xz) holds decimal, binary and hexadecimal
+    versions of the data. Only the decimal files are extracted when they are
+    there, which saves disk space; otherwise everything is.
+    """
+    import tarfile
+
+    archives = [p for p in raw_dir.rglob("*") if p.is_file() and p.name.lower().endswith(ARCHIVE_SUFFIXES)]
+    for archive in sorted(archives):
+        target = _archive_folder(archive)
         marker = target / ".unpacked"
         if marker.exists():
             continue
-        logger.info("Unpacking %s", archive.name)
+        logger.info("Unpacking %s (a few minutes for the full CIC archive)", archive.name)
         target.mkdir(parents=True, exist_ok=True)
-        with zipfile.ZipFile(archive) as zf:
-            root = target.resolve()
-            for member in zf.infolist():
-                dest = (target / member.filename).resolve()
-                if root not in dest.parents and dest != root:
-                    raise ValueError(f"Refusing to unpack {member.filename}: path leaves {target}")
-            zf.extractall(target)
+        if archive.name.lower().endswith(".zip"):
+            with zipfile.ZipFile(archive) as zf:
+                names = zf.namelist()
+                _check_inside(target, names)
+                wanted = [n for n in names if _is_decimal(n)]
+                if not any(n.lower().endswith(".csv") for n in wanted):
+                    wanted = names
+                zf.extractall(target, members=wanted)
+        else:
+            # One pass for the decimal files (a .tar.xz is slow to read twice);
+            # a second, full pass only if the archive has no decimal CSVs.
+            with tarfile.open(archive) as tf:
+                found = _extract_tar(tf, target, decimal_only=True)
+            if not found:
+                with tarfile.open(archive) as tf:
+                    _extract_tar(tf, target, decimal_only=False)
         marker.touch()
+
+
+def _extract_tar(tf, target: Path, decimal_only: bool) -> int:
+    """Extract regular files and folders (no links); return how many CSVs came out."""
+    import tarfile
+
+    csvs = 0
+    for member in tf:
+        if not (member.isfile() or member.isdir()):
+            continue
+        if decimal_only and not _is_decimal(member.name):
+            continue
+        _check_inside(target, [member.name])
+        if hasattr(tarfile, "data_filter"):
+            tf.extract(member, target, filter="data")
+        else:
+            tf.extract(member, target)
+        csvs += member.isfile() and member.name.lower().endswith(".csv")
+    return csvs
 
 
 def find_csv_files(raw_dir: Path) -> list[Path]:

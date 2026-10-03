@@ -2,9 +2,10 @@
 
 The dataset (Neto et al., Internet of Things, 2024) is on the CIC site:
   https://www.unb.ca/cic/datasets/iov-dataset-2024.html
-The download page asks for a name and email, then links the files. Put the
-zip (or the extracted folders) in data/raw/. Any folder depth works, and
-zips are unpacked automatically. Only the decimal CSVs are used.
+The download page asks for a name and email, then links the files. Put
+CICIoV2024.tar.xz, or just the CSVs from its decimal/ folder, in data/raw/.
+Any folder depth works, and archives are unpacked automatically. Only the
+decimal CSVs are used.
 
     python -m grama.data.download          # check, print what's there
 """
@@ -33,10 +34,11 @@ def check(raw_dir: Path, class_names: list[str], verbose: bool = True) -> bool:
         say(f"No CSV files in {raw_dir.resolve()}.\n")
         say("To get CIC-IoV2024:")
         say(f"  1. Open {DOWNLOAD_URL} and fill in the short form at the bottom.")
-        say("  2. Download the dataset (the 'decimal' CSVs are the ones used here).")
-        say(f"  3. Put the zip or the CSVs in {raw_dir.resolve()} (any folder layout).")
-        say("     On JupyterHub, drag the files into that folder in the file browser,")
-        say("     or upload with the Upload button.")
+        say("  2. Download the six CSVs in its 'decimal' folder (or CICIoV2024.tar.xz,")
+        say("     which also holds binary and hex versions and is much bigger).")
+        say(f"  3. Put them in {raw_dir.resolve()} (any folder layout).")
+        say("     The links only work in the browser you registered in, so download there,")
+        say("     then drag the files into that folder in the JupyterHub file browser.")
         return False
 
     found: dict[int, Path] = {}

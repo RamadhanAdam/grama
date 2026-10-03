@@ -24,11 +24,12 @@ cd grama
 
 Then:
 
-1. Get the data. CIC-IoV2024 is at https://www.unb.ca/cic/datasets/iov-dataset-2024.html; the page
-   asks for a name and email before it links the download. Upload the zip (or the CSVs) into
-   `grama/data/raw/`. Any folder layout works and zips are unpacked for you. Quicker than
-   uploading from a laptop: copy the download link the page gives you and fetch it on the hub,
-   from inside `grama/`, with `wget -P data/raw "<the link>"`.
+1. Get the data. Fill in the form at http://cicresearch.ca/IOTDataset/CICIoV2024/ (linked from
+   https://www.unb.ca/cic/datasets/iov-dataset-2024.html). The download links only work in the
+   browser you registered in, so download there: the six CSVs in the `decimal` folder are all you
+   need (`CICIoV2024.tar.xz` also works, but it holds the binary and hex versions too and is much
+   bigger). Drag them into `grama/data/raw/` in the JupyterHub file browser. Any folder layout
+   works, and archives are unpacked for you.
 2. Open `GraMa.ipynb`, set `PROFILE` in the first code cell, and Run All.
 3. The last cell shows the tables and figures. Everything is also saved under `results/<profile>/`.
 

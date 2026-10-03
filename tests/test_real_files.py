@@ -1,5 +1,9 @@
 """The real-data path on fake files laid out like the CIC-IoV2024 download."""
+import io
+import tarfile
 import zipfile
+
+import pytest
 
 import numpy as np
 import pandas as pd
@@ -11,32 +15,51 @@ CLASSES = ["benign", "DoS", "spoofing-GAS", "spoofing-RPM", "spoofing-SPEED", "s
 FILE_NAMES = ["benign", "DoS", "spoofing-GAS", "spoofing-RPM", "spoofing-SPEED", "spoofing-STEERING_WHEEL"]
 
 
-def _write_fake_release(raw, rows=900):
-    """A zip with decimal/ and hexadecimal/ folders, like the CIC download."""
+def _fake_files(rows=900):
+    """(path inside the archive, CSV text) pairs with decimal/ and hexadecimal/ folders, like the CIC release."""
     streams = synthetic_streams(CLASSES, rows_per_class=rows, seed=3)
-    zpath = raw / "CICIoV2024.zip"
-    with zipfile.ZipFile(zpath, "w") as zf:
-        for s, name in zip(streams, FILE_NAMES):
-            df = pd.DataFrame({"ID": s.ids, **{f"DATA_{i}": s.payload[:, i] for i in range(8)}})
-            df["label"] = "BENIGN" if s.class_idx == 0 else "ATTACK"
-            df["category"] = name.split("-")[0].upper()
-            df["specific_class"] = name.split("-")[-1].upper()
-            zf.writestr(f"CICIoV2024/decimal/decimal_{name}.csv", df.to_csv(index=False))
-            hexdf = df.copy()
-            hexdf["ID"] = [format(v, "x") for v in df["ID"]]
-            zf.writestr(f"CICIoV2024/hexadecimal/hexadecimal_{name}.csv", hexdf.to_csv(index=False))
-    return zpath
+    files = []
+    for s, name in zip(streams, FILE_NAMES):
+        df = pd.DataFrame({"ID": s.ids, **{f"DATA_{i}": s.payload[:, i] for i in range(8)}})
+        df["label"] = "BENIGN" if s.class_idx == 0 else "ATTACK"
+        df["category"] = name.split("-")[0].upper()
+        df["specific_class"] = name.split("-")[-1].upper()
+        files.append((f"CICIoV2024/decimal/decimal_{name}.csv", df.to_csv(index=False)))
+        hexdf = df.copy()
+        hexdf["ID"] = [format(v, "x") for v in df["ID"]]
+        files.append((f"CICIoV2024/hexadecimal/hexadecimal_{name}.csv", hexdf.to_csv(index=False)))
+    return files
 
 
-def test_zip_is_unpacked_and_only_decimal_files_are_used(tmp_path):
+def _write_fake_release(raw, kind="zip"):
+    if kind == "zip":
+        path = raw / "CICIoV2024.zip"
+        with zipfile.ZipFile(path, "w") as zf:
+            for name, text in _fake_files():
+                zf.writestr(name, text)
+        return path
+    path = raw / "CICIoV2024.tar.xz"
+    with tarfile.open(path, "w:xz") as tf:
+        for name, text in _fake_files():
+            data = text.encode()
+            info = tarfile.TarInfo(name)
+            info.size = len(data)
+            tf.addfile(info, io.BytesIO(data))
+    return path
+
+
+@pytest.mark.parametrize("kind", ["zip", "tar.xz"])
+def test_archive_is_unpacked_and_only_decimal_files_are_used(tmp_path, kind):
     raw = tmp_path / "raw"
     raw.mkdir()
-    _write_fake_release(raw)
+    _write_fake_release(raw, kind)
     unpack_archives(raw)
     files = find_csv_files(raw)
     assert len(files) == 6
     assert all("decimal_" in f.name and "hexadecimal" not in f.name for f in files)
+    assert not list(raw.rglob("hexadecimal_*.csv"))      # only the decimal files were extracted
     assert check(raw, CLASSES, verbose=False)
+    unpack_archives(raw)                                  # second call: already unpacked, no error
 
 
 def test_build_from_fake_release(tmp_path):
