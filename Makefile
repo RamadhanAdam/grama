@@ -6,7 +6,7 @@ PYTHON ?= python3
 PROFILE ?= quick
 export PYTHONPATH := $(CURDIR)/src:$(PYTHONPATH)
 
-.PHONY: help setup setup-cuda check-data data smoke quick full full-background report test lint notebook pack clean
+.PHONY: help setup setup-cuda check-data data smoke quick full full-background report test lint notebook pack hf clean
 
 help:
 	@echo "make setup            install the dependencies (once)"
@@ -19,7 +19,8 @@ help:
 	@echo "make full-background  the paper runs, detached, logging to results/full.log"
 	@echo "make report           rebuild tables and figures for PROFILE from saved runs"
 	@echo "make notebook         run GraMa.ipynb top to bottom without opening it"
-	@echo "make pack             zip results/PROFILE for download"
+	@echo "make pack             pack results/PROFILE into results_PROFILE.tar.gz for download"
+	@echo "make hf               upload results/PROFILE and weights to the Hugging Face Hub (private repo)"
 	@echo "make test             unit tests"
 
 setup:
@@ -56,8 +57,11 @@ notebook:
 	$(PYTHON) -m jupyter nbconvert --to notebook --execute --inplace GraMa.ipynb --ExecutePreprocessor.timeout=-1
 
 pack:
-	cd results && zip -qr ../results_$(PROFILE).zip $(PROFILE) -x "$(PROFILE)/models/*"
-	@echo "Wrote results_$(PROFILE).zip"
+	tar czf results_$(PROFILE).tar.gz -C results --exclude=$(PROFILE)/models $(PROFILE)
+	@echo "Wrote results_$(PROFILE).tar.gz"
+
+hf:
+	$(PYTHON) scripts/publish_hf.py --profile $(PROFILE)
 
 test:
 	$(PYTHON) -m pytest -q

@@ -18,6 +18,7 @@ data/processed/*
 # Experiment outputs (zip them with `make pack` to download)
 results/
 results_*.zip
+results_*.tar.gz
 
 # Model artifacts & logs
 checkpoints/

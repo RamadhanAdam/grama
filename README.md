@@ -80,6 +80,16 @@ To rebuild the tables and figures from saved runs:
 PYTHONPATH=src python -m grama.experiments.report results/quick
 ```
 
+To put a profile's results and model weights on the Hugging Face Hub, with a model card built from
+`summary.md`:
+
+```bash
+python scripts/publish_hf.py --profile full
+```
+
+The repo is created private unless you add `--public`. This needs `huggingface_hub` and a login
+(`huggingface-cli login`).
+
 ## Experiments
 
 - Main comparison: GraMa against a CNN-BiGRU detector, with FedAvg and with the HDBSCAN defence,
