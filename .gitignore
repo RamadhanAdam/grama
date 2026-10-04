@@ -15,8 +15,13 @@ data/interim/*
 data/processed/*
 !data/processed/.gitkeep
 
-# Experiment outputs (zip them with `make pack` to download)
-results/
+# Experiment outputs (pack them with `make pack` to download). Only the full run's tables,
+# figures and records are kept in the repo; weights are on Hugging Face (RamadhanZome/grama).
+results/*
+!results/full/
+results/full/models/
+results/full/config/
+results/full/README.md
 results_*.zip
 results_*.tar.gz
 

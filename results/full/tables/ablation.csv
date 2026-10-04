@@ -1,0 +1,8 @@
+Variant,Macro-F1,Change in macro-F1,Accuracy,Detection rate,False alarm rate,Params
+GraMa (full),1.0000 ± 0.0000,–,1.0000 ± 0.0000,1.0000 ± 0.0000,0.0000 ± 0.0000,"78,587"
+without residual connections in the GAT,0.9354 ± 0.0914,-0.0646,0.9945 ± 0.0078,1.0000 ± 0.0000,0.0000 ± 0.0000,"57,595"
+without CAN-ID embeddings,0.9645 ± 0.0150,-0.0355,0.9885 ± 0.0041,1.0000 ± 0.0000,0.0000 ± 0.0000,"73,867"
+mean pooling instead of attention pooling,0.9995 ± 0.0007,-0.0005,0.9998 ± 0.0003,0.9992 ± 0.0011,0.0000 ± 0.0000,"78,522"
+co-occurrence edges instead of transition edges,1.0000 ± 0.0000,+0.0000,1.0000 ± 0.0000,1.0000 ± 0.0000,0.0000 ± 0.0000,"78,587"
+GRU instead of Mamba,1.0000 ± 0.0000,+0.0000,1.0000 ± 0.0000,1.0000 ± 0.0000,0.0000 ± 0.0000,"70,551"
+no temporal model (last window only),0.9995 ± 0.0007,-0.0005,0.9998 ± 0.0003,0.9992 ± 0.0011,0.0000 ± 0.0000,"45,591"

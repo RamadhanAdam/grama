@@ -1,0 +1,89 @@
+{
+  "profile": "full",
+  "about": "The paper setting: 20 clients, 10 per round, 30 rounds, 2 local epochs, three seeds for the main, non-IID and ablation results, two for the attack grid. About 10-14 hours on one A100; run it from a terminal with nohup (see the README).",
+  "alpha": 0.5,
+  "simulation": {
+    "num_clients": 20,
+    "clients_per_round": 10,
+    "num_rounds": 30,
+    "local_epochs": 2,
+    "local_batch_size": 64,
+    "local_lr": 0.001,
+    "non_iid_alpha": 0.5,
+    "class_weighting": "none"
+  },
+  "main_methods": [
+    [
+      "grama",
+      "hdbscan"
+    ],
+    [
+      "grama",
+      "fedavg"
+    ],
+    [
+      "cnn_bigru",
+      "fedavg"
+    ],
+    [
+      "cnn_bigru",
+      "hdbscan"
+    ],
+    [
+      "grama",
+      "central"
+    ]
+  ],
+  "noniid": {
+    "alphas": [
+      0.05,
+      0.1,
+      0.5,
+      1.0,
+      100.0
+    ],
+    "aggregators": [
+      "hdbscan",
+      "fedavg"
+    ]
+  },
+  "poisoning": {
+    "seeds": [
+      0,
+      1
+    ],
+    "attacks": [
+      "label_flip",
+      "targeted_flip",
+      "magnitude_poison",
+      "alie"
+    ],
+    "fractions": [
+      0.1,
+      0.2,
+      0.3,
+      0.4
+    ],
+    "aggregators": [
+      "fedavg",
+      "median",
+      "trimmed_mean",
+      "krum",
+      "norm_clip",
+      "flame",
+      "hdbscan"
+    ]
+  },
+  "ablation": {
+    "aggregator": "fedavg",
+    "variants": [
+      "no_residual",
+      "no_id_embedding",
+      "mean_pool",
+      "cooccurrence_edges",
+      "gru_instead_of_mamba",
+      "no_temporal"
+    ]
+  },
+  "edge_mode": "transition"
+}

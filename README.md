@@ -67,6 +67,12 @@ python scripts/run_federated_train.py --profile quick --aggregator hdbscan --att
 
 ## Results
 
+The full run (291 training runs) is in [`results/full/`](results/full/summary.md): all tables and
+figures in `summary.md`, the tables as CSV, and one record per run in `runs.jsonl`. The trained
+weights are on Hugging Face: [RamadhanZome/grama](https://huggingface.co/RamadhanZome/grama).
+
+![Macro-F1 under poisoning](results/full/figures/poisoning.png)
+
 Each profile writes to `results/<profile>/`:
 
 - `summary.md`: all tables and figures on one page
