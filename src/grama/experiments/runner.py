@@ -139,18 +139,25 @@ class Experiment:
         data_cfg["dataset"] = dict(data_cfg["dataset"])
         for key in ("raw_dir", "processed_dir"):
             data_cfg["dataset"][key] = str(self.root / data_cfg["dataset"][key])
+        for source in ("road", "can_train_test"):
+            if source in data_cfg:
+                data_cfg[source] = {**data_cfg[source], "raw_dir": str(self.root / data_cfg[source]["raw_dir"])}
         path = build_dataset(data_cfg, source=self.profile["data"],
                              overrides=self.profile.get("data_overrides") or {}, force=force)
         payload = load_processed(path)
         self.meta = payload["meta"]
         self.data_path = path
         self.train, self.test = {}, {}
+        # Extra test sets (ROAD's masquerade set, can-train-and-test's unknown car and attacks).
+        self.extra = {name: {} for name in self.meta.get("extra_tests", [])}
         for model, view in MODELS.items():
             self.train[model] = dataset_from_payload(payload, "train", view=view)
             self.test[model] = dataset_from_payload(payload, "test", view=view)
+            for name in self.extra:
+                self.extra[name][model] = dataset_from_payload(payload, name, view=view)
             if self.device.startswith("cuda"):
-                self.train[model].to(self.device)
-                self.test[model].to(self.device)
+                for ds in (self.train[model], self.test[model], *(e[model] for e in self.extra.values())):
+                    ds.to(self.device)
         info = {
             "profile": self.profile_name,
             "data_file": path.name,
@@ -160,6 +167,7 @@ class Experiment:
                                           "edge_mode", "class_counts", "injection")},
             "split": self.meta.get("split", "temporal"),
             "block_rows": self.meta.get("block_rows"),
+            **{k: self.meta[k] for k in ("extra_tests", "split_note", "other_node_share") if k in self.meta},
         }
         (self.out_dir / "dataset.json").write_text(json.dumps(info, indent=2))
         logger.info("Data: %s | %d nodes | train %d / test %d sequences | device %s",
@@ -313,6 +321,12 @@ class Experiment:
         model = factory()
         model.load_state_dict(server.global_state)
         final = evaluate(model, test_ds, C, self.device, eval_batch, detailed=True)
+        tests = {}
+        for name, views in self.extra.items():
+            ds = views[spec.model]
+            if edge_mode and spec.model == "grama":
+                ds = ds.with_view(edge_mode=edge_mode)
+            tests[name] = evaluate(model, ds, C, self.device, eval_batch, detailed=True, present_only=True)
 
         if spec.attack is None and not spec.variant and spec.alpha == float(self.sim["non_iid_alpha"]):
             torch.save(server.global_state, self.out_dir / "models" / f"{spec.run_id}.pt")
@@ -329,6 +343,7 @@ class Experiment:
             "params": count_parameters(model),
             "train_seconds": train_seconds,
             "final": final,
+            **({"tests": tests} if tests else {}),
             "defence": self._defence_stats(history, aggregator),
             "history": [
                 {"round": h.round_num, "loss": h.avg_local_loss, "seconds": h.seconds,

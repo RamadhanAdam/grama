@@ -1,4 +1,4 @@
-"""Builds the window dataset from CIC-IoV2024 CSVs, or from synthetic CAN traffic.
+"""Builds the window dataset from CIC-IoV2024 CSVs, ROAD, can-train-and-test, or synthetic CAN traffic.
 
 Steps (Sec 3.2 and Sec 4.1 Phase 1 of the concept note):
   1. find the CSVs anywhere under data/raw (zip and tar.xz archives are unpacked first)
@@ -15,6 +15,10 @@ Steps (Sec 3.2 and Sec 4.1 Phase 1 of the concept note):
 
 Everything is vectorised with numpy (bincount and cumsum over the frames),
 so the full 1.4M-row dataset builds in well under a minute.
+
+ROAD and can-train-and-test come with their own split (by capture, and by
+folder), so their readers (grama.data.road, grama.data.can_train_test) hand
+over train and test streams, and only steps 6-7 run here.
 """
 from __future__ import annotations
 
@@ -97,16 +101,23 @@ def _check_inside(target: Path, names: list[str]) -> None:
             raise ValueError(f"Refusing to unpack {name}: path leaves {target}")
 
 
-def unpack_archives(raw_dir: Path) -> None:
+def _excluded(path: Path, exclude) -> bool:
+    return any(path == e or e in path.parents for e in exclude or ())
+
+
+def unpack_archives(raw_dir: Path, exclude=None) -> None:
     """Unpack every archive under raw_dir (zip, tar, tar.gz, tar.xz) next to itself, once.
 
     The CIC release (CICIoV2024.tar.xz) holds decimal, binary and hexadecimal
     versions of the data. Only the decimal files are extracted when they are
-    there, which saves disk space; otherwise everything is.
+    there, which saves disk space; otherwise everything is. Folders in
+    `exclude` (the other datasets, read straight from their zips) are skipped.
     """
     import tarfile
 
-    archives = [p for p in raw_dir.rglob("*") if p.is_file() and p.name.lower().endswith(ARCHIVE_SUFFIXES)]
+    exclude = [Path(e).resolve() for e in exclude or ()]
+    archives = [p for p in raw_dir.rglob("*") if p.is_file() and p.name.lower().endswith(ARCHIVE_SUFFIXES)
+                and not _excluded(p.resolve(), exclude)]
     for archive in sorted(archives):
         target = _archive_folder(archive)
         marker = target / ".unpacked"
@@ -152,12 +163,15 @@ def _extract_tar(tf, target: Path, decimal_only: bool) -> int:
     return csvs
 
 
-def find_csv_files(raw_dir: Path) -> list[Path]:
-    """All CSVs under raw_dir. If the decimal version of the release is there, only those."""
+def find_csv_files(raw_dir: Path, exclude=None) -> list[Path]:
+    """All CSVs under raw_dir, outside `exclude`. If the decimal version of the release is there, only those."""
+    exclude = [Path(e).resolve() for e in exclude or ()]
     csvs = []
     for p in raw_dir.rglob("*.csv"):
         parts = p.relative_to(raw_dir).parts
         if any(part.startswith(".") or part == "__MACOSX" for part in parts):
+            continue
+        if _excluded(p.resolve(), exclude):
             continue
         csvs.append(p)
     decimal = [p for p in csvs if "decimal" in str(p.relative_to(raw_dir)).lower()
@@ -317,9 +331,14 @@ def split_stream(s: Stream, settings: dict) -> tuple[list[Stream], list[Stream]]
     return train, test
 
 
-def fit_vocabulary(train_ids: np.ndarray, max_nodes: int) -> np.ndarray:
-    """Most frequent CAN IDs in train (max_nodes - 1 of them). Every other ID maps to one 'other' node."""
+def fit_vocabulary(train_ids: np.ndarray, max_nodes: int, min_count: int = 1) -> np.ndarray:
+    """Most frequent CAN IDs in train (max_nodes - 1 of them, each seen at least min_count times).
+
+    Every other ID maps to one 'other' node. min_count keeps out IDs that only
+    a fuzzing attack sends, once each (ROAD's fuzzing captures have hundreds).
+    """
     values, counts = np.unique(train_ids, return_counts=True)
+    values, counts = values[counts >= min_count], counts[counts >= min_count]
     keep = values[np.argsort(-counts, kind="stable")[: max_nodes - 1]]
     return np.sort(keep)
 
@@ -380,10 +399,6 @@ def window_stream(node_ids, payload_norm, payload_raw, frame_labels, *, window_s
 def build_from_streams(streams: list[Stream], settings: dict, class_names: list[str], seed: int = 0) -> dict:
     """Streams -> {'meta', 'splits': {'train': ..., 'test': ...}} of torch tensors."""
     rng = np.random.default_rng(seed)
-    num_classes = len(class_names)
-    W = settings["window_size"]
-    L = settings["seq_len"]
-
     streams = cap_rows(streams, settings.get("max_rows_per_class"), class_names)
 
     split_streams = {"train": [], "test": []}
@@ -404,8 +419,28 @@ def build_from_streams(streams: list[Stream], settings: dict, class_names: list[
             split_streams[split] = [s if s.class_idx == 0 else
                                     inject_into_benign(s, pool, inj["attack_ratio"], rng) for s in ss]
 
+    payload = build_from_splits(split_streams, settings, class_names)
+    payload["meta"].update({
+        "streams": [s.name for s in streams],
+        "split": settings.get("split", "blocks"),
+        "block_rows": settings.get("block_rows", 1000),
+        "injection": inj if inj.get("enabled") else None,
+    })
+    return payload
+
+
+def build_from_splits(split_streams: dict[str, list[Stream]], settings: dict, class_names: list[str]) -> dict:
+    """Streams already split -> {'meta', 'splits'} of torch tensors.
+
+    split_streams needs 'train' and 'test'; any other key (e.g. ROAD's
+    'masquerade') becomes an extra test set, listed in meta['extra_tests'].
+    The CAN-ID vocabulary and the payload scaling come from 'train' only.
+    """
+    num_classes = len(class_names)
+    W = settings["window_size"]
+    L = settings["seq_len"]
     train_ids = np.concatenate([s.ids for s in split_streams["train"]])
-    vocab = fit_vocabulary(train_ids, settings["max_nodes"])
+    vocab = fit_vocabulary(train_ids, settings["max_nodes"], settings.get("min_id_count", 1))
     num_nodes = len(vocab) + 1
     train_payload = np.concatenate([s.payload for s in split_streams["train"]])
     lo = train_payload.min(axis=0).astype(np.float32)
@@ -457,18 +492,36 @@ def build_from_streams(streams: list[Stream], settings: dict, class_names: list[
         "payload_min": lo.tolist(),
         "payload_span": span.tolist(),
         "class_counts": counts,
-        "streams": [s.name for s in streams],
+        "streams": sorted({s.name for ss in split_streams.values() for s in ss}),
         **{k: settings[k] for k in ("window_size", "stride", "seq_len", "seq_stride", "edge_mode")},
-        "split": settings.get("split", "blocks"),
-        "block_rows": settings.get("block_rows", 1000),
-        "injection": inj if inj.get("enabled") else None,
+        "injection": None,
     }
+    extra = [k for k in split_streams if k not in ("train", "test")]
+    if extra:
+        meta["extra_tests"] = extra
+        # Share of frames whose CAN ID training never saw (they all go to the "other" node).
+        # High on another car: its IDs mean different things, or don't exist on the training car.
+        meta["other_node_share"] = {
+            k: round(float(np.mean(np.concatenate([map_ids(s.ids, vocab) for s in ss]) == len(vocab))), 4)
+            for k, ss in split_streams.items()}
     return {"meta": meta, "splits": splits}
 
 
-def _settings_hash(settings: dict, files: list[Path]) -> str:
+# Datasets with their own reader, folder, classes and split (sections of config/data.yaml).
+SOURCES = ("road", "can_train_test")
+# CIC-only settings, left out of the other datasets' settings (and their hash).
+CIC_ONLY = ("max_rows_per_class", "split", "block_rows", "test_fraction", "injection", "synthetic_rows_per_class")
+
+
+def other_dataset_dirs(data_cfg: dict) -> list[Path]:
+    """Folders of ROAD and can-train-and-test, which the CIC reader must not look into."""
+    return [Path(data_cfg[k]["raw_dir"]) for k in SOURCES if k in data_cfg and "raw_dir" in data_cfg[k]]
+
+
+def _settings_hash(settings: dict, files) -> str:
+    """files: paths (CIC) or (name, size) pairs (datasets read through RawFiles)."""
     sig = {"v": BUILD_VERSION, "settings": settings,
-           "files": [(p.name, p.stat().st_size) for p in files]}
+           "files": [(p.name, p.stat().st_size) if isinstance(p, Path) else tuple(p) for p in files]}
     return hashlib.sha1(json.dumps(sig, sort_keys=True, default=str).encode()).hexdigest()[:8]
 
 
@@ -476,11 +529,14 @@ def build_dataset(data_cfg: dict, source: str = "real", overrides: dict | None =
                   force: bool = False, seed: int = 0) -> Path:
     """Build (or reuse) the processed dataset and return its path.
 
-    source: "real" (CSV files under data/raw) or "synthetic".
+    source: "real" (CIC-IoV2024 CSVs under data/raw), "synthetic", "road" or
+    "can_train_test" (each with its own section in config/data.yaml).
     overrides: settings that replace the data config, e.g. a profile's row caps.
     The output name carries a hash of the settings and input files, so a
     changed setting gives a new file and an unchanged one is reused.
     """
+    if source in SOURCES:
+        return _build_other(data_cfg, source, overrides, force)
     settings = dict(data_cfg["build"])
     settings.update(overrides or {})
     class_names = data_cfg["classes"]
@@ -492,8 +548,8 @@ def build_dataset(data_cfg: dict, source: str = "real", overrides: dict | None =
         tag = "synthetic"
     else:
         raw_dir = Path(data_cfg["dataset"]["raw_dir"])
-        unpack_archives(raw_dir)
-        files = find_csv_files(raw_dir)
+        unpack_archives(raw_dir, exclude=other_dataset_dirs(data_cfg))
+        files = find_csv_files(raw_dir, exclude=other_dataset_dirs(data_cfg))
         if not files:
             raise FileNotFoundError(f"No CSV files under {raw_dir.resolve()}. See the README, 'Getting the data'.")
         tag = "cic_iov2024"
@@ -522,4 +578,46 @@ def build_dataset(data_cfg: dict, source: str = "real", overrides: dict | None =
     meta = payload["meta"]
     logger.info("Saved %s | %d CAN-ID nodes | sequences per class (train) %s | (test) %s",
                 out_path, meta["num_nodes"], meta["class_counts"]["train"], meta["class_counts"]["test"])
+    return out_path
+
+
+def _build_other(data_cfg: dict, source: str, overrides: dict | None, force: bool) -> Path:
+    """ROAD or can-train-and-test: read with its own reader, split its own way, then window."""
+    from grama.data.can_train_test import cantt_files, load_can_train_test
+    from grama.data.road import load_road, road_files
+
+    section = data_cfg[source]
+    settings = {k: v for k, v in data_cfg["build"].items() if k not in CIC_ONLY}
+    settings.update(section.get("build") or {})
+    settings.update({k: v for k, v in (overrides or {}).items() if k not in CIC_ONLY})
+    class_names = list(section["classes"])
+    raw_dir = Path(section["raw_dir"])
+    files = road_files(raw_dir) if source == "road" else cantt_files(raw_dir)
+    if not files.names():
+        raise FileNotFoundError(f"No {source} files under {raw_dir.resolve()}. See the README, 'Other datasets'.")
+    processed_dir = Path(data_cfg["dataset"]["processed_dir"])
+    processed_dir.mkdir(parents=True, exist_ok=True)
+    tag = "road" if source == "road" else f"cantt_{settings.get('set', 'set_01')}"
+    out_path = processed_dir / f"{tag}_{_settings_hash(settings, files.signature())}.pt"
+    if out_path.exists() and not force:
+        logger.info("Reusing %s", out_path)
+        return out_path
+
+    logger.info("Reading %s from %s", source, files.where)
+    if source == "road":
+        split_streams = load_road(raw_dir, settings, class_names)
+        note = (f"by capture: attack instances 1-2 train, instance {settings.get('test_instance', 3)} tests "
+                "(with its masquerade version); the coolant attack, recorded once, is cut in the middle of the "
+                "injection; ambient captures are held out whole")
+    else:
+        split_streams = load_can_train_test(raw_dir, settings, class_names)
+        note = (f"the dataset's own folders for {settings.get('set', 'set_01')}: train_01 trains, "
+                "test_01 (known car, known attacks) tests, test_02-04 are the extra test sets")
+    payload = build_from_splits(split_streams, settings, class_names)
+    payload["meta"].update({"source": source, "split": source, "split_note": note,
+                            "settings": {k: settings[k] for k in sorted(settings)}})
+    torch.save(payload, out_path)
+    meta = payload["meta"]
+    logger.info("Saved %s | %d CAN-ID nodes | sequences per class %s", out_path, meta["num_nodes"],
+                {k: v for k, v in meta["class_counts"].items()})
     return out_path

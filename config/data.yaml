@@ -59,3 +59,34 @@ build:
 # Exact-duplicate removal is NOT applied. DoS and spoofing traffic is the same
 # few frames repeated (spoofing-GAS: 9,991 rows, 2 distinct), so dropping
 # duplicates erases the attacks. Leakage is handled by the time-based split.
+
+# ---------------------------------------------------------------------------
+# Two more datasets, each in its own folder under data/raw and read straight
+# from its zip (no unpacking). Each has its own classes and its own split
+# (see grama/data/road.py and grama/data/can_train_test.py). The window and
+# graph settings above apply to them too; the settings below add to them.
+# A profile picks one with `data: road` or `data: can_train_test`.
+
+road:
+  name: "ROAD (Verma et al., 2024)"
+  raw_dir: "data/raw/road"       # road.zip from https://doi.org/10.5281/zenodo.10462796
+  classes: [benign, fuzzing, correlated_signal, max_speedometer, max_coolant_temp, reverse_light]
+  build:
+    min_id_count: 20             # IDs seen fewer times in train go to the "other" node (fuzzing sends hundreds once)
+    test_instance: 3             # attacks were recorded three times; the third tests
+    test_ambient: [ambient_dyno_drive_basic_short, ambient_highway_street_driving_diagnostics]
+    context_seconds: 5.0         # normal traffic kept on each side of an injection
+    ambient_rows: 60000          # frames kept from each ambient capture,
+    ambient_chunks: 3            # in this many evenly spaced pieces
+
+can_train_test:
+  name: "can-train-and-test (Lampe and Meng, 2023)"
+  raw_dir: "data/raw/can-train-and-test"   # can-train-and-test.zip from https://data.dtu.dk/articles/dataset/can-train-and-test/24805533
+  classes: [benign, attack]      # the "unknown attack" test sets have attacks training never saw, so binary
+  build:
+    min_id_count: 20
+    set: set_01                  # set_01..set_04: which car trains (profiles cantt1..cantt4)
+    context_rows: 15000          # normal frames kept on each side of an attack burst
+    max_rows: 80000              # at most this many frames from one attack file
+    benign_rows: 90000           # frames kept from each attack-free file,
+    benign_chunks: 3             # in this many evenly spaced pieces

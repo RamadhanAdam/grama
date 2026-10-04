@@ -14,7 +14,7 @@ from sklearn.metrics import (
 
 
 def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray, y_proba: np.ndarray | None = None,
-                    num_classes: int | None = None, benign_class: int = 0) -> dict:
+                    num_classes: int | None = None, benign_class: int = 0, present_only: bool = False) -> dict:
     """
     y_true, y_pred: (N,) integer class labels
     y_proba: (N, num_classes) predicted probabilities, needed for ROC-AUC
@@ -22,8 +22,14 @@ def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray, y_proba: np.ndarray 
     Besides the multi-class scores, reports the two numbers an IDS is judged
     on: detection rate (attacks flagged as any attack) and false alarm rate
     (benign traffic flagged as an attack).
+
+    present_only: average the macro scores over the classes in y_true only.
+    For test sets that lack some classes (ROAD's masquerade set has no
+    fuzzing), so an absent class doesn't count as an F1 of zero.
     """
     labels = list(range(num_classes)) if num_classes else None
+    if present_only:
+        labels = sorted(int(c) for c in np.unique(y_true))
     metrics = {
         "accuracy": float(accuracy_score(y_true, y_pred)),
         "precision_macro": float(precision_score(y_true, y_pred, labels=labels, average="macro", zero_division=0)),
@@ -79,9 +85,9 @@ def predict(model: torch.nn.Module, dataset, device: str = "cpu", batch_size: in
 
 
 def evaluate(model, dataset, num_classes: int, device: str = "cpu", batch_size: int = 512,
-             detailed: bool = False) -> dict:
+             detailed: bool = False, present_only: bool = False) -> dict:
     y_true, y_pred, y_proba = predict(model, dataset, device, batch_size)
-    out = compute_metrics(y_true, y_pred, y_proba, num_classes=num_classes)
+    out = compute_metrics(y_true, y_pred, y_proba, num_classes=num_classes, present_only=present_only)
     if detailed:
         out.update(detailed_metrics(y_true, y_pred, num_classes))
     return out

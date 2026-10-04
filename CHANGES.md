@@ -1,5 +1,19 @@
 # Changes
 
+## October 2026: two more datasets
+
+- Readers for ROAD and can-train-and-test, taking the files straight from the zips. ROAD frames are
+  labelled from the injection intervals, IDs and payloads in its metadata; the four accelerator
+  captures have none and are left out.
+- Each dataset keeps its own split (ROAD by recording, can-train-and-test by its folders). Extra
+  test sets (ROAD masquerades; unknown car, unknown attacks) are scored in every run and reported in
+  an "Other test sets" table, with the share of frames whose CAN ID training never saw.
+- Profiles `road` and `cantt1`-`cantt4`; `make road`, `make cantt`, `make others-background`;
+  `make check-data SOURCE=...`.
+- CAN IDs seen fewer than `min_id_count` times in training go to the "other" node (default 1, so
+  CIC-IoV2024 builds are unchanged; 20 for the new datasets, where fuzzing sends hundreds of IDs once).
+- The CIC reader no longer looks inside the other datasets' folders.
+
 ## October 2026: runnable experiments
 
 - One notebook (`GraMa.ipynb`) and `make` targets run everything: data check, dataset build,

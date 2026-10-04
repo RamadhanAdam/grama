@@ -86,3 +86,76 @@ profiles:
     ablation:
       aggregator: fedavg
       variants: [no_residual, no_id_embedding, mean_pool, cooccurrence_edges, gru_instead_of_mamba, no_temporal]
+
+  # ------------------------------------------------------------------ other datasets
+  # The `full` setting on two more datasets (config/data.yaml has their
+  # folders and splits). Fewer runs than on CIC-IoV2024: no non-IID sweep
+  # and no ablation, and only the two attacks that did the most damage there
+  # (targeted flipping and ALIE). Every run is also tested on the dataset's
+  # extra test sets (the "Other test sets" table of the report).
+
+  road:
+    about: >-
+      ROAD: one car, attacks injected for real, masquerade versions, split by
+      recording. Main comparison with three seeds; targeted flipping and ALIE
+      at 20% and 40% with two seeds. About 50 runs. ROAD has about four times
+      as many training sequences as CIC-IoV2024, so allow 8-10 hours on one A100.
+    data: road
+    data_overrides: {}
+    federated: &paper_federated {num_clients: 20, clients_per_round: 10, num_rounds: 30, local_epochs: 2, local_batch_size: 64}
+    eval_every: 5
+    seeds: [0, 1, 2]
+    main: &paper_main
+      methods: [grama_hdbscan, grama_fedavg, cnn_bigru_fedavg, cnn_bigru_hdbscan, grama_central]
+    poisoning: &short_poisoning
+      seeds: [0, 1]
+      attacks: [targeted_flip, alie]
+      fractions: [0.2, 0.4]
+      aggregators: [fedavg, norm_clip, flame, hdbscan]
+
+  cantt1:
+    about: >-
+      can-train-and-test, set_01: trains on a Chevrolet Impala; tests on the
+      Impala (known attacks, then unknown attacks) and on a Chevrolet Silverado.
+      Binary (benign or attack). Same runs as the road profile, about 50;
+      about 3-4 hours on one A100.
+    data: can_train_test
+    data_overrides: {set: set_01}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1, 2]
+    main: *paper_main
+    poisoning: *short_poisoning
+
+  cantt2:
+    about: >-
+      can-train-and-test, set_02: trains on a Chevrolet Traverse, unknown car
+      Subaru Forester. Main comparison only, three seeds (15 runs).
+    data: can_train_test
+    data_overrides: {set: set_02}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1, 2]
+    main: *paper_main
+
+  cantt3:
+    about: >-
+      can-train-and-test, set_03: trains on a Chevrolet Silverado, unknown car
+      Subaru Forester. Main comparison only, three seeds (15 runs).
+    data: can_train_test
+    data_overrides: {set: set_03}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1, 2]
+    main: *paper_main
+
+  cantt4:
+    about: >-
+      can-train-and-test, set_04: trains on a Subaru Forester, unknown car
+      Chevrolet Traverse. Main comparison only, three seeds (15 runs).
+    data: can_train_test
+    data_overrides: {set: set_04}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1, 2]
+    main: *paper_main

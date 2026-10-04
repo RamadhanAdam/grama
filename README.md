@@ -40,6 +40,29 @@ PYTHONPATH=src python -m grama.data.download
 Each file is split into blocks of 1,000 messages, and every fifth block is held out for testing.
 See [docs/notes.md](docs/notes.md) for why a chronological split is not used on this dataset.
 
+### Other datasets
+
+Two more datasets can be used: [ROAD](https://doi.org/10.5281/zenodo.10462796) (Verma et al., 2024),
+one car with real injections and masquerade attacks, and
+[can-train-and-test](https://data.dtu.dk/articles/dataset/can-train-and-test/24805533) (Lampe and Meng,
+2023), four cars with test sets for unknown cars and unknown attacks. Both are plain downloads. Leave
+the zip in its folder; the files are read straight from it:
+
+```bash
+mkdir -p data/raw/road data/raw/can-train-and-test
+curl -L -o data/raw/road/road.zip "https://zenodo.org/records/10462796/files/road.zip?download=1"
+curl -L -o data/raw/can-train-and-test/can-train-and-test.zip "https://ndownloader.figshare.com/files/43632393"
+make check-data SOURCE=road
+make check-data SOURCE=can_train_test
+```
+
+They are split their own way, not in blocks. ROAD: each attack was recorded three times, so the first
+two recordings train and the third tests, and some normal recordings are held out whole. ROAD labels
+time intervals, so a frame counts as an attack when it falls in the interval and carries the injected
+ID and bytes. can-train-and-test: the dataset's own training folder trains, and its four test folders
+test. Its unknown attacks have names training never saw, so the task there is attack or not. Details
+are at the top of `src/grama/data/road.py` and `src/grama/data/can_train_test.py`.
+
 ## Usage
 
 Run all experiments of a profile:
@@ -53,10 +76,14 @@ python scripts/run_experiments.py --profile quick
 | `smoke` | synthetic CAN traffic, checks the pipeline end to end | 19 | about 5 min (CPU) |
 | `quick` | CIC-IoV2024, short runs, one seed | 77 | about 1.5 h |
 | `full` | the setting used in the paper | 291 | about 12 h |
+| `road` | `full`'s setting on ROAD: main comparison, targeted flipping and ALIE | 51 | about 9 h |
+| `cantt1` | the same on can-train-and-test, set 1 | 51 | about 4 h |
+| `cantt2`–`cantt4` | sets 2 to 4, main comparison only | 15 each | about 1 h each |
 
 Finished runs are saved as they complete, so an interrupted profile resumes where it stopped when the
 same command is run again. For long runs, start it in the background, for example with
 `nohup ... &` or inside `tmux`. Profiles are defined in `config/experiments.yaml`.
+`make others-background` runs `road` and then `cantt1` to `cantt4`, logging to `results/others.log`.
 
 The same pipeline can be run from the notebook `GraMa.ipynb`. To train and evaluate a single
 configuration:
@@ -117,14 +144,15 @@ honest updates rejected is also reported.
 ```
 config/        data, model and federated settings; experiment profiles
 src/grama/
-  data/        dataset builder, sequence dataset, data check, Dirichlet split
+  data/        dataset builder, ROAD and can-train-and-test readers, sequence dataset,
+               data check, Dirichlet split
   models/      GAT encoder, Mamba block, GraMa model, CNN-BiGRU baseline
   federated/   client, server, HDBSCAN aggregator, baseline aggregators
   attacks/     poisoning attacks
   eval/        metrics, latency benchmark
   experiments/ experiment runner and report
 scripts/       command-line entry points
-tests/         unit tests (CPU only, no data needed)
+tests/         unit tests (CPU only; the few that read real files skip when the data isn't there)
 docs/          explainer, implementation notes, mapping to the concept note
 ```
 

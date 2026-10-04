@@ -4,19 +4,23 @@
 
 PYTHON ?= python3
 PROFILE ?= quick
+SOURCE ?= cic
 export PYTHONPATH := $(CURDIR)/src:$(PYTHONPATH)
 
-.PHONY: help setup setup-cuda check-data data smoke quick full full-background report test lint notebook pack hf clean
+.PHONY: help setup setup-cuda check-data data smoke quick full full-background road cantt others-background report test lint notebook pack hf clean
 
 help:
 	@echo "make setup            install the dependencies (once)"
 	@echo "make setup-cuda       also build the mamba-ssm CUDA kernel (optional, slow to build)"
-	@echo "make check-data       check that CIC-IoV2024 is in data/raw"
+	@echo "make check-data       check that CIC-IoV2024 is in data/raw (SOURCE=road or can_train_test for the others)"
 	@echo "make data             build the processed dataset for PROFILE (default: quick)"
 	@echo "make smoke            whole pipeline on synthetic data, a few minutes on a CPU"
 	@echo "make quick            real data, short runs (about 30 min on a GPU)"
 	@echo "make full             the paper runs (hours); see also full-background"
 	@echo "make full-background  the paper runs, detached, logging to results/full.log"
+	@echo "make road             the ROAD runs (about 50, 8-10 hours on an A100)"
+	@echo "make cantt            the can-train-and-test runs, sets 1 to 4 (about 100 runs)"
+	@echo "make others-background  road then cantt, detached, logging to results/others.log"
 	@echo "make report           rebuild tables and figures for PROFILE from saved runs"
 	@echo "make notebook         run GraMa.ipynb top to bottom without opening it"
 	@echo "make pack             pack results/PROFILE into results_PROFILE.tar.gz for download"
@@ -31,7 +35,7 @@ setup-cuda: setup
 	$(PYTHON) -m pip install --no-build-isolation causal-conv1d mamba-ssm
 
 check-data:
-	$(PYTHON) -m grama.data.download
+	$(PYTHON) -m grama.data.download --source $(SOURCE)
 
 data:
 	$(PYTHON) scripts/build_dataset.py --profile $(PROFILE)
@@ -49,6 +53,19 @@ full-background:
 	@mkdir -p results
 	nohup $(PYTHON) scripts/run_experiments.py --profile full --no-progress > results/full.log 2>&1 &
 	@echo "Started. Follow it with: tail -f results/full.log"
+
+road:
+	$(PYTHON) scripts/run_experiments.py --profile road
+
+cantt:
+	for p in cantt1 cantt2 cantt3 cantt4; do $(PYTHON) scripts/run_experiments.py --profile $$p || exit 1; done
+
+others-background:
+	@mkdir -p results
+	nohup sh -c '$(PYTHON) scripts/run_experiments.py --profile road --no-progress && \
+	  for p in cantt1 cantt2 cantt3 cantt4; do $(PYTHON) scripts/run_experiments.py --profile $$p --no-progress || exit 1; done' \
+	  > results/others.log 2>&1 &
+	@echo "Started. Follow it with: tail -f results/others.log"
 
 report:
 	$(PYTHON) -m grama.experiments.report results/$(PROFILE)

@@ -35,6 +35,11 @@ VARIANT_LABEL = {
     "gru_instead_of_mamba": "GRU instead of Mamba",
     "no_temporal": "no temporal model (last window only)",
 }
+DATA_LABEL = {"road": "ROAD", "can_train_test": "can-train-and-test"}
+TEST_LABEL = {"masquerade": "Masquerade attacks only",
+              "unknown_vehicle": "Unknown car, known attacks",
+              "unknown_attack": "Known car, unknown attacks",
+              "unknown_vehicle_and_attack": "Unknown car, unknown attacks"}
 # Okabe-Ito colours (readable in colour-blind vision and in greyscale print).
 COLORS = {"hdbscan": "#000000", "fedavg": "#E69F00", "median": "#56B4E9", "trimmed_mean": "#009E73",
           "krum": "#D55E00", "norm_clip": "#0072B2", "flame": "#CC79A7", "central": "#777777"}
@@ -144,7 +149,8 @@ def make_report(results_dir: str | Path) -> Path:
                    "Don't report these numbers.\n")
     sim = profile["simulation"]
     out.append(
-        f"- Data: {data['source']} (`{data['data_file']}`), {data['num_nodes']} CAN-ID nodes, "
+        f"- Data: {DATA_LABEL.get(data['source'], data['source'])} (`{data['data_file']}`), "
+        f"{data['num_nodes']} CAN-ID nodes, "
         f"windows of {data['window_size']} frames (stride {data['stride']}), sequences of "
         f"{data['seq_len']} windows, edges: {data['edge_mode']}"
         + (f", attack frames injected into benign traffic at ratio {data['injection']['attack_ratio']}"
@@ -157,7 +163,7 @@ def make_report(results_dir: str | Path) -> Path:
     out.append(f"- Seeds: {seeds}. Cells are mean ± std over seeds where there is more than one.\n")
 
     header = ["Split"] + class_names
-    rows = [[s] + [str(c) for c in data["class_counts"][s]] for s in ("train", "test")]
+    rows = [[s] + [str(c) for c in data["class_counts"][s]] for s in data["class_counts"]]
     out.append("Sequences per class:\n\n" + md_table(header, rows) + "\n")
 
     figures = []
@@ -181,6 +187,25 @@ def make_report(results_dir: str | Path) -> Path:
         out.append("## 1. Main comparison, no attack (Sec 6.2.1)\n\n" + md_table(header, rows) + "\n")
         out.append("Detection rate = attack sequences flagged as any attack; false alarm rate = benign "
                    "sequences flagged as an attack.\n")
+
+        extra = data.get("extra_tests") or []
+        if extra:
+            keys = ("f1_macro", "detection_rate", "false_alarm_rate")
+            header = ["Method"] + [f"{TEST_LABEL.get(t, t)}: {METRIC_LABEL[k]}" for t in extra for k in keys]
+            rows = []
+            for model, agg, rs in methods:
+                row = [method_label(model, agg)]
+                for t in extra:
+                    for k in keys:
+                        row.append(mean_std([r.get("tests", {}).get(t, {}).get(k) for r in rs]))
+                rows.append(row)
+            write_csv(tables / "other_tests.csv", header, rows)
+            share = data.get("other_node_share") or {}
+            unseen = ", ".join(f"{TEST_LABEL.get(t, t).lower()} {share[t]:.0%}" for t in extra if t in share)
+            out.append("### Other test sets\n\nThe same models, tested on the extra sets. Macro scores are "
+                       "averaged over the classes each set contains."
+                       + (f" Frames with a CAN ID training never saw: test {share.get('test', 0):.0%}, {unseen}."
+                          if share else "") + "\n\n" + md_table(header, rows) + "\n")
 
         header = ["Method"] + class_names
         rows = []
@@ -416,7 +441,9 @@ def make_report(results_dir: str | Path) -> Path:
             out.append(f"**{caption}**\n\n![{caption}]({path})\n")
 
     out.append("## Notes\n")
-    if data.get("split", "blocks") == "temporal":
+    if data.get("split_note"):
+        out.append(f"- Split: {data['split_note']}.")
+    elif data.get("split", "blocks") == "temporal":
         out.append("- Split: the last 20% of every file tests. On CIC-IoV2024 this puts frames in the test set "
                    "that never occur in training (the RPM and SPEED files end on CAN ID 513 with new payloads).")
     else:
