@@ -280,7 +280,8 @@ svg .ecu.atk text { fill: var(--attack); }
   <section class="ch" id="defence">
     <div class="text">
       <h2><span class="n">07</span>Hacked cars</h2>
-      <p>There's a catch. A hacked car can send back a poisoned change on purpose, to quietly break everyone's detector. The experiments try four tricks: training on wrong answers, teaching the model that attacks are normal, making the change ten times bigger, and a small, sneaky push that hides among the honest changes (known as ALIE).</p>
+      <p>There's a catch. A hacked car can send back a poisoned change on purpose, to quietly break everyone's detector. The experiments try five tricks: training on wrong answers, teaching the model that attacks are normal, making the change ten times bigger, a small, sneaky push that hides among the honest changes (known as ALIE), and an attacker who knows how the defence works.</p>
+      <p>That last one is the hardest to stop. Before sending anything, the hacked cars try their poisoned change on a copy of the server's defence. If it would be thrown out, they water the poison down and try again, until they find the strongest change that still gets in. A defence holds up only if that watered-down poison is too weak to do real harm.</p>
       <p>The server can protect itself in different ways. Plain averaging lets everything in. Clipping shrinks any change that is too big. FLAME groups the changes by direction and trims them. GraMa's defence puts all the changes on a small map, finds the tight group of honest cars, and leaves out the ones far away from it.</p>
       <p>Try it below: pick an attack, a defence and how many cars are hacked. It's a flat, simplified picture; a real change has about 78,000 numbers in it.</p>
     </div>
@@ -290,6 +291,7 @@ svg .ecu.atk text { fill: var(--attack); }
           <button type="button" data-v="flip" aria-pressed="false">wrong answers</button>
           <button type="button" data-v="mag" aria-pressed="true">ten times bigger</button>
           <button type="button" data-v="alie" aria-pressed="false">sneaky push (ALIE)</button>
+          <button type="button" data-v="adaptive" aria-pressed="false">knows the defence</button>
         </div>
       </div>
       <div class="controls">
@@ -937,7 +939,7 @@ svg .ecu.atk text { fill: var(--attack); }
       const pts = honestAll.map((p, i) => ({ v: p, bad: i >= N - f }));
       if (f) {
         if (attack === "mag") pts.forEach(p => { if (p.bad) p.v = [p.v[0] * 10, p.v[1] * 10]; });
-        if (attack === "flip") pts.forEach(p => { if (p.bad) p.v = [-0.8 * mu[0] + sigma * gauss(r), -0.8 * mu[1] + sigma * gauss(r)]; });
+        if (attack === "flip" || attack === "adaptive") pts.forEach(p => { if (p.bad) p.v = [-0.8 * mu[0] + sigma * gauss(r), -0.8 * mu[1] + sigma * gauss(r)]; });
         if (attack === "alie") {
           const m = mean(honestAll), sd = [0, 1].map(j => Math.sqrt(honestAll.reduce((s, p) => s + (p[j] - m[j]) ** 2, 0) / N));
           const z = alieZ(N, f);
@@ -969,6 +971,21 @@ svg .ecu.atk text { fill: var(--attack); }
       }
       return { out, keep };
     }
+    // The attacker who knows the defence: every hacked car sends
+    // honest average + g * (their poison - honest average), with g as large as the defence still lets in.
+    function adapt(pts, rule) {
+      const honest = mean(pts.filter(p => !p.bad).map(p => p.v));
+      const poison = mean(pts.filter(p => p.bad).map(p => p.v));
+      const at = g => pts.map(p => p.bad ? { v: [honest[0] + g * (poison[0] - honest[0]), honest[1] + g * (poison[1] - honest[1])], bad: true } : p);
+      const getsIn = g => { const c = at(g), { keep } = aggregate(c, rule); return c.every((p, i) => !p.bad || keep[i]); };
+      let g = 10;
+      if (!getsIn(10)) {
+        let lo = getsIn(1) ? 1 : 0, hi = lo ? 10 : 1;
+        for (let k = 0; k < 7; k++) { const m = (lo + hi) / 2; if (getsIn(m)) lo = m; else hi = m; }
+        g = lo;
+      }
+      return { pts: at(g), g, poison };
+    }
     const atkSel = segmented("atk7", draw), defSel = segmented("def7", draw);
     share.addEventListener("input", draw);
     document.getElementById("again7").addEventListener("click", () => { seed += 1; draw(); });
@@ -981,7 +998,8 @@ svg .ecu.atk text { fill: var(--attack); }
       const f = +share.value;
       shareval.textContent = f + " of 10";
       const attack = atkSel(), rule = defSel();
-      const pts = scenario(attack, f);
+      let pts = scenario(attack, f), adapted = null;
+      if (attack === "adaptive" && f) { adapted = adapt(pts, rule); pts = adapted.pts; }
       const honest = pts.filter(p => !p.bad).map(p => p.v);
       const target = mean(honest);
       const { out, keep } = aggregate(pts, rule);
@@ -989,18 +1007,39 @@ svg .ecu.atk text { fill: var(--attack); }
       const T = clampToPlot(out);
       el("line", { x1: X(target[0]), y1: Y(target[1]), x2: X(T.v[0]), y2: Y(T.v[1]), stroke: "var(--ink-3)", "stroke-dasharray": "3 3" }, layer);
       el("line", { x1: X(0), y1: Y(0), x2: X(T.v[0]), y2: Y(T.v[1]), stroke: "var(--model)", "stroke-width": 2.5, "marker-end": "url(#ah7)" }, layer);
-      if (T.clipped) { const t = el("text", { x: X(T.v[0]) - 4, y: Y(T.v[1]) + 26, "text-anchor": "end", class: "lbl-s" }, layer); t.textContent = "off the chart"; }
+      if (T.clipped && !adapted) { const t = el("text", { x: X(T.v[0]) - 4, y: Y(T.v[1]) + 26, "text-anchor": "end", class: "lbl-s" }, layer); t.textContent = "off the chart"; }
       el("circle", { cx: X(target[0]), cy: Y(target[1]), r: 9, fill: "none", stroke: "var(--ink)", "stroke-width": 2 }, layer);
+      if (adapted) {
+        // Where the full poison would be, and the line the attackers slide along to get in.
+        const P = clampToPlot(adapted.poison);
+        el("line", { x1: X(target[0]), y1: Y(target[1]), x2: X(P.v[0]), y2: Y(P.v[1]), stroke: "var(--attack)", "stroke-dasharray": "2 4", opacity: 0.7 }, layer);
+        el("circle", { cx: X(P.v[0]), cy: Y(P.v[1]), r: 7, fill: "none", stroke: "var(--attack)", "stroke-width": 1.6 }, layer);
+        const t = el("text", { x: X(P.v[0]) + 11, y: Y(P.v[1]) + 4, class: "lbl-s" }, layer); t.textContent = "their full poison";
+        const S = clampToPlot(pts.find(p => p.bad).v);
+        // Below the dot when it sits out on the left, otherwise up and to its left, clear of the honest cars.
+        const left = S.clipped || S.v[0] < 0;
+        const u = el("text", { x: X(S.v[0]) + (left ? 4 : -12), y: Y(S.v[1]) + (left ? 22 : -12),
+                               "text-anchor": left ? "start" : "end", class: "lbl-s" }, layer);
+        u.textContent = `all ${f} hacked cars send this` + (S.clipped ? " (off the chart)" : "");
+      }
       pts.forEach((p, i) => {
         const P = clampToPlot(p.v);
         const cx = X(P.v[0]), cy = Y(P.v[1]);
         el("circle", { cx, cy, r: 6.5, fill: p.bad ? "var(--attack)" : "var(--can-l)", opacity: keep[i] ? 0.95 : 0.35 }, layer);
         if (!keep[i]) { el("line", { x1: cx - 7, y1: cy - 7, x2: cx + 7, y2: cy + 7, stroke: "var(--ink)", "stroke-width": 1.6 }, layer); el("line", { x1: cx - 7, y1: cy + 7, x2: cx + 7, y2: cy - 7, stroke: "var(--ink)", "stroke-width": 1.6 }, layer); }
-        if (P.clipped) { const t = el("text", { x: cx + 10, y: cy + 4, class: "lbl-s" }, layer); t.textContent = "×10"; }
+        if (P.clipped && attack === "mag") { const t = el("text", { x: cx + 10, y: cy + 4, class: "lbl-s" }, layer); t.textContent = "×10"; }
       });
       const hk = pts.filter((p, i) => !p.bad && keep[i]).length, bk = pts.filter((p, i) => p.bad && keep[i]).length;
       const err = norm([out[0] - target[0], out[1] - target[1]]) / norm(target);
-      read.innerHTML = `Kept <b>${hk} of ${N - f}</b> honest changes and <b>${bk} of ${f}</b> hacked ones. The combined change is off from where the honest cars point by <b>${(err * 100).toFixed(0)}%</b>.`;
+      let how = "";
+      if (adapted) {
+        const g = adapted.g;
+        how = g >= 10 ? " Nothing gets thrown out, so the hacked cars push ten times harder than their plain poison."
+          : g > 1 ? ` The hacked cars can push <b>${g.toFixed(1)} times</b> harder than their plain poison and still get in.`
+          : g > 0 ? ` To get in, the hacked cars water their poison down to <b>${Math.round(g * 100)}%</b> of its strength.`
+          : " Even a little poison is caught, so the hacked cars send an honest-looking change.";
+      }
+      read.innerHTML = `Kept <b>${hk} of ${N - f}</b> honest changes and <b>${bk} of ${f}</b> hacked ones. The combined change is off from where the honest cars point by <b>${(err * 100).toFixed(0)}%</b>.${how}`;
     }
     draw();
   })();
