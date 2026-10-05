@@ -244,6 +244,40 @@ class Experiment:
                     ids.add(rec["run_id"])
         return ids
 
+    def reuse_runs(self, specs: list[RunSpec]) -> int:
+        """Copy runs this profile needs from the profiles in its `reuse_runs_from`.
+
+        Only runs on the same dataset file and the same federated setting are
+        copied, so a run that would be identical isn't trained twice (the
+        clean references of an attack-only profile, for example).
+        """
+        sources = self.profile.get("reuse_runs_from") or []
+        if isinstance(sources, str):
+            sources = [sources]
+        wanted = {s.run_id for s in specs} - self.done_ids()
+        copied = []
+        for name in sources:
+            src = self.out_dir.parent / name
+            if not (src / "runs.jsonl").exists() or not (src / "profile.json").exists():
+                logger.warning("Can't reuse runs from %s: no results there", src)
+                continue
+            if json.loads((src / "profile.json").read_text())["simulation"] != dict(self.sim):
+                logger.warning("Not reusing runs from %s: different federated setting", name)
+                continue
+            for line in (src / "runs.jsonl").read_text().splitlines():
+                if not line.strip():
+                    continue
+                rec = json.loads(line)
+                if rec["run_id"] in wanted and rec.get("data_file") == self.data_path.name:
+                    copied.append({**rec, "profile": self.profile_name, "copied_from": name})
+                    wanted.discard(rec["run_id"])
+        if copied:
+            with self.runs_path.open("a") as f:
+                for rec in copied:
+                    f.write(json.dumps(rec) + "\n")
+            logger.info("Copied %d finished runs from %s", len(copied), ", ".join(sources))
+        return len(copied)
+
     # ------------------------------------------------------------------ one run
 
     def class_weights(self) -> torch.Tensor | None:
@@ -388,6 +422,7 @@ class Experiment:
         if self.meta is None:
             self.prepare_data()
         specs = self.plan(only)
+        self.reuse_runs(specs)
         done = self.done_ids()
         todo = [s for s in specs if s.run_id not in done]
         logger.info("Profile %s: %d runs planned, %d already done, %d to go",
