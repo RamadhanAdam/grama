@@ -97,16 +97,18 @@ profiles:
   road:
     about: >-
       ROAD: one car, attacks injected for real, masquerade versions, split by
-      recording. Main comparison with three seeds; targeted flipping and ALIE
-      at 20% and 40% with two seeds. About 50 runs. ROAD has about four times
-      as many training sequences as CIC-IoV2024, so allow 8-10 hours on one A100.
+      recording. Main comparison with five seeds; targeted flipping and ALIE
+      at 20% and 40% with two seeds. About 60 runs. ROAD has about four times
+      as many training sequences as CIC-IoV2024, so allow 9-11 hours on one A100.
     data: road
     data_overrides: {}
     federated: &paper_federated {num_clients: 20, clients_per_round: 10, num_rounds: 30, local_epochs: 2, local_batch_size: 64}
     eval_every: 5
     seeds: [0, 1, 2]
-    main: &paper_main
-      methods: [grama_hdbscan, grama_fedavg, cnn_bigru_fedavg, cnn_bigru_hdbscan, grama_central]
+    main:
+      # Two more seeds than the other profiles: ROAD's clean results vary a lot between seeds.
+      seeds: [0, 1, 2, 3, 4]
+      methods: &paper_methods [grama_hdbscan, grama_fedavg, cnn_bigru_fedavg, cnn_bigru_hdbscan, grama_central]
     poisoning: &short_poisoning
       seeds: [0, 1]
       attacks: [targeted_flip, alie]
@@ -117,14 +119,16 @@ profiles:
     about: >-
       can-train-and-test, set_01: trains on a Chevrolet Impala; tests on the
       Impala (known attacks, then unknown attacks) and on a Chevrolet Silverado.
-      Binary (benign or attack). Same runs as the road profile, about 50;
-      about 3-4 hours on one A100.
+      Binary (benign or attack). Same runs as the road profile, about 60;
+      about 4 hours on one A100.
     data: can_train_test
     data_overrides: {set: set_01}
     federated: *paper_federated
     eval_every: 5
     seeds: [0, 1, 2]
-    main: *paper_main
+    main:
+      seeds: [0, 1, 2, 3, 4]   # two more seeds, as on ROAD
+      methods: *paper_methods
     poisoning: *short_poisoning
 
   cantt2:
@@ -136,7 +140,7 @@ profiles:
     federated: *paper_federated
     eval_every: 5
     seeds: [0, 1, 2]
-    main: *paper_main
+    main: {methods: *paper_methods}
 
   cantt3:
     about: >-
@@ -147,7 +151,7 @@ profiles:
     federated: *paper_federated
     eval_every: 5
     seeds: [0, 1, 2]
-    main: *paper_main
+    main: {methods: *paper_methods}
 
   cantt4:
     about: >-
@@ -158,4 +162,4 @@ profiles:
     federated: *paper_federated
     eval_every: 5
     seeds: [0, 1, 2]
-    main: *paper_main
+    main: {methods: *paper_methods}
