@@ -111,11 +111,6 @@ pre.cmd { font-family: var(--mono); font-size: 0.62rem; background: var(--bg); p
 .pbtn:hover { color: var(--accent); }
 .pbtn:first-child { color: var(--accent); min-width: 3.6em; text-align: left; }
 .speed { display: inline-flex; gap: 10px; align-items: baseline; margin-left: auto; }
-details { font-size: 0.9rem; color: var(--ink-2); }
-summary { font-family: var(--mono); font-size: 0.66rem; color: var(--ink-3); cursor: pointer; text-transform: lowercase; }
-summary:hover { color: var(--accent); }
-.code-list { margin: 10px 0 0; padding-left: 18px; }
-.code-list li { margin-bottom: 4px; }
 #model5 { min-width: 600px; }
 footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 0.64rem; color: var(--ink-3); }
 footer a { color: var(--ink-2); }
@@ -323,7 +318,7 @@ svg .ecu.atk text { fill: var(--attack); }
     <div class="text">
       <h2><span class="n">08</span>The experiments</h2>
       <p>The experiments ask a few plain questions. Does GraMa catch attacks as well as an older kind of detector, a CNN-BiGRU? How much does it hurt when the cars see very different traffic? Which defence holds up best as more cars are hacked? Which parts of GraMa actually matter? Is it small and quick enough for a car? And does a defence still hold up when the attacker knows exactly how it works?</p>
-      <p>The dataset needed care. Each attack file is a few messages repeated thousands of times, and two of the files change partway through. Testing only on the end of each file would test on messages the model never saw, and every method would score the same low number. So the test messages are slices taken from all along each file.</p>
+      <p>The dataset needed care. Each attack file is a few messages repeated thousands of times, and two of the files change partway through. Testing only on the end of each file would test on messages the model never saw. So the test messages are slices taken from all along each file.</p>
     </div>
     <div class="sheet">
       <div class="tablewrap">
@@ -339,22 +334,10 @@ svg .ecu.atk text { fill: var(--attack); }
           </tbody>
         </table>
       </div>
-      <details>
-        <summary>Where each part lives in the code</summary>
-        <ul class="code-list">
-          <li>reading the data, windows and dot numbers: <code>src/grama/data/build.py</code></li>
-          <li>joining the dots: <code>src/grama/data/dataset.py</code></li>
-          <li>graph attention, Mamba and the answer: <code>src/grama/models/</code></li>
-          <li>cars and the server: <code>src/grama/federated/client.py</code>, <code>server.py</code></li>
-          <li>GraMa's defence: <code>src/grama/federated/aggregator.py</code>; the other defences: <code>robust.py</code></li>
-          <li>the attacks: <code>src/grama/attacks/poisoning.py</code></li>
-          <li>running everything: <code>scripts/run_experiments.py</code></li>
-        </ul>
-      </details>
     </div>
   </section>
 
-  <footer>GraMa · <a href="https://github.com/RamadhanAdam/grama">code on GitHub</a> · <a href="https://ramadhanadam.github.io">ramadhanadam.github.io</a></footer>
+  <footer>GraMa · <a href="https://ramadhanadam.github.io">ramadhanadam.github.io</a></footer>
 </div>
 <script>
 (function () {
