@@ -3,8 +3,11 @@
     python3 scripts/publish_hf.py --profile full              # private repo <your username>/grama
     python3 scripts/publish_hf.py --profile full --public
     python3 scripts/publish_hf.py --profile full --dry-run    # only write results/full/README.md
+    python3 scripts/publish_hf.py --profile road --path-in-repo road   # another dataset, in its own folder
+    python3 scripts/publish_hf.py --profile full --card-only           # update the main card only
 
-The card is written to results/<profile>/README.md and becomes the repo's README.
+The card is written to results/<profile>/README.md. For the main profile (no --path-in-repo) it becomes
+the repo's README; for another dataset it goes in that dataset's folder.
 Needs `pip install huggingface_hub` and a login (`huggingface-cli login`, `hf auth login` or HF_TOKEN).
 """
 
@@ -96,7 +99,18 @@ builds these inputs from the CIC-IoV2024 CSVs.
   unusual, and then does worse than FedAvg. See the non-IID table.
 - ALIE, an attack built to look like an honest update, lowers macro-F1 for every defence at 30–40%
   compromised clients, this one included.
-- One dataset.
+- Results on two more datasets, ROAD and can-train-and-test, are in their own folders (see Other
+  datasets below).
+
+## Other datasets
+
+The same detector and defence were also trained on two more datasets. Each folder has its own card,
+weights, tables, figures and per-run records.
+
+| Folder | Dataset |
+|---|---|
+| `road/` | ROAD (Verma et al., 2024): one car, real injected attacks and their masquerade versions; split by recording |
+| `cantt1/` … `cantt4/` | can-train-and-test (Lampe and Meng, 2023), sets 1 to 4: one training car per set, tested on known and unknown cars and attacks |
 
 ## Citation
 
@@ -106,6 +120,34 @@ The dataset:
 > E. C. P. Neto, H. Taslimasa, S. Dadkhah, S. Iqbal, P. Xiong, T. Rahman and A. A. Ghorbani.
 > CICIoV2024: Advancing realistic IDS approaches against DoS and spoofing attack in IoV CAN bus.
 > *Internet of Things* 26 (2024) 101209.
+
+## Results
+
+{results}
+"""
+
+
+DATASET_NAME = {"road": "ROAD (Verma et al., 2024)",
+                "can_train_test": "can-train-and-test (Lampe and Meng, 2023)"}
+
+SUB_CARD = """# GraMa on {dataset}
+
+Weights and results of GraMa trained on {dataset}. The main card, one folder up, describes the model,
+the defence and the CIC-IoV2024 results; the code is at https://github.com/RamadhanAdam/grama.
+
+- {nodes} CAN IDs. Windows of {window} messages with stride {stride}; one sequence is {seq_len} windows.
+- Classes: {classes}.
+- Split: {split}.
+- Federated setting: {clients} clients, {per_round} per round, {rounds} rounds, {local_epochs} local
+  epochs, Dirichlet alpha {alpha} unless a table says otherwise.
+- Hardware: {device}.
+
+| Path | Contents |
+|---|---|
+| `models/` | weights of every run without an attack at Dirichlet alpha {alpha} |
+| `summary.md` | all tables and figures; the same content is under Results below |
+| `tables/`, `figures/` | tables as CSV, figures as PNG and PDF |
+| `runs.jsonl` | one record per training run ({runs} runs) |
 
 ## Results
 
@@ -150,6 +192,23 @@ def make_card(out: Path) -> str:
     )
 
 
+def make_sub_card(out: Path) -> str:
+    """Card for a dataset other than the main one, uploaded into that dataset's folder."""
+    dataset = json.loads((out / "dataset.json").read_text())
+    profile = json.loads((out / "profile.json").read_text())
+    sim = profile["simulation"]
+    runs = sum(1 for line in (out / "runs.jsonl").read_text().splitlines() if line.strip())
+    return SUB_CARD.format(
+        dataset=DATASET_NAME.get(dataset["source"], dataset["source"]),
+        nodes=dataset["num_nodes"], window=dataset["window_size"], stride=dataset["stride"],
+        seq_len=dataset["seq_len"], classes=", ".join(dataset["class_names"]),
+        split=dataset.get("split_note", dataset.get("split", "")), clients=sim["num_clients"],
+        per_round=sim["clients_per_round"], rounds=sim["num_rounds"], local_epochs=sim["local_epochs"],
+        alpha=f"{profile['alpha']:g}", device=dataset["device"], runs=runs,
+        results=results_section((out / "summary.md").read_text()),
+    )
+
+
 def files_to_upload(out: Path) -> list[tuple[str, Path]]:
     """(path in the repo, local file): everything in the results folder, plus config/*.yaml."""
     files = [(p.relative_to(out).as_posix(), p) for p in sorted(out.rglob("*"))
@@ -183,13 +242,19 @@ def main() -> None:
     parser.add_argument("--repo", default=None, help="user/name on the Hub (default: <your username>/grama)")
     parser.add_argument("--public", action="store_true", help="create the repo as public (default: private)")
     parser.add_argument("--dry-run", action="store_true", help="write the card and list the files, upload nothing")
+    parser.add_argument("--path-in-repo", default="",
+                        help="folder in the repo for this profile, e.g. road (default: the repo's top level)")
+    parser.add_argument("--card-only", action="store_true", help="upload only the card (README.md)")
     args = parser.parse_args()
 
     out = ROOT / "results" / args.profile
     if not (out / "summary.md").exists():
         sys.exit(f"No results in {out}; run the profile first (make {args.profile})")
-    (out / "README.md").write_text(make_card(out))
-    files = files_to_upload(out)
+    prefix = args.path_in_repo.strip("/")
+    (out / "README.md").write_text(make_sub_card(out) if prefix else make_card(out))
+    files = [("README.md", out / "README.md")] if args.card_only else files_to_upload(out)
+    if prefix:
+        files = [(f"{prefix}/{name}", path) for name, path in files if not name.startswith("config/")]
     print(f"Wrote {out / 'README.md'}; {len(files)} files to upload")
     if args.dry_run:
         for name, _ in files:
