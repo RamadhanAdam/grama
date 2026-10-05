@@ -1,4 +1,4 @@
-"""can-train-and-test (Lampe and Meng, 2023): four cars, one training set and four test sets.
+"""can-train-and-test (Lampe and Meng, 2024): four cars, one training set and four test sets.
 
     https://data.dtu.dk/articles/dataset/can-train-and-test/24805533    1.5 GB zip, CC-BY 4.0
 

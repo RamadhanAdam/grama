@@ -80,7 +80,7 @@ road:
     ambient_chunks: 3            # in this many evenly spaced pieces
 
 can_train_test:
-  name: "can-train-and-test (Lampe and Meng, 2023)"
+  name: "can-train-and-test (Lampe and Meng, 2024)"
   raw_dir: "data/raw/can-train-and-test"   # can-train-and-test.zip from https://data.dtu.dk/articles/dataset/can-train-and-test/24805533
   classes: [benign, attack]      # the "unknown attack" test sets have attacks training never saw, so binary
   build:

@@ -110,7 +110,7 @@ weights, tables, figures and per-run records.
 | Folder | Dataset |
 |---|---|
 | `road/` | ROAD (Verma et al., 2024): one car, real injected attacks and their masquerade versions; split by recording |
-| `cantt1/` … `cantt4/` | can-train-and-test (Lampe and Meng, 2023), sets 1 to 4: one training car per set, tested on known and unknown cars and attacks |
+| `cantt1/` … `cantt4/` | can-train-and-test (Lampe and Meng, 2024), sets 1 to 4: one training car per set, tested on known and unknown cars and attacks |
 | `cic_adaptive/`, `cantt1_adaptive/` | the adaptive attack, which knows the defence, on CIC-IoV2024 and on can-train-and-test set 1; results only |
 
 ## Citation
@@ -129,7 +129,7 @@ The dataset:
 
 
 DATASET_NAME = {"road": "ROAD (Verma et al., 2024)",
-                "can_train_test": "can-train-and-test (Lampe and Meng, 2023)",
+                "can_train_test": "can-train-and-test (Lampe and Meng, 2024)",
                 "real": "CIC-IoV2024 (Neto et al., 2024)"}
 
 SUB_CARD = """# GraMa on {dataset}
