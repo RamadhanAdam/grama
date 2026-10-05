@@ -111,6 +111,7 @@ weights, tables, figures and per-run records.
 |---|---|
 | `road/` | ROAD (Verma et al., 2024): one car, real injected attacks and their masquerade versions; split by recording |
 | `cantt1/` … `cantt4/` | can-train-and-test (Lampe and Meng, 2023), sets 1 to 4: one training car per set, tested on known and unknown cars and attacks |
+| `cic_adaptive/`, `cantt1_adaptive/` | the adaptive attack, which knows the defence, on CIC-IoV2024 and on can-train-and-test set 1; results only |
 
 ## Citation
 
@@ -128,11 +129,12 @@ The dataset:
 
 
 DATASET_NAME = {"road": "ROAD (Verma et al., 2024)",
-                "can_train_test": "can-train-and-test (Lampe and Meng, 2023)"}
+                "can_train_test": "can-train-and-test (Lampe and Meng, 2023)",
+                "real": "CIC-IoV2024 (Neto et al., 2024)"}
 
 SUB_CARD = """# GraMa on {dataset}
 
-Weights and results of GraMa trained on {dataset}. The main card, one folder up, describes the model,
+{what} of GraMa trained on {dataset}. The main card, one folder up, describes the model,
 the defence and the CIC-IoV2024 results; the code is at https://github.com/RamadhanAdam/grama.
 
 - {nodes} CAN IDs. Windows of {window} messages with stride {stride}; one sequence is {seq_len} windows.
@@ -144,10 +146,7 @@ the defence and the CIC-IoV2024 results; the code is at https://github.com/Ramad
 
 | Path | Contents |
 |---|---|
-| `models/` | weights of every run without an attack at Dirichlet alpha {alpha} |
-| `summary.md` | all tables and figures; the same content is under Results below |
-| `tables/`, `figures/` | tables as CSV, figures as PNG and PDF |
-| `runs.jsonl` | one record per training run ({runs} runs) |
+{rows}
 
 ## Results
 
@@ -198,7 +197,14 @@ def make_sub_card(out: Path) -> str:
     profile = json.loads((out / "profile.json").read_text())
     sim = profile["simulation"]
     runs = sum(1 for line in (out / "runs.jsonl").read_text().splitlines() if line.strip())
+    has_weights = any((out / "models").glob("*.pt"))
+    rows = ([f"| `models/` | weights of every run without an attack at Dirichlet alpha {profile['alpha']:g} |"]
+            if has_weights else [])
+    rows += ["| `summary.md` | all tables and figures; the same content is under Results below |",
+             "| `tables/`, `figures/` | tables as CSV, figures as PNG and PDF |",
+             f"| `runs.jsonl` | one record per training run ({runs} runs) |"]
     return SUB_CARD.format(
+        what="Weights and results" if has_weights else "Results", rows="\n".join(rows),
         dataset=DATASET_NAME.get(dataset["source"], dataset["source"]),
         nodes=dataset["num_nodes"], window=dataset["window_size"], stride=dataset["stride"],
         seq_len=dataset["seq_len"], classes=", ".join(dataset["class_names"]),
