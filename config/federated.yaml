@@ -41,3 +41,7 @@ adversarial_eval:
   magnitude_poison_scale: 10.0  # Δw multiplier for magnitude poisoning
   # ALIE (Baruch et al., 2019) needs no setting: z comes from the number of
   # clients and attackers in the round.
+  # Adaptive attack: the attackers bisect for the largest poison scale the
+  # aggregation rule still accepts (1 = plain targeted flipping).
+  adaptive_max_scale: 10.0
+  adaptive_search_steps: 7      # bisection steps per round, precision max_scale / 2^steps

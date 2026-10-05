@@ -10,6 +10,9 @@ A client can be compromised (Sec 6.2.3). Then it poisons its own update:
   magnitude_poison trains honestly, then scales Δw by poison_scale
   alie             trains honestly; the server loop then swaps in the update
                    the attackers craft together (see attacks/poisoning.py)
+  adaptive         trains like targeted_flip; the server loop then scales the
+                   poison to the most the aggregation rule still accepts
+                   (see attacks/poisoning.py)
 """
 from __future__ import annotations
 
@@ -19,7 +22,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset, Subset
 
-ATTACKS = ("label_flip", "targeted_flip", "magnitude_poison", "alie")
+ATTACKS = ("label_flip", "targeted_flip", "magnitude_poison", "alie", "adaptive")
 
 
 @dataclass
@@ -45,7 +48,7 @@ def label_map_for(attack: str | None, num_classes: int, client_id: int, seed: in
         g = torch.Generator().manual_seed(seed * 1000 + client_id)
         shift = int(torch.randint(1, num_classes, (1,), generator=g))
         return (torch.arange(num_classes) + shift) % num_classes  # no class keeps its label
-    if attack == "targeted_flip":
+    if attack in ("targeted_flip", "adaptive"):
         return torch.zeros(num_classes, dtype=torch.long)         # every attack -> benign
     return None
 

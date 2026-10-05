@@ -15,7 +15,7 @@ from typing import Callable
 
 import torch
 
-from grama.attacks.poisoning import alie_attack
+from grama.attacks.poisoning import adaptive_attack, alie_attack
 from grama.federated import checkpoint as ckpt
 from grama.federated.aggregator import AggregationResult, Aggregator
 from grama.federated.client import ClientUpdate, LocalClient
@@ -34,6 +34,7 @@ class RoundHistory:
     rejected_clients: list[int] = field(default_factory=list)
     metrics: dict | None = None      # test metrics of the new global model, when evaluated
     seconds: float = 0.0
+    attack_scale: float | None = None  # poison scale the adaptive attackers sent this round
 
 
 @dataclass
@@ -46,6 +47,8 @@ class FederatedServer:
     seed: int = 42
     eval_fn: Callable | None = None    # global_state -> metrics dict
     eval_every: int = 1
+    adaptive_max_scale: float = 10.0   # adaptive attack: largest poison scale it tries
+    adaptive_steps: int = 7            # adaptive attack: bisection steps per round
     history: list[RoundHistory] = field(default_factory=list)
     last_round_num: int = field(default=0, init=False, repr=False)
 
@@ -75,6 +78,11 @@ class FederatedServer:
             updates = alie_attack(updates, colluders)
 
         param_shapes = {k: v.shape for k, v in self.global_state.items()}
+        attack_scale = None
+        adaptive = [i for i, c in enumerate(selected) if getattr(c, "attack", None) == "adaptive"]
+        if adaptive:
+            updates, attack_scale = adaptive_attack(updates, adaptive, self.aggregator, param_shapes,
+                                                    self.adaptive_max_scale, self.adaptive_steps)
         result = self.aggregator.aggregate(updates, param_shapes)
         self.global_state = self.aggregator.apply(self.global_state, result)
 
@@ -85,6 +93,7 @@ class FederatedServer:
             aggregation=result,
             malicious_clients=[u.client_id for u in updates if u.malicious],
             rejected_clients=[cid for cid, w in result.trust_weights.items() if w == 0.0],
+            attack_scale=attack_scale,
         )
         if evaluate and self.eval_fn is not None:
             record.metrics = self.eval_fn(self.global_state)

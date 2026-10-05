@@ -15,12 +15,22 @@ update before sending it:
     density based defences find it hard to tell apart, yet it pulls every
     coordinate the same way. We give the attackers full knowledge of the
     round's honest updates, the strong setting of Fang et al. (2020).
+  - adaptive: an attacker who knows the defence (Fang et al., 2020;
+    Shejwalkar and Houmansadr, NDSS 2021). The attackers train like
+    targeted_flip, then all send mean(honest) + gamma * d, with
+    d = mean(attackers) - mean(honest) the direction of their poison. Each
+    round they search for the largest gamma at which the aggregation rule
+    still accepts their updates, by running an exact copy of the rule (same
+    settings, same random state) on the round's updates. gamma = 1 sends the
+    attackers' mean poisoned update, 0 sends the honest mean (no poison),
+    larger values push harder. Rules that reject no client accept any gamma,
+    so they get the maximum. This is the strongest attacker we simulate: it
+    knows the honest updates, the rule and its randomness.
 
-The functions below are the same attacks as stand-alone helpers, plus the
-choice of which clients are compromised.
 """
 from __future__ import annotations
 
+import copy
 import math
 import random
 from statistics import NormalDist
@@ -29,8 +39,8 @@ import torch
 
 from grama.federated.client import ATTACKS, ClientUpdate, label_map_for
 
-__all__ = ["ATTACKS", "alie_attack", "alie_z", "label_flip", "label_map_for", "magnitude_poison",
-           "select_compromised_clients"]
+__all__ = ["ATTACKS", "adaptive_attack", "alie_attack", "alie_z", "label_flip", "label_map_for",
+           "magnitude_poison", "select_compromised_clients", "shift_updates"]
 
 
 def label_flip(labels: torch.Tensor, num_classes: int, seed: int | None = None) -> torch.Tensor:
@@ -81,3 +91,64 @@ def alie_attack(updates: list[ClientUpdate], malicious_idx: list[int]) -> list[C
         out[i] = ClientUpdate(u.client_id, {k: v.clone() for k, v in crafted.items()},
                               u.num_samples, u.local_loss, malicious=True)
     return out
+
+
+def shift_updates(updates: list[ClientUpdate], malicious_idx: list[int], scale: float) -> list[ClientUpdate]:
+    """Every attacker sends mean(honest) + scale * (mean(attackers) - mean(honest))."""
+    bad = set(malicious_idx)
+    honest = [u for i, u in enumerate(updates) if i not in bad]
+    names = list(updates[0].delta_w)
+
+    def mean(group, name):
+        return torch.stack([u.delta_w[name].float() for u in group]).mean(dim=0)
+
+    crafted = {}
+    for n in names:
+        h = mean(honest, n)
+        crafted[n] = h + scale * (mean([updates[i] for i in malicious_idx], n) - h)
+    out = list(updates)
+    for i in malicious_idx:
+        u = updates[i]
+        out[i] = ClientUpdate(u.client_id, {n: v.clone() for n, v in crafted.items()},
+                              u.num_samples, u.local_loss, malicious=True)
+    return out
+
+
+def adaptive_attack(updates: list[ClientUpdate], malicious_idx: list[int], aggregator, param_shapes: dict,
+                    max_scale: float = 10.0, steps: int = 7) -> tuple[list[ClientUpdate], float | None]:
+    """The largest poison scale the aggregator still accepts, found by bisection on a copy of it.
+
+    Tries max_scale, then 1 (the plain poison), then bisects between the
+    largest accepted and smallest rejected scale, starting from 0 (the honest
+    mean). Returns the updates to send and the scale used, or None when there
+    is nothing to do (no attackers, or no honest update to measure against).
+    """
+    if not malicious_idx or len(malicious_idx) == len(updates):
+        return updates, None
+    if not getattr(aggregator, "detects_clients", False):
+        return shift_updates(updates, malicious_idx, max_scale), max_scale
+
+    def accepted(scale):
+        candidate = shift_updates(updates, malicious_idx, scale)
+        # Same random state as the real aggregation, which runs next.
+        with torch.random.fork_rng(devices=[]):
+            result = copy.deepcopy(aggregator).aggregate(candidate, param_shapes)
+        ok = all(result.trust_weights.get(updates[i].client_id, 0.0) > 0.0 for i in malicious_idx)
+        return ok, candidate
+
+    ok, candidate = accepted(max_scale)
+    if ok:
+        return candidate, max_scale
+    ok, candidate = accepted(1.0)
+    lo, hi = (1.0, max_scale) if ok else (0.0, 1.0)
+    best = (1.0, candidate) if ok else None
+    for _ in range(steps):
+        mid = (lo + hi) / 2
+        ok, candidate = accepted(mid)
+        if ok:
+            lo, best = mid, (mid, candidate)
+        else:
+            hi = mid
+    if best is None:   # not even a small step gets through: send the honest mean this round
+        return shift_updates(updates, malicious_idx, 0.0), 0.0
+    return best[1], best[0]
