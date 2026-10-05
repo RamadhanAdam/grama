@@ -7,7 +7,7 @@ PROFILE ?= quick
 SOURCE ?= cic
 export PYTHONPATH := $(CURDIR)/src:$(PYTHONPATH)
 
-.PHONY: help setup setup-cuda check-data data smoke quick full full-background road cantt others-background report test lint notebook pack hf clean
+.PHONY: help setup setup-cuda check-data data smoke quick full full-background road cantt others-background extra-background report test lint notebook pack hf clean
 
 help:
 	@echo "make setup            install the dependencies (once)"
@@ -21,6 +21,7 @@ help:
 	@echo "make road             the ROAD runs (about 50, 8-10 hours on an A100)"
 	@echo "make cantt            the can-train-and-test runs, sets 1 to 4 (about 100 runs)"
 	@echo "make others-background  road then cantt, detached, logging to results/others.log"
+	@echo "make extra-background   adaptive attack (CIC, cantt1) and extra road/cantt1 seeds, detached, logging to results/extra.log"
 	@echo "make report           rebuild tables and figures for PROFILE from saved runs"
 	@echo "make notebook         run GraMa.ipynb top to bottom without opening it"
 	@echo "make pack             pack results/PROFILE into results_PROFILE.tar.gz for download"
@@ -66,6 +67,14 @@ others-background:
 	  for p in cantt1 cantt2 cantt3 cantt4; do $(PYTHON) scripts/run_experiments.py --profile $$p --no-progress || exit 1; done' \
 	  > results/others.log 2>&1 &
 	@echo "Started. Follow it with: tail -f results/others.log"
+
+# Each profile runs even if an earlier one fails (e.g. CIC-IoV2024 not in data/raw).
+extra-background:
+	@mkdir -p results
+	nohup sh -c 'for p in cantt1_adaptive cic_adaptive cantt1 road; do \
+	  echo "=== $$p ==="; $(PYTHON) scripts/run_experiments.py --profile $$p --no-progress || echo "=== $$p FAILED ==="; done; \
+	  echo "=== all done ==="' > results/extra.log 2>&1 &
+	@echo "Started. Follow it with: tail -f results/extra.log"
 
 report:
 	$(PYTHON) -m grama.experiments.report results/$(PROFILE)

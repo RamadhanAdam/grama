@@ -11,7 +11,11 @@
 # for one model trained on all the data with the same budget (upper bound).
 #
 # Aggregators: fedavg | median | trimmed_mean | krum | norm_clip | flame | hdbscan (ours).
-# Attacks: label_flip | targeted_flip | magnitude_poison | alie (Sec 6.2.3).
+# Attacks: label_flip | targeted_flip | magnitude_poison | alie | adaptive (Sec 6.2.3).
+#
+# reuse_runs_from: other profiles whose finished runs this one may copy
+# (same dataset file and federated setting only), so shared runs aren't
+# trained twice.
 # Ablation variants: no_residual | no_id_embedding | mean_pool |
 # cooccurrence_edges | gru_instead_of_mamba | no_temporal (see runner.VARIANTS).
 
@@ -163,3 +167,37 @@ profiles:
     eval_every: 5
     seeds: [0, 1, 2]
     main: {methods: *paper_methods}
+
+  # ------------------------------------------------------------------ adaptive attack
+  # An attacker who knows the defence: each round it sends the strongest
+  # targeted poison the aggregation rule still accepts (attacks/poisoning.py).
+  # The 0% reference runs are copied from the profile with the same data.
+
+  cic_adaptive:
+    about: >-
+      Adaptive attack on CIC-IoV2024 (same data and setting as `full`): 20% and
+      40% of clients, FedAvg, norm clipping, FLAME and HDBSCAN, two seeds
+      (16 runs). About an hour on one A100.
+    data: real
+    data_overrides: {}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1]
+    reuse_runs_from: [full]
+    poisoning: &adaptive_poisoning
+      seeds: [0, 1]
+      attacks: [adaptive]
+      fractions: [0.2, 0.4]
+      aggregators: [fedavg, norm_clip, flame, hdbscan]
+
+  cantt1_adaptive:
+    about: >-
+      Adaptive attack on can-train-and-test set_01 (same data and setting as
+      `cantt1`), same grid as cic_adaptive (16 runs). About 1.5 hours on one A100.
+    data: can_train_test
+    data_overrides: {set: set_01}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1]
+    reuse_runs_from: [cantt1]
+    poisoning: *adaptive_poisoning
