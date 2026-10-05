@@ -144,7 +144,8 @@ svg .ecu.atk text { fill: var(--attack); }
       <li><a href="#model"><span class="n">05</span>Reading the map</a></li>
       <li><a href="#federated"><span class="n">06</span>Learning across cars</a></li>
       <li><a href="#defence"><span class="n">07</span>Hacked cars</a></li>
-      <li><a href="#experiments"><span class="n">08</span>The experiments</a></li>
+      <li><a href="#adaptive"><span class="n">08</span>An attacker who knows the defence</a></li>
+      <li><a href="#experiments"><span class="n">09</span>The experiments</a></li>
     </ol>
   </header>
 
@@ -275,8 +276,7 @@ svg .ecu.atk text { fill: var(--attack); }
   <section class="ch" id="defence">
     <div class="text">
       <h2><span class="n">07</span>Hacked cars</h2>
-      <p>There's a catch. A hacked car can send back a poisoned change on purpose, to quietly break everyone's detector. The experiments try five tricks: training on wrong answers, teaching the model that attacks are normal, making the change ten times bigger, a small, sneaky push that hides among the honest changes (known as ALIE), and an attacker who knows how the defence works.</p>
-      <p>That last one is the hardest to stop. Before sending anything, the hacked cars try their poisoned change on a copy of the server's defence. If it would be thrown out, they water the poison down and try again, until they find the strongest change that still gets in. A defence holds up only if that watered-down poison is too weak to do real harm.</p>
+      <p>There's a catch. A hacked car can send back a poisoned change on purpose, to quietly break everyone's detector. The experiments try five tricks: training on wrong answers, teaching the model that attacks are normal, making the change ten times bigger, a small, sneaky push that hides among the honest changes (known as ALIE), and an attacker who knows how the defence works (the next section).</p>
       <p>The server can protect itself in different ways. Plain averaging lets everything in. Clipping shrinks any change that is too big. FLAME groups the changes by direction and trims them. GraMa's defence puts all the changes on a small map, finds the tight group of honest cars, and leaves out the ones far away from it.</p>
       <p>Try it below: pick an attack, a defence and how many cars are hacked. It's a flat, simplified picture; a real change has about 78,000 numbers in it.</p>
     </div>
@@ -314,9 +314,30 @@ svg .ecu.atk text { fill: var(--attack); }
     </div>
   </section>
 
+  <section class="ch" id="adaptive">
+    <div class="text">
+      <h2><span class="n">08</span>An attacker who knows the defence</h2>
+      <p>The hardest attacker to stop knows exactly how the server protects itself. Before sending anything, the hacked cars try their poisoned change on a copy of the server's defence. If it would be thrown out, they water the poison down and try again, until they find the strongest change that still gets in.</p>
+      <p>Below, three of ten cars are hacked and the server uses GraMa's defence. The dashed ring is the area the defence lets in: changes close to the honest group. Each try halves the gap between the strongest change that got in and the weakest one that was caught. After seven tries, the hacked cars send the best one they found.</p>
+      <p>A defence holds up only if that watered-down poison is too weak to do real harm. To compare defences, pick "knows the defence" in the figure above.</p>
+    </div>
+    <div class="sheet">
+      <div class="controls player" id="play8"></div>
+      <div class="fig"><svg id="plot8" viewBox="0 0 560 400" role="img" aria-label="Honest changes cluster together inside a dashed ring; the hacked cars try changes along a line toward their full poison, backing off whenever a try falls outside the ring." style="min-width:420px"></svg></div>
+      <div class="status" id="status8"></div>
+      <div class="legend">
+        <span><i style="background:var(--can-l)"></i>honest car</span>
+        <span><i style="background:var(--attack)"></i>the hacked cars' try</span>
+        <span><i style="background:transparent;border:2px solid var(--attack)"></i>their full poison</span>
+        <span><i style="background:transparent;border:2px dashed var(--ink-3)"></i>what the defence lets in</span>
+        <span><i style="background:var(--model)"></i>where the server ends up</span>
+      </div>
+    </div>
+  </section>
+
   <section class="ch" id="experiments">
     <div class="text">
-      <h2><span class="n">08</span>The experiments</h2>
+      <h2><span class="n">09</span>The experiments</h2>
       <p>The experiments ask a few plain questions. Does GraMa catch attacks as well as an older kind of detector, a CNN-BiGRU? How much does it hurt when the cars see very different traffic? Which defence holds up best as more cars are hacked? Which parts of GraMa actually matter? Is it small and quick enough for a car? And does a defence still hold up when the attacker knows exactly how it works?</p>
       <p>The dataset needed care. Each attack file is a few messages repeated thousands of times, and two of the files change partway through. Testing only on the end of each file would test on messages the model never saw. So the test messages are slices taken from all along each file.</p>
     </div>
@@ -1025,6 +1046,104 @@ svg .ecu.atk text { fill: var(--attack); }
       read.innerHTML = `Kept <b>${hk} of ${N - f}</b> honest changes and <b>${bk} of ${f}</b> hacked ones. The combined change is off from where the honest cars point by <b>${(err * 100).toFixed(0)}%</b>.${how}`;
     }
     draw();
+  })();
+
+  /* ---------- 08: the attacker who knows the defence, try by try ---------- */
+  (function () {
+    const svg = document.getElementById("plot8");
+    const status = document.getElementById("status8");
+    // Same plane as 07; x and y units differ slightly in pixels, so the ring is an ellipse.
+    const X = x => 40 + (x + 2) / 5.5 * 490, Y = y => 370 - (y + 1.4) / 4 * 340;
+    const UX = 490 / 5.5, UY = 340 / 4;
+    const defs = el("defs", {}, svg);
+    const mk = el("marker", { id: "ah8", viewBox: "0 0 10 10", refX: 8, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" }, defs);
+    el("path", { d: "M1 1L9 5L1 9z", fill: "var(--model)" }, mk);
+    el("line", { x1: X(-2), y1: Y(0), x2: X(3.5), y2: Y(0), stroke: "var(--rule)" }, svg);
+    el("line", { x1: X(0), y1: Y(-1.4), x2: X(0), y2: Y(2.6), stroke: "var(--rule)" }, svg);
+    const o = el("text", { x: X(0) + 6, y: Y(0) + 16, class: "lbl-s" }, svg); o.textContent = "current model";
+    const layer = el("g", {}, svg);
+
+    const N = 10, F = 3, mu = [1.0, 0.55], sigma = 0.17;
+    const mean = pts => [pts.reduce((s, p) => s + p[0], 0) / pts.length, pts.reduce((s, p) => s + p[1], 0) / pts.length];
+    const median = a => { const s = a.slice().sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+    const r = rng(5);
+    const honest = Array.from({ length: N - F }, () => [mu[0] + sigma * gauss(r), mu[1] + sigma * gauss(r)]);
+    const poisonPts = Array.from({ length: F }, () => [-0.8 * mu[0] + sigma * gauss(r), -0.8 * mu[1] + sigma * gauss(r)]);
+    const target = mean(honest), poison = mean(poisonPts);
+    const at = g => [target[0] + g * (poison[0] - target[0]), target[1] + g * (poison[1] - target[1])];
+    // GraMa's defence, as in 07: keep what lies within twice the typical distance from the middle of the group.
+    function defend(g) {
+      const vs = honest.concat(Array(F).fill(at(g)));
+      const c = [median(vs.map(v => v[0])), median(vs.map(v => v[1]))];
+      const dist = vs.map(v => Math.hypot(v[0] - c[0], v[1] - c[1]));
+      const radius = 2 * (median(dist) || 1e-9);
+      const keep = dist.map(d => d <= radius);
+      const kept = vs.filter((_, i) => keep[i]);
+      return { c, radius, getsIn: keep.slice(N - F).every(Boolean), out: mean(kept) };
+    }
+    // The search: full strength first, then halve the gap between the best try that got in and the weakest that was caught.
+    const tries = [];
+    let lo = 0, hi = 1;
+    tries.push({ g: 1, ...defend(1) });
+    if (!tries[0].getsIn) {
+      for (let k = 0; k < 6; k++) {
+        const g = (lo + hi) / 2, d = defend(g);
+        tries.push({ g, ...d });
+        if (d.getsIn) lo = g; else hi = g;
+      }
+    } else lo = 1;
+    const best = { g: lo, ...defend(lo) };
+    const pct = g => Math.round(g * 100);
+    const n = tries.length + 2;
+
+    function ring(d) {
+      el("ellipse", { cx: X(d.c[0]), cy: Y(d.c[1]), rx: d.radius * UX, ry: d.radius * UY, fill: "none", stroke: "var(--ink-3)", "stroke-dasharray": "5 4", "stroke-width": 1.3 }, layer);
+    }
+    function show(i) {
+      layer.replaceChildren();
+      const P = poison;
+      el("line", { x1: X(target[0]), y1: Y(target[1]), x2: X(P[0]), y2: Y(P[1]), stroke: "var(--attack)", "stroke-dasharray": "2 4", opacity: 0.7 }, layer);
+      el("circle", { cx: X(P[0]), cy: Y(P[1]), r: 7, fill: "none", stroke: "var(--attack)", "stroke-width": 1.6 }, layer);
+      const tp = el("text", { x: X(P[0]) + 11, y: Y(P[1]) + 4, class: "lbl-s" }, layer); tp.textContent = "their full poison";
+      const current = i === 0 ? null : i <= tries.length ? tries[i - 1] : best;
+      ring(current || defend(0));
+      // earlier tries, faint: filled if they got in, hollow if they were caught
+      tries.slice(0, Math.min(i - 1, tries.length)).forEach(t => {
+        const v = at(t.g);
+        el("circle", { cx: X(v[0]), cy: Y(v[1]), r: 3.5, fill: t.getsIn ? "var(--attack)" : "none", stroke: "var(--attack)", "stroke-width": 1.2, opacity: 0.5 }, layer);
+      });
+      el("circle", { cx: X(target[0]), cy: Y(target[1]), r: 9, fill: "none", stroke: "var(--ink)", "stroke-width": 2 }, layer);
+      honest.forEach(v => el("circle", { cx: X(v[0]), cy: Y(v[1]), r: 6.5, fill: "var(--can-l)", opacity: 0.95 }, layer));
+      if (current) {
+        const v = at(current.g);
+        const cx = X(v[0]), cy = Y(v[1]);
+        el("circle", { cx, cy, r: 6.5, fill: "var(--attack)", opacity: current.getsIn ? 0.95 : 0.45 }, layer);
+        if (!current.getsIn) {
+          el("line", { x1: cx - 7, y1: cy - 7, x2: cx + 7, y2: cy + 7, stroke: "var(--ink)", "stroke-width": 1.6 }, layer);
+          el("line", { x1: cx - 7, y1: cy + 7, x2: cx + 7, y2: cy - 7, stroke: "var(--ink)", "stroke-width": 1.6 }, layer);
+        }
+        const left = v[0] < 0;   // out on the left: label below, so it stays on the figure
+        const t = el("text", { x: left ? cx + 12 : cx - 12, y: left ? cy + 22 : cy - 12, "text-anchor": left ? "start" : "end", class: "lbl-s" }, layer);
+        t.textContent = `all ${F} hacked cars, ${pct(current.g)}%`;
+      }
+      if (i === n - 1) {
+        el("line", { x1: X(target[0]), y1: Y(target[1]), x2: X(best.out[0]), y2: Y(best.out[1]), stroke: "var(--ink-3)", "stroke-dasharray": "3 3" }, layer);
+        el("line", { x1: X(0), y1: Y(0), x2: X(best.out[0]), y2: Y(best.out[1]), stroke: "var(--model)", "stroke-width": 2.5, "marker-end": "url(#ah8)" }, layer);
+      }
+      if (i === 0) status.innerHTML = `<b>The start.</b> Seven honest cars and three hacked ones. The hacked cars' full poison points the other way, at the hollow circle.`;
+      else if (i <= tries.length) {
+        const t = tries[i - 1];
+        status.innerHTML = `<b>Try ${i} of ${tries.length}: ${pct(t.g)}% strength.</b> ` +
+          (t.getsIn ? "Inside the ring, so it would get in." : "Outside the ring, so it would be thrown out.") +
+          (i < tries.length ? (t.getsIn ? " Push a little harder." : " Back off.") : "");
+      } else {
+        const err = Math.hypot(best.out[0] - target[0], best.out[1] - target[1]) / Math.hypot(target[0], target[1]);
+        status.innerHTML = best.g > 0
+          ? `<b>They send ${pct(best.g)}% strength,</b> the strongest try that got in. The server ends up ${Math.round(err * 100)}% off from where the honest cars point.`
+          : "<b>Every try was caught,</b> so the hacked cars send an honest-looking change.";
+      }
+    }
+    Stepper({ player: "play8", watch: svg, n, show, slow: 1700, normal: 850, hold: 3500, nextText: "next try", backText: "back" });
   })();
 })();
 </script>
