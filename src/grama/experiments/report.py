@@ -21,7 +21,8 @@ AGG_LABEL = {"hdbscan": "HDBSCAN (ours)", "fedavg": "FedAvg", "median": "Median"
              "trimmed_mean": "Trimmed mean", "krum": "Multi-Krum", "norm_clip": "Norm clipping",
              "flame": "FLAME", "central": "centralised"}
 ATTACK_LABEL = {"label_flip": "Label flipping", "targeted_flip": "Targeted flipping (attack -> benign)",
-                "magnitude_poison": "Magnitude poisoning", "alie": "ALIE (crafted to look honest)"}
+                "magnitude_poison": "Magnitude poisoning", "alie": "ALIE (crafted to look honest)",
+                "adaptive": "Adaptive (knows the defence)"}
 METRIC_LABEL = {"accuracy": "Accuracy", "precision_macro": "Macro-P", "recall_macro": "Macro-R",
                 "f1_macro": "Macro-F1", "roc_auc": "ROC-AUC", "detection_rate": "Detection rate",
                 "false_alarm_rate": "False alarm rate"}
@@ -393,6 +394,22 @@ def make_report(results_dir: str | Path) -> Path:
                        "FPR: share of honest clients' updates rejected. Median, trimmed mean and norm clipping "
                        "reject no client as a whole, so they are not listed.\n\n"
                        + md_table(header, rows) + "\n")
+
+        if "adaptive" in pois["attacks"]:
+            header = ["Aggregator"] + [f"{int(round(f * 100))}%" for f in fractions[1:]]
+            rows = []
+            for agg in pois["aggregators"]:
+                row = [AGG_LABEL[agg]]
+                for f in fractions[1:]:
+                    rs = select(runs, model="grama", aggregator=agg, alpha=alpha0, attack="adaptive", fraction=f)
+                    s = [h["attack_scale"] for r in rs for h in r["history"] if h.get("attack_scale") is not None]
+                    row.append(f"{np.mean(s):.2f}" if s else "–")
+                rows.append(row)
+            write_csv(tables / "adaptive_scale.csv", header, rows)
+            out.append("### Adaptive attack: how much poison got through\n\nMean poison scale the attackers "
+                       "sent while every one of their updates was still accepted, over rounds and seeds. "
+                       "1 is plain targeted flipping, 0 is no poison. Rules that reject no client accept "
+                       f"any scale, so they get the maximum the attack tries.\n\n" + md_table(header, rows) + "\n")
 
     # ---------------------------------------------------------------- 4. ablation
     abl = profile.get("ablation")

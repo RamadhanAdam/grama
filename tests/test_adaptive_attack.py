@@ -106,3 +106,20 @@ def test_a_run_records_the_scale_sent_each_round(tmp_path):
     scales = [h["attack_scale"] for h in rec["history"] if "attack_scale" in h]
     assert scales and all(0.0 <= s <= 10.0 for s in scales)
     assert rec["compromised"]
+
+
+def test_report_of_an_attack_only_profile(tmp_path):
+    from grama.experiments.report import make_report
+    from grama.experiments.runner import RunSpec
+    exp = tiny(tmp_path, "attack")
+    # Like cic_adaptive: no main, non-IID or ablation group.
+    exp.profile = {k: v for k, v in exp.profile.items() if k not in ("main", "noniid", "ablation")}
+    exp.profile["poisoning"] = {"seeds": [0], "attacks": ["adaptive"], "fractions": [0.4], "aggregators": ["hdbscan"]}
+    exp._write_profile()
+    exp.prepare_data()
+    rec = exp.run_one(RunSpec("grama", "hdbscan", 0.5, "adaptive", 0.4, 0))
+    exp.runs_path.write_text(json.dumps(rec) + "\n")
+    summary = make_report(exp.out_dir).read_text()
+    assert "Adaptive (knows the defence)" in summary and "how much poison got through" in summary
+    assert "Main comparison" not in summary
+    assert (exp.out_dir / "tables" / "adaptive_scale.csv").exists()
