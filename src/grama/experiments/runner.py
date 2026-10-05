@@ -309,10 +309,13 @@ class Experiment:
             rounds, per_round, local_epochs = sim["num_rounds"], sim["clients_per_round"], sim["local_epochs"]
             eval_every = self.profile.get("eval_every", 1)
 
+        adv = self.fed_cfg["adversarial_eval"]
         server = FederatedServer(
             model_factory=factory, clients=clients, aggregator=aggregator,
             clients_per_round=per_round, local_epochs=local_epochs, seed=spec.seed,
             eval_fn=eval_fn, eval_every=eval_every,
+            adaptive_max_scale=adv.get("adaptive_max_scale", 10.0),
+            adaptive_steps=adv.get("adaptive_search_steps", 7),
         )
         start = time.perf_counter()
         history = server.run(rounds)
@@ -348,6 +351,7 @@ class Experiment:
             "history": [
                 {"round": h.round_num, "loss": h.avg_local_loss, "seconds": h.seconds,
                  "num_rejected": len(h.rejected_clients), "num_malicious": len(h.malicious_clients),
+                 **({"attack_scale": h.attack_scale} if h.attack_scale is not None else {}),
                  **(h.metrics or {})}
                 for h in history
             ],

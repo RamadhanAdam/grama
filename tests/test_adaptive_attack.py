@@ -86,3 +86,23 @@ def test_the_search_leaves_the_random_state_alone():
     after = torch.rand(3)
     torch.manual_seed(1)
     assert torch.equal(after, torch.rand(3))
+
+
+def tiny(tmp_path, name):
+    from grama.experiments.runner import Experiment
+    exp = Experiment("smoke", device="cpu", results_dir=tmp_path / "results" / name)
+    exp.data_cfg["dataset"]["processed_dir"] = str(tmp_path / "processed")
+    exp.profile["data_overrides"] = {"max_rows_per_class": None, "synthetic_rows_per_class": 1500}
+    exp.sim.update(num_clients=5, clients_per_round=5, num_rounds=2, local_epochs=1)
+    exp.fed_cfg["aggregator"]["autoencoder_epochs"] = 10
+    return exp
+
+
+def test_a_run_records_the_scale_sent_each_round(tmp_path):
+    from grama.experiments.runner import RunSpec
+    exp = tiny(tmp_path, "attack")
+    exp.prepare_data()
+    rec = exp.run_one(RunSpec("grama", "hdbscan", 0.5, "adaptive", 0.4, 0))
+    scales = [h["attack_scale"] for h in rec["history"] if "attack_scale" in h]
+    assert scales and all(0.0 <= s <= 10.0 for s in scales)
+    assert rec["compromised"]
