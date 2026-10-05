@@ -322,7 +322,7 @@ svg .ecu.atk text { fill: var(--attack); }
   <section class="ch" id="experiments">
     <div class="text">
       <h2><span class="n">08</span>The experiments</h2>
-      <p>The experiments ask a few plain questions. Does GraMa catch attacks as well as an older kind of detector, a CNN-BiGRU? How much does it hurt when the cars see very different traffic? Which defence holds up best as more cars are hacked? Which parts of GraMa actually matter? And is it small and quick enough for a car?</p>
+      <p>The experiments ask a few plain questions. Does GraMa catch attacks as well as an older kind of detector, a CNN-BiGRU? How much does it hurt when the cars see very different traffic? Which defence holds up best as more cars are hacked? Which parts of GraMa actually matter? Is it small and quick enough for a car? And does a defence still hold up when the attacker knows exactly how it works?</p>
       <p>The dataset needed care. Each attack file is a few messages repeated thousands of times, and two of the files change partway through. Testing only on the end of each file would test on messages the model never saw, and every method would score the same low number. So the test messages are slices taken from all along each file.</p>
     </div>
     <div class="sheet">
