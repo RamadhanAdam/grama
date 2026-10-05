@@ -76,14 +76,19 @@ python scripts/run_experiments.py --profile quick
 | `smoke` | synthetic CAN traffic, checks the pipeline end to end | 19 | about 5 min (CPU) |
 | `quick` | CIC-IoV2024, short runs, one seed | 77 | about 1.5 h |
 | `full` | the setting used in the paper | 291 | about 12 h |
-| `road` | `full`'s setting on ROAD: main comparison, targeted flipping and ALIE | 51 | about 9 h |
-| `cantt1` | the same on can-train-and-test, set 1 | 51 | about 4 h |
+| `road` | `full`'s setting on ROAD: main comparison (five seeds), targeted flipping and ALIE | 61 | about 11 h |
+| `cantt1` | the same on can-train-and-test, set 1 | 61 | about 4.5 h |
 | `cantt2`–`cantt4` | sets 2 to 4, main comparison only | 15 each | about 1 h each |
+| `cic_adaptive` | the adaptive attack on CIC-IoV2024, against FedAvg, norm clipping, FLAME and HDBSCAN | 16 (+8 copied) | about 1 h |
+| `cantt1_adaptive` | the same on can-train-and-test, set 1 | 16 (+8 copied) | about 1.5 h |
 
 Finished runs are saved as they complete, so an interrupted profile resumes where it stopped when the
 same command is run again. For long runs, start it in the background, for example with
 `nohup ... &` or inside `tmux`. Profiles are defined in `config/experiments.yaml`.
 `make others-background` runs `road` and then `cantt1` to `cantt4`, logging to `results/others.log`.
+`make extra-background` runs the two adaptive profiles and the extra `road` and `cantt1` seeds,
+logging to `results/extra.log`. A profile with `reuse_runs_from` copies the runs it shares with
+another profile (same data file and federated setting) instead of training them again.
 
 The same pipeline can be run from the notebook `GraMa.ipynb`. To train and evaluate a single
 configuration:
@@ -131,6 +136,9 @@ The repo is created private unless you add `--public`. This needs `huggingface_h
 - Poisoning: label flipping, targeted label flipping, magnitude poisoning and ALIE, with 10 to 40%
   of clients compromised, against FedAvg, coordinate-wise median, trimmed mean, Multi-Krum, norm
   clipping, FLAME and the HDBSCAN defence.
+- Adaptive attack: the attackers know the defence. Each round they send the strongest targeted
+  poison the aggregation rule still accepts, found by running an exact copy of the rule
+  (`src/grama/attacks/poisoning.py`).
 - Ablation: residual connections, CAN-ID embeddings, attention pooling, edge type, and the
   temporal model, each removed or replaced in turn.
 - Efficiency: parameters, model size, latency and throughput.

@@ -1,5 +1,18 @@
 # Changes
 
+## October 2026: adaptive attack and more seeds
+
+- Adaptive attack (`adaptive`): the attackers train like targeted flipping, then all send
+  mean(honest) + gamma * (mean(attackers) - mean(honest)), with gamma the largest scale the
+  aggregation rule still accepts. They find it by bisection on an exact copy of the rule (same
+  settings and random state), so this is the strongest attacker the code simulates. Rules that
+  reject no client get the maximum (`adaptive_max_scale`, 10). The scale sent each round is saved
+  in the run's history, and the report has a table of it.
+- Profiles `cic_adaptive` and `cantt1_adaptive` (20% and 40%, FedAvg, norm clipping, FLAME,
+  HDBSCAN, two seeds). `reuse_runs_from` copies their clean reference runs from `full` and `cantt1`.
+- `road` and `cantt1` main comparison: five seeds instead of three.
+- `make extra-background` runs all of it.
+
 ## October 2026: two more datasets
 
 - Readers for ROAD and can-train-and-test, taking the files straight from the zips. ROAD frames are
