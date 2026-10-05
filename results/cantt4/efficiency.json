@@ -1,0 +1,24 @@
+{
+  "GraMa": {
+    "params": 78239,
+    "size_kb": 305.62109375,
+    "upload_per_round_kb": 305.62109375,
+    "cpu_1thread_ms_per_sequence": 2.973226892451445,
+    "cpu_1thread_p95_ms": 3.1765946187078953,
+    "sequence_covers_frames": 288,
+    "gpu_ms_per_sequence": 4.835241939872503,
+    "gpu_peak_memory_mb": 688.578125,
+    "gpu_sequences_per_second": 25794.820035819208
+  },
+  "CNN-BiGRU": {
+    "params": 38867,
+    "size_kb": 151.82421875,
+    "upload_per_round_kb": 151.82421875,
+    "cpu_1thread_ms_per_sequence": 1.2163542366276185,
+    "cpu_1thread_p95_ms": 1.512911170721054,
+    "sequence_covers_frames": 288,
+    "gpu_ms_per_sequence": 4.437847184017301,
+    "gpu_peak_memory_mb": 702.734375,
+    "gpu_sequences_per_second": 334692.8592415742
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "profile": "cantt1",
+  "about": "can-train-and-test, set_01: trains on a Chevrolet Impala; tests on the Impala (known attacks, then unknown attacks) and on a Chevrolet Silverado. Binary (benign or attack). Same runs as the road profile, about 50; about 3-4 hours on one A100.",
+  "alpha": 0.5,
+  "simulation": {
+    "num_clients": 20,
+    "clients_per_round": 10,
+    "num_rounds": 30,
+    "local_epochs": 2,
+    "local_batch_size": 64,
+    "local_lr": 0.001,
+    "non_iid_alpha": 0.5,
+    "class_weighting": "none"
+  },
+  "main_methods": [
+    [
+      "grama",
+      "hdbscan"
+    ],
+    [
+      "grama",
+      "fedavg"
+    ],
+    [
+      "cnn_bigru",
+      "fedavg"
+    ],
+    [
+      "cnn_bigru",
+      "hdbscan"
+    ],
+    [
+      "grama",
+      "central"
+    ]
+  ],
+  "noniid": null,
+  "poisoning": {
+    "seeds": [
+      0,
+      1
+    ],
+    "attacks": [
+      "targeted_flip",
+      "alie"
+    ],
+    "fractions": [
+      0.2,
+      0.4
+    ],
+    "aggregators": [
+      "fedavg",
+      "norm_clip",
+      "flame",
+      "hdbscan"
+    ]
+  },
+  "ablation": null,
+  "edge_mode": "transition"
+}

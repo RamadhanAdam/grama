@@ -1,0 +1,209 @@
+2026-10-04 16:57:31 | grama.data.build | INFO | Reading road from /home/jovyan/grama/data/raw/road/road.zip
+2026-10-04 16:57:37 | grama.data.road | INFO | ROAD: leaving out accelerator_attack_drive_1 (no labels)
+2026-10-04 16:57:37 | grama.data.road | INFO | ROAD: leaving out accelerator_attack_drive_2 (no labels)
+2026-10-04 16:57:37 | grama.data.road | INFO | ROAD: leaving out accelerator_attack_reverse_1 (no labels)
+2026-10-04 16:57:37 | grama.data.road | INFO | ROAD: leaving out accelerator_attack_reverse_2 (no labels)
+2026-10-04 16:57:48 | grama.data.road | INFO | ROAD train       50 pieces   1931167 frames,   38047 attack frames
+2026-10-04 16:57:48 | grama.data.road | INFO | ROAD test        17 pieces    909013 frames,   24466 attack frames
+2026-10-04 16:57:48 | grama.data.road | INFO | ROAD masquerade   5 pieces    381799 frames,   12175 attack frames
+2026-10-04 16:57:50 | grama.data.build | INFO | Saved /home/jovyan/grama/data/processed/road_0bc0ca64.pt | 107 CAN-ID nodes | sequences per class {'train': [15570, 215, 3225, 4275, 42, 6662], 'test': [4795, 27, 965, 4659, 42, 3651], 'masquerade': [1383, 0, 472, 2282, 21, 1788]}
+2026-10-04 16:57:51 | grama.experiments | INFO | Data: road_0bc0ca64.pt | 107 nodes | train 29989 / test 14139 sequences | device NVIDIA A100 80GB PCIe (79 GB)
+2026-10-04 16:57:51 | grama.experiments | INFO | Profile road: 51 runs planned, 0 already done, 51 to go
+2026-10-04 16:57:51 | grama.models.mamba_block | INFO | MambaBlock: using the pure-PyTorch selective scan.
+2026-10-04 17:05:03 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s0                   acc 0.8776  macro-F1 0.7418  (429s)
+2026-10-04 17:15:01 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s0                    acc 0.9586  macro-F1 0.8067  (594s)
+2026-10-04 17:16:16 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s0                acc 0.4401  macro-F1 0.2154  (75s)
+2026-10-04 17:18:16 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s0               acc 0.4908  macro-F1 0.2253  (119s)
+2026-10-04 17:28:13 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s0                   acc 0.9931  macro-F1 0.9410  (593s)
+2026-10-04 17:37:52 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s1                   acc 0.6986  macro-F1 0.5180  (575s)
+2026-10-04 17:47:18 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s1                    acc 0.8039  macro-F1 0.7127  (562s)
+2026-10-04 17:48:31 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s1                acc 0.7504  macro-F1 0.6765  (72s)
+2026-10-04 17:50:00 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s1               acc 0.8977  macro-F1 0.7280  (89s)
+2026-10-04 17:59:58 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s1                   acc 0.9823  macro-F1 0.9243  (595s)
+2026-10-04 18:10:32 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s2                   acc 0.9693  macro-F1 0.7984  (628s)
+2026-10-04 18:21:18 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s2                    acc 0.7127  macro-F1 0.4533  (640s)
+2026-10-04 18:24:12 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s2                acc 0.5840  macro-F1 0.2958  (174s)
+2026-10-04 18:28:30 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s2               acc 0.5453  macro-F1 0.2483  (257s)
+2026-10-04 18:40:23 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s2                   acc 0.9906  macro-F1 0.9884  (709s)
+2026-10-04 18:51:47 | grama.experiments | INFO | grama-fedavg-a0.5-targeted_flip-f0.2-s0          acc 0.7711  macro-F1 0.6568  (680s)
+2026-10-04 19:03:18 | grama.experiments | INFO | grama-fedavg-a0.5-targeted_flip-f0.4-s0          acc 0.3768  macro-F1 0.1929  (687s)
+2026-10-04 19:14:50 | grama.experiments | INFO | grama-fedavg-a0.5-alie-f0.2-s0                   acc 0.9543  macro-F1 0.8046  (688s)
+2026-10-04 19:26:23 | grama.experiments | INFO | grama-fedavg-a0.5-alie-f0.4-s0                   acc 0.5803  macro-F1 0.2956  (690s)
+2026-10-04 19:38:01 | grama.experiments | INFO | grama-norm_clip-a0.5-clean-f0-s0                 acc 0.9117  macro-F1 0.7802  (695s)
+2026-10-04 19:48:29 | grama.experiments | INFO | grama-norm_clip-a0.5-targeted_flip-f0.2-s0       acc 0.5781  macro-F1 0.4865  (624s)
+2026-10-04 19:58:39 | grama.experiments | INFO | grama-norm_clip-a0.5-targeted_flip-f0.4-s0       acc 0.3391  macro-F1 0.0844  (607s)
+2026-10-04 20:08:49 | grama.experiments | INFO | grama-norm_clip-a0.5-alie-f0.2-s0                acc 0.9369  macro-F1 0.7923  (606s)
+2026-10-04 20:19:02 | grama.experiments | INFO | grama-norm_clip-a0.5-alie-f0.4-s0                acc 0.5913  macro-F1 0.2903  (608s)
+2026-10-04 20:29:15 | grama.experiments | INFO | grama-flame-a0.5-clean-f0-s0                     acc 0.9630  macro-F1 0.7889  (609s)
+2026-10-04 20:39:58 | grama.experiments | INFO | grama-flame-a0.5-targeted_flip-f0.2-s0           acc 0.9501  macro-F1 0.7764  (638s)
+2026-10-04 20:50:47 | grama.experiments | INFO | grama-flame-a0.5-targeted_flip-f0.4-s0           acc 0.3391  macro-F1 0.0844  (643s)
+2026-10-04 21:01:23 | grama.experiments | INFO | grama-flame-a0.5-alie-f0.2-s0                    acc 0.8808  macro-F1 0.7293  (631s)
+2026-10-04 21:12:31 | grama.experiments | INFO | grama-flame-a0.5-alie-f0.4-s0                    acc 0.3077  macro-F1 0.0898  (663s)
+2026-10-04 21:23:34 | grama.experiments | INFO | grama-hdbscan-a0.5-targeted_flip-f0.2-s0         acc 0.8960  macro-F1 0.7161  (658s)
+2026-10-04 21:34:26 | grama.experiments | INFO | grama-hdbscan-a0.5-targeted_flip-f0.4-s0         acc 0.3391  macro-F1 0.0846  (647s)
+2026-10-04 21:45:47 | grama.experiments | INFO | grama-hdbscan-a0.5-alie-f0.2-s0                  acc 0.9465  macro-F1 0.7845  (676s)
+2026-10-04 21:56:56 | grama.experiments | INFO | grama-hdbscan-a0.5-alie-f0.4-s0                  acc 0.3244  macro-F1 0.0985  (664s)
+2026-10-04 22:07:20 | grama.experiments | INFO | grama-fedavg-a0.5-targeted_flip-f0.2-s1          acc 0.3960  macro-F1 0.3663  (619s)
+2026-10-04 22:17:49 | grama.experiments | INFO | grama-fedavg-a0.5-targeted_flip-f0.4-s1          acc 0.3495  macro-F1 0.0953  (624s)
+2026-10-04 22:28:07 | grama.experiments | INFO | grama-fedavg-a0.5-alie-f0.2-s1                   acc 0.5384  macro-F1 0.4568  (613s)
+2026-10-04 22:38:36 | grama.experiments | INFO | grama-fedavg-a0.5-alie-f0.4-s1                   acc 0.7911  macro-F1 0.6674  (624s)
+2026-10-04 22:49:05 | grama.experiments | INFO | grama-norm_clip-a0.5-clean-f0-s1                 acc 0.8224  macro-F1 0.6441  (623s)
+2026-10-04 22:59:32 | grama.experiments | INFO | grama-norm_clip-a0.5-targeted_flip-f0.2-s1       acc 0.6875  macro-F1 0.3890  (621s)
+2026-10-04 23:09:56 | grama.experiments | INFO | grama-norm_clip-a0.5-targeted_flip-f0.4-s1       acc 0.3456  macro-F1 0.0930  (619s)
+2026-10-04 23:20:01 | grama.experiments | INFO | grama-norm_clip-a0.5-alie-f0.2-s1                acc 0.7624  macro-F1 0.6252  (600s)
+2026-10-04 23:30:30 | grama.experiments | INFO | grama-norm_clip-a0.5-alie-f0.4-s1                acc 0.7951  macro-F1 0.5693  (624s)
+2026-10-04 23:40:49 | grama.experiments | INFO | grama-flame-a0.5-clean-f0-s1                     acc 0.8593  macro-F1 0.7322  (614s)
+2026-10-04 23:51:13 | grama.experiments | INFO | grama-flame-a0.5-targeted_flip-f0.2-s1           acc 0.9619  macro-F1 0.7838  (619s)
+2026-10-05 00:01:28 | grama.experiments | INFO | grama-flame-a0.5-targeted_flip-f0.4-s1           acc 0.5171  macro-F1 0.2130  (610s)
+2026-10-05 00:11:37 | grama.experiments | INFO | grama-flame-a0.5-alie-f0.2-s1                    acc 0.5242  macro-F1 0.5116  (604s)
+2026-10-05 00:21:53 | grama.experiments | INFO | grama-flame-a0.5-alie-f0.4-s1                    acc 0.2688  macro-F1 0.0790  (612s)
+2026-10-05 00:32:05 | grama.experiments | INFO | grama-hdbscan-a0.5-targeted_flip-f0.2-s1         acc 0.8940  macro-F1 0.5821  (607s)
+2026-10-05 00:42:29 | grama.experiments | INFO | grama-hdbscan-a0.5-targeted_flip-f0.4-s1         acc 0.4078  macro-F1 0.1666  (620s)
+2026-10-05 00:53:18 | grama.experiments | INFO | grama-hdbscan-a0.5-alie-f0.2-s1                  acc 0.8122  macro-F1 0.7241  (643s)
+2026-10-05 01:03:55 | grama.experiments | INFO | grama-hdbscan-a0.5-alie-f0.4-s1                  acc 0.2856  macro-F1 0.0950  (632s)
+
+Done in 486.5 min. Results: /home/jovyan/grama/results/road/summary.md
+2026-10-05 01:04:02 | grama.data.build | INFO | Reading can_train_test from /home/jovyan/grama/data/raw/can-train-and-test/can-train-and-test.zip
+2026-10-05 01:04:14 | grama.data.can_train_test | INFO | can-train-and-test set_01 train                        12 files    747453 frames,  49557 attack frames
+2026-10-05 01:04:20 | grama.data.can_train_test | INFO | can-train-and-test set_01 test                          8 files    417189 frames,  52647 attack frames
+2026-10-05 01:04:28 | grama.data.can_train_test | INFO | can-train-and-test set_01 unknown_vehicle               8 files    484621 frames,  27636 attack frames
+2026-10-05 01:04:37 | grama.data.can_train_test | INFO | can-train-and-test set_01 unknown_attack               12 files    692606 frames,  13525 attack frames
+2026-10-05 01:04:53 | grama.data.can_train_test | INFO | can-train-and-test set_01 unknown_vehicle_and_attack   12 files    624256 frames,  13664 attack frames
+2026-10-05 01:04:54 | grama.data.build | INFO | Saved /home/jovyan/grama/data/processed/cantt_set_01_b0e5a072.pt | 53 CAN-ID nodes | sequences per class {'train': [9059, 2543], 'test': [3852, 2635], 'unknown_vehicle': [5673, 1868], 'unknown_attack': [7449, 3324], 'unknown_vehicle_and_attack': [7824, 1881]}
+2026-10-05 01:04:54 | grama.experiments | INFO | Data: cantt_set_01_b0e5a072.pt | 53 nodes | train 11602 / test 6487 sequences | device NVIDIA A100 80GB PCIe (79 GB)
+2026-10-05 01:04:54 | grama.experiments | INFO | Profile cantt1: 51 runs planned, 0 already done, 51 to go
+2026-10-05 01:04:54 | grama.models.mamba_block | INFO | MambaBlock: using the pure-PyTorch selective scan.
+2026-10-05 01:09:07 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s0                   acc 0.9274  macro-F1 0.9222  (251s)
+2026-10-05 01:12:48 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s0                    acc 0.8961  macro-F1 0.8865  (218s)
+2026-10-05 01:13:26 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s0                acc 0.8969  macro-F1 0.8873  (38s)
+2026-10-05 01:13:53 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s0               acc 0.9249  macro-F1 0.9194  (26s)
+2026-10-05 01:15:31 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s0                   acc 0.9727  macro-F1 0.9714  (96s)
+2026-10-05 01:19:21 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s1                   acc 0.9349  macro-F1 0.9305  (228s)
+2026-10-05 01:21:33 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s1                    acc 0.9373  macro-F1 0.9331  (130s)
+2026-10-05 01:21:54 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s1                acc 0.9891  macro-F1 0.9886  (21s)
+2026-10-05 01:22:53 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s1               acc 0.9846  macro-F1 0.9839  (58s)
+2026-10-05 01:24:32 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s1                   acc 0.9497  macro-F1 0.9468  (96s)
+2026-10-05 01:26:53 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s2                   acc 0.9027  macro-F1 0.8942  (139s)
+2026-10-05 01:29:11 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s2                    acc 0.9137  macro-F1 0.9067  (136s)
+2026-10-05 01:29:45 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s2                acc 0.9391  macro-F1 0.9351  (34s)
+2026-10-05 01:31:23 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s2               acc 0.8967  macro-F1 0.8872  (98s)
+2026-10-05 01:33:55 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s2                   acc 0.9656  macro-F1 0.9638  (150s)
+2026-10-05 01:37:35 | grama.experiments | INFO | grama-fedavg-a0.5-targeted_flip-f0.2-s0          acc 0.6049  macro-F1 0.4018  (218s)
+2026-10-05 01:41:17 | grama.experiments | INFO | grama-fedavg-a0.5-targeted_flip-f0.4-s0          acc 0.5938  macro-F1 0.3726  (220s)
+2026-10-05 01:45:03 | grama.experiments | INFO | grama-fedavg-a0.5-alie-f0.2-s0                   acc 0.8926  macro-F1 0.8823  (224s)
+2026-10-05 01:48:50 | grama.experiments | INFO | grama-fedavg-a0.5-alie-f0.4-s0                   acc 0.9027  macro-F1 0.8943  (224s)
+2026-10-05 01:52:32 | grama.experiments | INFO | grama-norm_clip-a0.5-clean-f0-s0                 acc 0.8841  macro-F1 0.8723  (220s)
+2026-10-05 01:56:13 | grama.experiments | INFO | grama-norm_clip-a0.5-targeted_flip-f0.2-s0       acc 0.6522  macro-F1 0.5125  (220s)
+2026-10-05 01:59:55 | grama.experiments | INFO | grama-norm_clip-a0.5-targeted_flip-f0.4-s0       acc 0.5958  macro-F1 0.3779  (220s)
+2026-10-05 02:03:40 | grama.experiments | INFO | grama-norm_clip-a0.5-alie-f0.2-s0                acc 0.8893  macro-F1 0.8785  (222s)
+2026-10-05 02:07:31 | grama.experiments | INFO | grama-norm_clip-a0.5-alie-f0.4-s0                acc 0.9101  macro-F1 0.9030  (230s)
+2026-10-05 02:11:16 | grama.experiments | INFO | grama-flame-a0.5-clean-f0-s0                     acc 0.8523  macro-F1 0.8337  (222s)
+2026-10-05 02:15:05 | grama.experiments | INFO | grama-flame-a0.5-targeted_flip-f0.2-s0           acc 0.7412  macro-F1 0.6768  (226s)
+2026-10-05 02:18:52 | grama.experiments | INFO | grama-flame-a0.5-targeted_flip-f0.4-s0           acc 0.6889  macro-F1 0.5859  (225s)
+2026-10-05 02:22:39 | grama.experiments | INFO | grama-flame-a0.5-alie-f0.2-s0                    acc 0.9024  macro-F1 0.8938  (225s)
+2026-10-05 02:26:33 | grama.experiments | INFO | grama-flame-a0.5-alie-f0.4-s0                    acc 0.8986  macro-F1 0.8898  (232s)
+2026-10-05 02:30:51 | grama.experiments | INFO | grama-hdbscan-a0.5-targeted_flip-f0.2-s0         acc 0.9181  macro-F1 0.9118  (255s)
+2026-10-05 02:35:07 | grama.experiments | INFO | grama-hdbscan-a0.5-targeted_flip-f0.4-s0         acc 0.8630  macro-F1 0.8468  (255s)
+2026-10-05 02:39:20 | grama.experiments | INFO | grama-hdbscan-a0.5-alie-f0.2-s0                  acc 0.9018  macro-F1 0.8931  (252s)
+2026-10-05 02:43:34 | grama.experiments | INFO | grama-hdbscan-a0.5-alie-f0.4-s0                  acc 0.8938  macro-F1 0.8855  (252s)
+2026-10-05 02:47:26 | grama.experiments | INFO | grama-fedavg-a0.5-targeted_flip-f0.2-s1          acc 0.5984  macro-F1 0.3849  (230s)
+2026-10-05 02:51:18 | grama.experiments | INFO | grama-fedavg-a0.5-targeted_flip-f0.4-s1          acc 0.5938  macro-F1 0.3726  (230s)
+2026-10-05 02:55:15 | grama.experiments | INFO | grama-fedavg-a0.5-alie-f0.2-s1                   acc 0.9497  macro-F1 0.9467  (235s)
+2026-10-05 02:59:21 | grama.experiments | INFO | grama-fedavg-a0.5-alie-f0.4-s1                   acc 0.9175  macro-F1 0.9125  (243s)
+2026-10-05 03:03:17 | grama.experiments | INFO | grama-norm_clip-a0.5-clean-f0-s1                 acc 0.9439  macro-F1 0.9404  (234s)
+2026-10-05 03:07:14 | grama.experiments | INFO | grama-norm_clip-a0.5-targeted_flip-f0.2-s1       acc 0.9061  macro-F1 0.8980  (235s)
+2026-10-05 03:11:07 | grama.experiments | INFO | grama-norm_clip-a0.5-targeted_flip-f0.4-s1       acc 0.7711  macro-F1 0.7230  (232s)
+2026-10-05 03:15:09 | grama.experiments | INFO | grama-norm_clip-a0.5-alie-f0.2-s1                acc 0.9440  macro-F1 0.9405  (239s)
+2026-10-05 03:19:12 | grama.experiments | INFO | grama-norm_clip-a0.5-alie-f0.4-s1                acc 0.9058  macro-F1 0.8987  (241s)
+2026-10-05 03:23:07 | grama.experiments | INFO | grama-flame-a0.5-clean-f0-s1                     acc 0.9576  macro-F1 0.9553  (232s)
+2026-10-05 03:27:01 | grama.experiments | INFO | grama-flame-a0.5-targeted_flip-f0.2-s1           acc 0.9112  macro-F1 0.9039  (232s)
+2026-10-05 03:30:56 | grama.experiments | INFO | grama-flame-a0.5-targeted_flip-f0.4-s1           acc 0.8935  macro-F1 0.8834  (233s)
+2026-10-05 03:34:53 | grama.experiments | INFO | grama-flame-a0.5-alie-f0.2-s1                    acc 0.9732  macro-F1 0.9720  (234s)
+2026-10-05 03:38:01 | grama.experiments | INFO | grama-flame-a0.5-alie-f0.4-s1                    acc 0.4389  macro-F1 0.3534  (187s)
+2026-10-05 03:40:33 | grama.experiments | INFO | grama-hdbscan-a0.5-targeted_flip-f0.2-s1         acc 0.8593  macro-F1 0.8422  (150s)
+2026-10-05 03:44:54 | grama.experiments | INFO | grama-hdbscan-a0.5-targeted_flip-f0.4-s1         acc 0.9410  macro-F1 0.9396  (258s)
+2026-10-05 03:49:19 | grama.experiments | INFO | grama-hdbscan-a0.5-alie-f0.2-s1                  acc 0.9519  macro-F1 0.9491  (263s)
+2026-10-05 03:53:44 | grama.experiments | INFO | grama-hdbscan-a0.5-alie-f0.4-s1                  acc 0.6044  macro-F1 0.4266  (263s)
+
+Done in 169.8 min. Results: /home/jovyan/grama/results/cantt1/summary.md
+2026-10-05 03:53:50 | grama.data.build | INFO | Reading can_train_test from /home/jovyan/grama/data/raw/can-train-and-test/can-train-and-test.zip
+2026-10-05 03:54:10 | grama.data.can_train_test | INFO | can-train-and-test set_02 train                        16 files   1193881 frames,  83095 attack frames
+2026-10-05 03:54:25 | grama.data.can_train_test | INFO | can-train-and-test set_02 test                         12 files    624256 frames,  13664 attack frames
+2026-10-05 03:54:35 | grama.data.can_train_test | INFO | can-train-and-test set_02 unknown_vehicle              12 files    553028 frames,  17525 attack frames
+2026-10-05 03:54:50 | grama.data.can_train_test | INFO | can-train-and-test set_02 unknown_attack                8 files    552591 frames,  28781 attack frames
+2026-10-05 03:54:55 | grama.data.can_train_test | INFO | can-train-and-test set_02 unknown_vehicle_and_attack    8 files    358090 frames,  17363 attack frames
+2026-10-05 03:54:57 | grama.data.build | INFO | Saved /home/jovyan/grama/data/processed/cantt_set_02_1f30f4c2.pt | 128 CAN-ID nodes | sequences per class {'train': [10873, 7688], 'test': [7824, 1881], 'unknown_vehicle': [6567, 2026], 'unknown_attack': [7250, 1351], 'unknown_vehicle_and_attack': [4665, 898]}
+2026-10-05 03:54:58 | grama.experiments | INFO | Data: cantt_set_02_1f30f4c2.pt | 128 nodes | train 18561 / test 9705 sequences | device NVIDIA A100 80GB PCIe (79 GB)
+2026-10-05 03:54:58 | grama.experiments | INFO | Profile cantt2: 15 runs planned, 0 already done, 15 to go
+2026-10-05 03:54:58 | grama.models.mamba_block | INFO | MambaBlock: using the pure-PyTorch selective scan.
+2026-10-05 04:02:10 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s0                   acc 0.9290  macro-F1 0.8673  (425s)
+2026-10-05 04:09:14 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s0                    acc 0.8890  macro-F1 0.7677  (415s)
+2026-10-05 04:10:08 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s0                acc 0.8860  macro-F1 0.7618  (54s)
+2026-10-05 04:11:10 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s0               acc 0.9449  macro-F1 0.9072  (62s)
+2026-10-05 04:18:34 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s0                   acc 0.9534  macro-F1 0.9178  (435s)
+2026-10-05 04:26:14 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s1                   acc 0.8561  macro-F1 0.7672  (453s)
+2026-10-05 04:34:39 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s1                    acc 0.8355  macro-F1 0.7440  (494s)
+2026-10-05 04:35:34 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s1                acc 0.9639  macro-F1 0.9415  (54s)
+2026-10-05 04:37:56 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s1               acc 0.9408  macro-F1 0.9021  (141s)
+2026-10-05 04:45:19 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s1                   acc 0.9054  macro-F1 0.8408  (436s)
+2026-10-05 04:53:25 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s2                   acc 0.8299  macro-F1 0.7380  (478s)
+2026-10-05 05:02:19 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s2                    acc 0.7930  macro-F1 0.6970  (523s)
+2026-10-05 05:03:14 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s2                acc 0.9562  macro-F1 0.9282  (55s)
+2026-10-05 05:04:22 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s2               acc 0.9283  macro-F1 0.8774  (67s)
+2026-10-05 05:11:46 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s2                   acc 0.8747  macro-F1 0.7880  (435s)
+
+Done in 78.0 min. Results: /home/jovyan/grama/results/cantt2/summary.md
+2026-10-05 05:11:51 | grama.data.build | INFO | Reading can_train_test from /home/jovyan/grama/data/raw/can-train-and-test/can-train-and-test.zip
+2026-10-05 05:12:05 | grama.data.can_train_test | INFO | can-train-and-test set_03 train                        14 files    873519 frames,  29327 attack frames
+2026-10-05 05:12:15 | grama.data.can_train_test | INFO | can-train-and-test set_03 test                         10 files    625007 frames,  63569 attack frames
+2026-10-05 05:12:23 | grama.data.can_train_test | INFO | can-train-and-test set_03 unknown_vehicle              10 files    692064 frames,  77290 attack frames
+2026-10-05 05:12:35 | grama.data.can_train_test | INFO | can-train-and-test set_03 unknown_attack               14 files    872937 frames,  10479 attack frames
+2026-10-05 05:12:42 | grama.data.can_train_test | INFO | can-train-and-test set_03 unknown_vehicle_and_attack   14 files    918730 frames,  37693 attack frames
+2026-10-05 05:12:44 | grama.data.build | INFO | Saved /home/jovyan/grama/data/processed/cantt_set_03_a39d5b2c.pt | 99 CAN-ID nodes | sequences per class {'train': [11552, 2012], 'test': [5628, 4098], 'unknown_vehicle': [6047, 4727], 'unknown_attack': [10700, 2884], 'unknown_vehicle_and_attack': [8715, 5584]}
+2026-10-05 05:12:45 | grama.experiments | INFO | Data: cantt_set_03_a39d5b2c.pt | 99 nodes | train 13564 / test 9726 sequences | device NVIDIA A100 80GB PCIe (79 GB)
+2026-10-05 05:12:45 | grama.experiments | INFO | Profile cantt3: 15 runs planned, 0 already done, 15 to go
+2026-10-05 05:12:45 | grama.models.mamba_block | INFO | MambaBlock: using the pure-PyTorch selective scan.
+2026-10-05 05:17:20 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s0                   acc 0.6406  macro-F1 0.5096  (266s)
+2026-10-05 05:21:25 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s0                    acc 0.7025  macro-F1 0.6251  (237s)
+2026-10-05 05:22:00 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s0                acc 0.6746  macro-F1 0.5758  (35s)
+2026-10-05 05:22:49 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s0               acc 0.6411  macro-F1 0.5111  (48s)
+2026-10-05 05:27:16 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s0                   acc 0.7222  macro-F1 0.6585  (259s)
+2026-10-05 05:32:42 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s1                   acc 0.8891  macro-F1 0.8809  (317s)
+2026-10-05 05:37:21 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s1                    acc 0.6410  macro-F1 0.5104  (270s)
+2026-10-05 05:38:05 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s1                acc 0.6573  macro-F1 0.5432  (43s)
+2026-10-05 05:38:57 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s1               acc 0.6493  macro-F1 0.5276  (52s)
+2026-10-05 05:43:25 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s1                   acc 0.9080  macro-F1 0.9022  (259s)
+2026-10-05 05:47:52 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s2                   acc 0.6433  macro-F1 0.5173  (259s)
+2026-10-05 05:52:05 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s2                    acc 0.7710  macro-F1 0.7310  (245s)
+2026-10-05 05:53:01 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s2                acc 0.6519  macro-F1 0.5325  (55s)
+2026-10-05 05:54:35 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s2               acc 0.6361  macro-F1 0.5303  (94s)
+2026-10-05 05:59:03 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s2                   acc 0.9310  macro-F1 0.9275  (259s)
+
+Done in 47.2 min. Results: /home/jovyan/grama/results/cantt3/summary.md
+2026-10-05 05:59:08 | grama.data.build | INFO | Reading can_train_test from /home/jovyan/grama/data/raw/can-train-and-test/can-train-and-test.zip
+2026-10-05 05:59:19 | grama.data.can_train_test | INFO | can-train-and-test set_04 train                        18 files    849785 frames,  24025 attack frames
+2026-10-05 05:59:27 | grama.data.can_train_test | INFO | can-train-and-test set_04 test                         14 files    918730 frames,  37693 attack frames
+2026-10-05 05:59:47 | grama.data.can_train_test | INFO | can-train-and-test set_04 unknown_vehicle              14 files    984811 frames,  27000 attack frames
+2026-10-05 05:59:55 | grama.data.can_train_test | INFO | can-train-and-test set_04 unknown_attack               10 files    692064 frames,  77290 attack frames
+2026-10-05 06:00:05 | grama.data.can_train_test | INFO | can-train-and-test set_04 unknown_vehicle_and_attack   10 files    720921 frames, 102872 attack frames
+2026-10-05 06:00:06 | grama.data.build | INFO | Saved /home/jovyan/grama/data/processed/cantt_set_04_8ab7bf20.pt | 51 CAN-ID nodes | sequences per class {'train': [11435, 1757], 'test': [8715, 5584], 'unknown_vehicle': [11147, 4184], 'unknown_attack': [6047, 4727], 'unknown_vehicle_and_attack': [4504, 6713]}
+2026-10-05 06:00:06 | grama.experiments | INFO | Data: cantt_set_04_8ab7bf20.pt | 51 nodes | train 13192 / test 14299 sequences | device NVIDIA A100 80GB PCIe (79 GB)
+2026-10-05 06:00:06 | grama.experiments | INFO | Profile cantt4: 15 runs planned, 0 already done, 15 to go
+2026-10-05 06:00:07 | grama.models.mamba_block | INFO | MambaBlock: using the pure-PyTorch selective scan.
+2026-10-05 06:03:45 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s0                   acc 0.7453  macro-F1 0.6717  (216s)
+2026-10-05 06:06:00 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s0                    acc 0.8561  macro-F1 0.8346  (132s)
+2026-10-05 06:06:25 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s0                acc 0.9057  macro-F1 0.8958  (24s)
+2026-10-05 06:07:31 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s0               acc 0.7345  macro-F1 0.6531  (66s)
+2026-10-05 06:09:59 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s0                   acc 0.9185  macro-F1 0.9104  (145s)
+2026-10-05 06:13:32 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s1                   acc 0.6669  macro-F1 0.5214  (211s)
+2026-10-05 06:16:08 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s1                    acc 0.6572  macro-F1 0.4992  (153s)
+2026-10-05 06:16:40 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s1                acc 0.9008  macro-F1 0.8897  (31s)
+2026-10-05 06:17:16 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s1               acc 0.7384  macro-F1 0.6599  (36s)
+2026-10-05 06:19:23 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s1                   acc 0.7866  macro-F1 0.7383  (123s)
+2026-10-05 06:22:04 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s2                   acc 0.7686  macro-F1 0.7157  (158s)
+2026-10-05 06:25:41 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s2                    acc 0.7261  macro-F1 0.6384  (215s)
+2026-10-05 06:26:11 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s2                acc 0.8277  macro-F1 0.7965  (30s)
+2026-10-05 06:27:53 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s2               acc 0.8214  macro-F1 0.7880  (101s)
+2026-10-05 06:30:23 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s2                   acc 0.8874  macro-F1 0.8735  (147s)
+
+Done in 31.3 min. Results: /home/jovyan/grama/results/cantt4/summary.md

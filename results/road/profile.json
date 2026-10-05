@@ -1,0 +1,60 @@
+{
+  "profile": "road",
+  "about": "ROAD: one car, attacks injected for real, masquerade versions, split by recording. Main comparison with three seeds; targeted flipping and ALIE at 20% and 40% with two seeds. About 50 runs. ROAD has about four times as many training sequences as CIC-IoV2024, so allow 8-10 hours on one A100.",
+  "alpha": 0.5,
+  "simulation": {
+    "num_clients": 20,
+    "clients_per_round": 10,
+    "num_rounds": 30,
+    "local_epochs": 2,
+    "local_batch_size": 64,
+    "local_lr": 0.001,
+    "non_iid_alpha": 0.5,
+    "class_weighting": "none"
+  },
+  "main_methods": [
+    [
+      "grama",
+      "hdbscan"
+    ],
+    [
+      "grama",
+      "fedavg"
+    ],
+    [
+      "cnn_bigru",
+      "fedavg"
+    ],
+    [
+      "cnn_bigru",
+      "hdbscan"
+    ],
+    [
+      "grama",
+      "central"
+    ]
+  ],
+  "noniid": null,
+  "poisoning": {
+    "seeds": [
+      0,
+      1
+    ],
+    "attacks": [
+      "targeted_flip",
+      "alie"
+    ],
+    "fractions": [
+      0.2,
+      0.4
+    ],
+    "aggregators": [
+      "fedavg",
+      "norm_clip",
+      "flame",
+      "hdbscan"
+    ]
+  },
+  "ablation": null,
+  "edge_mode": "transition"
+}

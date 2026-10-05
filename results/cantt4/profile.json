@@ -1,0 +1,41 @@
+{
+  "profile": "cantt4",
+  "about": "can-train-and-test, set_04: trains on a Subaru Forester, unknown car Chevrolet Traverse. Main comparison only, three seeds (15 runs).",
+  "alpha": 0.5,
+  "simulation": {
+    "num_clients": 20,
+    "clients_per_round": 10,
+    "num_rounds": 30,
+    "local_epochs": 2,
+    "local_batch_size": 64,
+    "local_lr": 0.001,
+    "non_iid_alpha": 0.5,
+    "class_weighting": "none"
+  },
+  "main_methods": [
+    [
+      "grama",
+      "hdbscan"
+    ],
+    [
+      "grama",
+      "fedavg"
+    ],
+    [
+      "cnn_bigru",
+      "fedavg"
+    ],
+    [
+      "cnn_bigru",
+      "hdbscan"
+    ],
+    [
+      "grama",
+      "central"
+    ]
+  ],
+  "noniid": null,
+  "poisoning": null,
+  "ablation": null,
+  "edge_mode": "transition"
+}

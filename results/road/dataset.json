@@ -1,0 +1,59 @@
+{
+  "profile": "road",
+  "data_file": "road_0bc0ca64.pt",
+  "device": "NVIDIA A100 80GB PCIe (79 GB)",
+  "source": "road",
+  "class_names": [
+    "benign",
+    "fuzzing",
+    "correlated_signal",
+    "max_speedometer",
+    "max_coolant_temp",
+    "reverse_light"
+  ],
+  "num_nodes": 107,
+  "in_features": 10,
+  "window_size": 64,
+  "stride": 32,
+  "seq_len": 8,
+  "seq_stride": 2,
+  "edge_mode": "transition",
+  "class_counts": {
+    "train": [
+      15570,
+      215,
+      3225,
+      4275,
+      42,
+      6662
+    ],
+    "test": [
+      4795,
+      27,
+      965,
+      4659,
+      42,
+      3651
+    ],
+    "masquerade": [
+      1383,
+      0,
+      472,
+      2282,
+      21,
+      1788
+    ]
+  },
+  "injection": null,
+  "split": "road",
+  "block_rows": null,
+  "extra_tests": [
+    "masquerade"
+  ],
+  "split_note": "by capture: attack instances 1-2 train, instance 3 tests (with its masquerade version); the coolant attack, recorded once, is cut in the middle of the injection; ambient captures are held out whole",
+  "other_node_share": {
+    "train": 0.0005,
+    "test": 0.0001,
+    "masquerade": 0.0
+  }
+}

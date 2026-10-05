@@ -1,0 +1,6 @@
+Method,benign,attack
+GraMa + HDBSCAN (ours),0.8130,0.4589
+GraMa + FedAvg,0.7978,0.4465
+CNN-BiGRU + FedAvg,0.7736,0.3275
+CNN-BiGRU + HDBSCAN (ours),0.7613,0.2847
+"GraMa, centralised",0.8918,0.7670

@@ -1,0 +1,6 @@
+Method,benign,fuzzing,correlated_signal,max_speedometer,max_coolant_temp,reverse_light
+GraMa + HDBSCAN (ours),0.8989,0.9482,0.6111,0.8721,0.0000,0.7860
+GraMa + FedAvg,0.9054,0.6422,0.8798,0.7721,0.0000,0.7459
+CNN-BiGRU + FedAvg,0.8423,0.3330,0.3387,0.3547,0.0000,0.5067
+CNN-BiGRU + HDBSCAN (ours),0.8526,0.2484,0.3337,0.3482,0.0000,0.6202
+"GraMa, centralised",0.9845,0.9874,0.9979,0.9980,0.7578,0.9818
