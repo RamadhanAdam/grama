@@ -1,0 +1,3 @@
+Attack,Aggregator,20% TPR / FPR,40% TPR / FPR
+Adaptive,FLAME,0.00 / 0.35,0.00 / 0.36
+Adaptive,HDBSCAN (ours),0.00 / 0.12,0.00 / 0.11

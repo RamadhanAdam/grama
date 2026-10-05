@@ -1,0 +1,5 @@
+Aggregator,20%,40%
+FedAvg,10.00,10.00
+Norm clipping,10.00,10.00
+FLAME,0.53,3.66
+HDBSCAN (ours),1.04,4.64

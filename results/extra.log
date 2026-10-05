@@ -1,0 +1,89 @@
+=== cantt1_adaptive ===
+2026-10-05 07:35:17 | grama.data.build | INFO | Reusing /home/jovyan/grama/data/processed/cantt_set_01_b0e5a072.pt
+2026-10-05 07:35:17 | grama.experiments | INFO | Data: cantt_set_01_b0e5a072.pt | 53 nodes | train 11602 / test 6487 sequences | device NVIDIA A100 80GB PCIe (79 GB)
+2026-10-05 07:35:18 | grama.experiments | INFO | Copied 8 finished runs from cantt1
+2026-10-05 07:35:18 | grama.experiments | INFO | Profile cantt1_adaptive: 24 runs planned, 8 already done, 16 to go
+2026-10-05 07:35:18 | grama.models.mamba_block | INFO | MambaBlock: using the pure-PyTorch selective scan.
+2026-10-05 07:39:04 | grama.experiments | INFO | grama-fedavg-a0.5-adaptive-f0.2-s0               acc 0.5938  macro-F1 0.3726  (226s)
+2026-10-05 07:42:50 | grama.experiments | INFO | grama-fedavg-a0.5-adaptive-f0.4-s0               acc 0.5938  macro-F1 0.3726  (224s)
+2026-10-05 07:46:38 | grama.experiments | INFO | grama-norm_clip-a0.5-adaptive-f0.2-s0            acc 0.5990  macro-F1 0.3865  (225s)
+2026-10-05 07:50:24 | grama.experiments | INFO | grama-norm_clip-a0.5-adaptive-f0.4-s0            acc 0.5938  macro-F1 0.3726  (224s)
+2026-10-05 07:54:38 | grama.experiments | INFO | grama-flame-a0.5-adaptive-f0.2-s0                acc 0.5994  macro-F1 0.3873  (252s)
+2026-10-05 07:58:54 | grama.experiments | INFO | grama-flame-a0.5-adaptive-f0.4-s0                acc 0.5938  macro-F1 0.3726  (254s)
+2026-10-05 08:07:35 | grama.experiments | INFO | grama-hdbscan-a0.5-adaptive-f0.2-s0              acc 0.5938  macro-F1 0.3726  (518s)
+2026-10-05 08:15:25 | grama.experiments | INFO | grama-hdbscan-a0.5-adaptive-f0.4-s0              acc 0.5938  macro-F1 0.3726  (470s)
+2026-10-05 08:19:23 | grama.experiments | INFO | grama-fedavg-a0.5-adaptive-f0.2-s1               acc 0.5938  macro-F1 0.3726  (235s)
+2026-10-05 08:23:22 | grama.experiments | INFO | grama-fedavg-a0.5-adaptive-f0.4-s1               acc 0.5938  macro-F1 0.3726  (237s)
+2026-10-05 08:27:20 | grama.experiments | INFO | grama-norm_clip-a0.5-adaptive-f0.2-s1            acc 0.9066  macro-F1 0.8986  (236s)
+2026-10-05 08:31:19 | grama.experiments | INFO | grama-norm_clip-a0.5-adaptive-f0.4-s1            acc 0.5938  macro-F1 0.3726  (237s)
+2026-10-05 08:35:40 | grama.experiments | INFO | grama-flame-a0.5-adaptive-f0.2-s1                acc 0.9075  macro-F1 0.8996  (258s)
+2026-10-05 08:39:57 | grama.experiments | INFO | grama-flame-a0.5-adaptive-f0.4-s1                acc 0.5938  macro-F1 0.3726  (256s)
+2026-10-05 08:48:48 | grama.experiments | INFO | grama-hdbscan-a0.5-adaptive-f0.2-s1              acc 0.9066  macro-F1 0.8986  (529s)
+2026-10-05 08:56:06 | grama.experiments | INFO | grama-hdbscan-a0.5-adaptive-f0.4-s1              acc 0.5938  macro-F1 0.3726  (436s)
+
+Done in 80.9 min. Results: /home/jovyan/grama/results/cantt1_adaptive/summary.md
+=== cic_adaptive ===
+2026-10-05 08:56:11 | grama.data.build | INFO | decimal_DoS.csv                              74663 rows  -> DoS
+2026-10-05 08:56:12 | grama.data.build | INFO | decimal_benign.csv                         1223737 rows  -> benign
+2026-10-05 08:56:12 | grama.data.build | INFO | decimal_spoofing-GAS.csv                      9991 rows  -> spoofing-GAS
+2026-10-05 08:56:12 | grama.data.build | INFO | decimal_spoofing-RPM.csv                     54900 rows  -> spoofing-RPM
+2026-10-05 08:56:12 | grama.data.build | INFO | decimal_spoofing-SPEED.csv                   24951 rows  -> spoofing-SPEED
+2026-10-05 08:56:12 | grama.data.build | INFO | decimal_spoofing-STEERING_WHEEL.csv          19977 rows  -> spoofing-STEERING_WHEEL
+2026-10-05 08:56:13 | grama.data.build | INFO | Saved /home/jovyan/grama/data/processed/cic_iov2024_1427a6ad.pt | 78 CAN-ID nodes | sequences per class (train) [4720, 885, 118, 649, 295, 236] | (test) [960, 174, 23, 130, 59, 47]
+2026-10-05 08:56:13 | grama.experiments | INFO | Data: cic_iov2024_1427a6ad.pt | 78 nodes | train 6903 / test 1393 sequences | device NVIDIA A100 80GB PCIe (79 GB)
+2026-10-05 08:56:13 | grama.experiments | INFO | Copied 8 finished runs from full
+2026-10-05 08:56:13 | grama.experiments | INFO | Profile cic_adaptive: 24 runs planned, 8 already done, 16 to go
+2026-10-05 08:56:13 | grama.models.mamba_block | INFO | MambaBlock: using the pure-PyTorch selective scan.
+2026-10-05 08:58:35 | grama.experiments | INFO | grama-fedavg-a0.5-adaptive-f0.2-s0               acc 0.6892  macro-F1 0.1360  (142s)
+2026-10-05 09:00:55 | grama.experiments | INFO | grama-fedavg-a0.5-adaptive-f0.4-s0               acc 0.6892  macro-F1 0.1360  (140s)
+2026-10-05 09:02:57 | grama.experiments | INFO | grama-norm_clip-a0.5-adaptive-f0.2-s0            acc 0.9835  macro-F1 0.9819  (122s)
+2026-10-05 09:05:21 | grama.experiments | INFO | grama-norm_clip-a0.5-adaptive-f0.4-s0            acc 0.6892  macro-F1 0.1360  (144s)
+2026-10-05 09:08:19 | grama.experiments | INFO | grama-flame-a0.5-adaptive-f0.2-s0                acc 1.0000  macro-F1 1.0000  (178s)
+2026-10-05 09:11:15 | grama.experiments | INFO | grama-flame-a0.5-adaptive-f0.4-s0                acc 0.7229  macro-F1 0.3054  (176s)
+2026-10-05 09:18:46 | grama.experiments | INFO | grama-hdbscan-a0.5-adaptive-f0.2-s0              acc 1.0000  macro-F1 1.0000  (451s)
+2026-10-05 09:25:29 | grama.experiments | INFO | grama-hdbscan-a0.5-adaptive-f0.4-s0              acc 0.6892  macro-F1 0.1360  (403s)
+2026-10-05 09:28:06 | grama.experiments | INFO | grama-fedavg-a0.5-adaptive-f0.2-s1               acc 0.6892  macro-F1 0.1360  (156s)
+2026-10-05 09:30:42 | grama.experiments | INFO | grama-fedavg-a0.5-adaptive-f0.4-s1               acc 0.6892  macro-F1 0.1360  (156s)
+2026-10-05 09:33:19 | grama.experiments | INFO | grama-norm_clip-a0.5-adaptive-f0.2-s1            acc 1.0000  macro-F1 1.0000  (157s)
+2026-10-05 09:35:55 | grama.experiments | INFO | grama-norm_clip-a0.5-adaptive-f0.4-s1            acc 0.6892  macro-F1 0.1360  (156s)
+2026-10-05 09:38:57 | grama.experiments | INFO | grama-flame-a0.5-adaptive-f0.2-s1                acc 0.9993  macro-F1 0.9980  (182s)
+2026-10-05 09:41:52 | grama.experiments | INFO | grama-flame-a0.5-adaptive-f0.4-s1                acc 0.6892  macro-F1 0.1360  (174s)
+2026-10-05 09:49:17 | grama.experiments | INFO | grama-hdbscan-a0.5-adaptive-f0.2-s1              acc 1.0000  macro-F1 1.0000  (445s)
+2026-10-05 09:55:22 | grama.experiments | INFO | grama-hdbscan-a0.5-adaptive-f0.4-s1              acc 0.6892  macro-F1 0.1360  (365s)
+
+Done in 59.2 min. Results: /home/jovyan/grama/results/cic_adaptive/summary.md
+=== cantt1 ===
+2026-10-05 09:55:27 | grama.data.build | INFO | Reusing /home/jovyan/grama/data/processed/cantt_set_01_b0e5a072.pt
+2026-10-05 09:55:28 | grama.experiments | INFO | Data: cantt_set_01_b0e5a072.pt | 53 nodes | train 11602 / test 6487 sequences | device NVIDIA A100 80GB PCIe (79 GB)
+2026-10-05 09:55:28 | grama.experiments | INFO | Profile cantt1: 61 runs planned, 51 already done, 10 to go
+2026-10-05 09:55:28 | grama.models.mamba_block | INFO | MambaBlock: using the pure-PyTorch selective scan.
+2026-10-05 09:59:30 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s3                   acc 0.9084  macro-F1 0.9007  (241s)
+2026-10-05 10:03:00 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s3                    acc 0.8978  macro-F1 0.8884  (207s)
+2026-10-05 10:03:22 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s3                acc 0.9554  macro-F1 0.9529  (22s)
+2026-10-05 10:04:42 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s3               acc 0.9738  macro-F1 0.9726  (80s)
+2026-10-05 10:06:49 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s3                   acc 0.9471  macro-F1 0.9439  (125s)
+2026-10-05 10:09:58 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s4                   acc 0.9257  macro-F1 0.9205  (187s)
+2026-10-05 10:13:47 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s4                    acc 0.9164  macro-F1 0.9098  (227s)
+2026-10-05 10:15:14 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s4                acc 0.9892  macro-F1 0.9888  (86s)
+2026-10-05 10:17:14 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s4               acc 0.9889  macro-F1 0.9885  (120s)
+2026-10-05 10:18:53 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s4                   acc 0.9502  macro-F1 0.9473  (97s)
+
+Done in 23.5 min. Results: /home/jovyan/grama/results/cantt1/summary.md
+=== road ===
+2026-10-05 10:18:59 | grama.data.build | INFO | Reusing /home/jovyan/grama/data/processed/road_0bc0ca64.pt
+2026-10-05 10:18:59 | grama.experiments | INFO | Data: road_0bc0ca64.pt | 107 nodes | train 29989 / test 14139 sequences | device NVIDIA A100 80GB PCIe (79 GB)
+2026-10-05 10:18:59 | grama.experiments | INFO | Profile road: 61 runs planned, 51 already done, 10 to go
+2026-10-05 10:18:59 | grama.models.mamba_block | INFO | MambaBlock: using the pure-PyTorch selective scan.
+2026-10-05 10:29:02 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s3                   acc 0.9508  macro-F1 0.6153  (599s)
+2026-10-05 10:38:59 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s3                    acc 0.9693  macro-F1 0.8162  (593s)
+2026-10-05 10:42:19 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s3                acc 0.6755  macro-F1 0.6273  (200s)
+2026-10-05 10:46:26 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s3               acc 0.6878  macro-F1 0.5275  (247s)
+2026-10-05 10:56:31 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s3                   acc 0.9981  macro-F1 0.9983  (601s)
+2026-10-05 11:07:09 | grama.experiments | INFO | grama-hdbscan-a0.5-clean-f0-s4                   acc 0.9866  macro-F1 0.6606  (634s)
+2026-10-05 11:17:20 | grama.experiments | INFO | grama-fedavg-a0.5-clean-f0-s4                    acc 0.9920  macro-F1 0.8266  (607s)
+2026-10-05 11:20:55 | grama.experiments | INFO | cnn_bigru-fedavg-a0.5-clean-f0-s4                acc 0.7278  macro-F1 0.5683  (214s)
+2026-10-05 11:24:58 | grama.experiments | INFO | cnn_bigru-hdbscan-a0.5-clean-f0-s4               acc 0.7091  macro-F1 0.5993  (243s)
+2026-10-05 11:35:02 | grama.experiments | INFO | grama-central-a0.5-clean-f0-s4                   acc 0.9852  macro-F1 0.8957  (601s)
+
+Done in 76.1 min. Results: /home/jovyan/grama/results/road/summary.md
+=== all done ===

@@ -1,0 +1,38 @@
+{
+  "profile": "cantt1_adaptive",
+  "about": "Adaptive attack on can-train-and-test set_01 (same data and setting as `cantt1`), same grid as cic_adaptive (16 runs). About 1.5 hours on one A100.",
+  "alpha": 0.5,
+  "simulation": {
+    "num_clients": 20,
+    "clients_per_round": 10,
+    "num_rounds": 30,
+    "local_epochs": 2,
+    "local_batch_size": 64,
+    "local_lr": 0.001,
+    "non_iid_alpha": 0.5,
+    "class_weighting": "none"
+  },
+  "main_methods": [],
+  "noniid": null,
+  "poisoning": {
+    "seeds": [
+      0,
+      1
+    ],
+    "attacks": [
+      "adaptive"
+    ],
+    "fractions": [
+      0.2,
+      0.4
+    ],
+    "aggregators": [
+      "fedavg",
+      "norm_clip",
+      "flame",
+      "hdbscan"
+    ]
+  },
+  "ablation": null,
+  "edge_mode": "transition"
+}

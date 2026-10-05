@@ -1,11 +1,11 @@
 # GraMa results: `road` profile
 
-Generated 2026-10-05 01:03 from 51 runs.
+Generated 2026-10-05 11:35 from 61 runs.
 
 - Data: ROAD (`road_0bc0ca64.pt`), 107 CAN-ID nodes, windows of 64 frames (stride 32), sequences of 8 windows, edges: transition.
 - Federated setting: 20 clients, 10 per round, 30 rounds, 2 local epoch(s), batch 64, lr 0.001, Dirichlet alpha 0.5 unless stated.
 - Hardware: NVIDIA A100 80GB PCIe (79 GB).
-- Seeds: [0, 1, 2]. Cells are mean ± std over seeds where there is more than one.
+- Seeds: [0, 1, 2, 3, 4]. Cells are mean ± std over seeds where there is more than one.
 
 Sequences per class:
 
@@ -19,11 +19,11 @@ Sequences per class:
 
 | Method | Accuracy | Macro-P | Macro-R | Macro-F1 | ROC-AUC | Detection rate | False alarm rate | Params | Train time (s) |
 |---|---|---|---|---|---|---|---|---|---|
-| GraMa + HDBSCAN (ours) | 0.8485 ± 0.1124 | 0.7141 ± 0.1071 | 0.6806 ± 0.1127 | 0.6861 ± 0.1211 | 0.9774 ± 0.0154 | 0.8799 ± 0.0977 | 0.0054 ± 0.0028 | 78,819 | 544 |
-| GraMa + FedAvg | 0.8250 ± 0.1015 | 0.6826 ± 0.1275 | 0.6615 ± 0.1427 | 0.6576 ± 0.1494 | 0.9624 ± 0.0165 | 0.9002 ± 0.0305 | 0.0132 ± 0.0172 | 78,819 | 598 |
-| CNN-BiGRU + FedAvg | 0.5915 ± 0.1268 | 0.4412 ± 0.2084 | 0.4662 ± 0.1607 | 0.3959 ± 0.2011 | 0.8587 ± 0.0872 | 0.8256 ± 0.0389 | 0.0270 ± 0.0204 | 39,895 | 107 |
-| CNN-BiGRU + HDBSCAN (ours) | 0.6446 ± 0.1803 | 0.4532 ± 0.2366 | 0.4383 ± 0.1913 | 0.4005 ± 0.2317 | 0.8560 ± 0.0947 | 0.8231 ± 0.1480 | 0.0252 ± 0.0320 | 39,895 | 155 |
-| GraMa, centralised | 0.9887 ± 0.0046 | 0.9945 ± 0.0022 | 0.9282 ± 0.0389 | 0.9512 ± 0.0272 | 0.9987 ± 0.0012 | 0.9843 ± 0.0066 | 0.0010 ± 0.0002 | 78,819 | 632 |
+| GraMa + HDBSCAN (ours) | 0.8966 ± 0.1057 | 0.6811 ± 0.0939 | 0.6673 ± 0.0893 | 0.6668 ± 0.0978 | 0.9782 ± 0.0120 | 0.9217 ± 0.0914 | 0.0226 ± 0.0336 | 78,819 | 573 |
+| GraMa + FedAvg | 0.8873 ± 0.1097 | 0.7392 ± 0.1207 | 0.7247 ± 0.1349 | 0.7231 ± 0.1409 | 0.9746 ± 0.0197 | 0.9292 ± 0.0442 | 0.0085 ± 0.0145 | 78,819 | 599 |
+| CNN-BiGRU + FedAvg | 0.6356 ± 0.1133 | 0.5191 ± 0.1877 | 0.5353 ± 0.1505 | 0.4767 ± 0.1855 | 0.8888 ± 0.0770 | 0.8420 ± 0.0515 | 0.0229 ± 0.0190 | 39,895 | 147 |
+| CNN-BiGRU + HDBSCAN (ours) | 0.6662 ± 0.1423 | 0.5330 ± 0.2135 | 0.5135 ± 0.1753 | 0.4657 ± 0.1977 | 0.8744 ± 0.0819 | 0.8741 ± 0.1309 | 0.0337 ± 0.0293 | 39,895 | 191 |
+| GraMa, centralised | 0.9899 ± 0.0056 | 0.9925 ± 0.0066 | 0.9299 ± 0.0510 | 0.9495 ± 0.0387 | 0.9983 ± 0.0018 | 0.9860 ± 0.0083 | 0.0014 ± 0.0006 | 78,819 | 620 |
 
 Detection rate = attack sequences flagged as any attack; false alarm rate = benign sequences flagged as an attack.
 
@@ -33,21 +33,21 @@ The same models, tested on the extra sets. Macro scores are averaged over the cl
 
 | Method | Masquerade attacks only: Macro-F1 | Masquerade attacks only: Detection rate | Masquerade attacks only: False alarm rate |
 |---|---|---|---|
-| GraMa + HDBSCAN (ours) | 0.6810 ± 0.1312 | 0.8879 ± 0.1013 | 0.0055 ± 0.0033 |
-| GraMa + FedAvg | 0.6734 ± 0.1019 | 0.9094 ± 0.0302 | 0.0200 ± 0.0257 |
-| CNN-BiGRU + FedAvg | 0.4163 ± 0.1406 | 0.8774 ± 0.0544 | 0.0381 ± 0.0257 |
-| CNN-BiGRU + HDBSCAN (ours) | 0.4478 ± 0.2085 | 0.8974 ± 0.0705 | 0.0349 ± 0.0423 |
-| GraMa, centralised | 0.9454 ± 0.0276 | 0.9835 ± 0.0066 | 0.0014 ± 0.0000 |
+| GraMa + HDBSCAN (ours) | 0.7144 ± 0.1114 | 0.9283 ± 0.0928 | 0.0330 ± 0.0555 |
+| GraMa + FedAvg | 0.7219 ± 0.0988 | 0.9414 ± 0.0456 | 0.0129 ± 0.0218 |
+| CNN-BiGRU + FedAvg | 0.4755 ± 0.1309 | 0.8838 ± 0.0484 | 0.0341 ± 0.0260 |
+| CNN-BiGRU + HDBSCAN (ours) | 0.4846 ± 0.1678 | 0.9236 ± 0.0648 | 0.0453 ± 0.0478 |
+| GraMa, centralised | 0.9402 ± 0.0476 | 0.9870 ± 0.0079 | 0.0022 ± 0.0009 |
 
 ### Per-class F1
 
 | Method | benign | fuzzing | correlated_signal | max_speedometer | max_coolant_temp | reverse_light |
 |---|---|---|---|---|---|---|
-| GraMa + HDBSCAN (ours) | 0.8989 | 0.9482 | 0.6111 | 0.8721 | 0.0000 | 0.7860 |
-| GraMa + FedAvg | 0.9054 | 0.6422 | 0.8798 | 0.7721 | 0.0000 | 0.7459 |
-| CNN-BiGRU + FedAvg | 0.8423 | 0.3330 | 0.3387 | 0.3547 | 0.0000 | 0.5067 |
-| CNN-BiGRU + HDBSCAN (ours) | 0.8526 | 0.2484 | 0.3337 | 0.3482 | 0.0000 | 0.6202 |
-| GraMa, centralised | 0.9845 | 0.9874 | 0.9979 | 0.9980 | 0.7578 | 0.9818 |
+| GraMa + HDBSCAN (ours) | 0.9233 | 0.5689 | 0.7233 | 0.9203 | 0.0000 | 0.8650 |
+| GraMa + FedAvg | 0.9327 | 0.7815 | 0.9270 | 0.8625 | 0.0000 | 0.8349 |
+| CNN-BiGRU + FedAvg | 0.8569 | 0.4961 | 0.5450 | 0.4367 | 0.0000 | 0.5252 |
+| CNN-BiGRU + HDBSCAN (ours) | 0.8838 | 0.4283 | 0.4869 | 0.3622 | 0.0000 | 0.6327 |
+| GraMa, centralised | 0.9859 | 0.9887 | 0.9974 | 0.9960 | 0.7420 | 0.9873 |
 
 ## 3. Poisoning (Sec 6.2.3)
 
@@ -57,37 +57,37 @@ GraMa, Dirichlet alpha 0.5. Columns are the share of compromised clients; 0 is t
 
 | Aggregator | 0% | 20% | 40% |
 |---|---|---|---|
-| FedAvg | 0.6576 ± 0.1494 | 0.5116 ± 0.1452 | 0.1441 ± 0.0488 |
+| FedAvg | 0.7231 ± 0.1409 | 0.5116 ± 0.1452 | 0.1441 ± 0.0488 |
 | Norm clipping | 0.7121 ± 0.0680 | 0.4378 ± 0.0488 | 0.0887 ± 0.0043 |
 | FLAME | 0.7606 ± 0.0283 | 0.7801 ± 0.0037 | 0.1487 ± 0.0643 |
-| HDBSCAN (ours) | 0.6861 ± 0.1211 | 0.6491 ± 0.0670 | 0.1256 ± 0.0410 |
+| HDBSCAN (ours) | 0.6668 ± 0.0978 | 0.6491 ± 0.0670 | 0.1256 ± 0.0410 |
 
 ### Targeted flipping (attack -> benign): Detection rate
 
 | Aggregator | 0% | 20% | 40% |
 |---|---|---|---|
-| FedAvg | 0.9002 ± 0.0305 | 0.3953 ± 0.2913 | 0.0363 ± 0.0206 |
+| FedAvg | 0.9292 ± 0.0442 | 0.3953 ± 0.2913 | 0.0363 ± 0.0206 |
 | Norm clipping | 0.8642 ± 0.0523 | 0.5957 ± 0.0081 | 0.0049 ± 0.0049 |
 | FLAME | 0.9563 ± 0.0033 | 0.9648 ± 0.0105 | 0.3753 ± 0.3746 |
-| HDBSCAN (ours) | 0.8799 ± 0.0977 | 0.9004 ± 0.0043 | 0.2862 ± 0.2825 |
+| HDBSCAN (ours) | 0.9217 ± 0.0914 | 0.9004 ± 0.0043 | 0.2862 ± 0.2825 |
 
 ### ALIE (crafted to look honest): Macro-F1
 
 | Aggregator | 0% | 20% | 40% |
 |---|---|---|---|
-| FedAvg | 0.6576 ± 0.1494 | 0.6307 ± 0.1739 | 0.4815 ± 0.1859 |
+| FedAvg | 0.7231 ± 0.1409 | 0.6307 ± 0.1739 | 0.4815 ± 0.1859 |
 | Norm clipping | 0.7121 ± 0.0680 | 0.7088 ± 0.0836 | 0.4298 ± 0.1395 |
 | FLAME | 0.7606 ± 0.0283 | 0.6204 ± 0.1089 | 0.0844 ± 0.0054 |
-| HDBSCAN (ours) | 0.6861 ± 0.1211 | 0.7543 ± 0.0302 | 0.0967 ± 0.0017 |
+| HDBSCAN (ours) | 0.6668 ± 0.0978 | 0.7543 ± 0.0302 | 0.0967 ± 0.0017 |
 
 ### ALIE (crafted to look honest): Detection rate
 
 | Aggregator | 0% | 20% | 40% |
 |---|---|---|---|
-| FedAvg | 0.9002 ± 0.0305 | 0.7190 ± 0.2230 | 0.7810 ± 0.1417 |
+| FedAvg | 0.9292 ± 0.0442 | 0.7190 ± 0.2230 | 0.7810 ± 0.1417 |
 | Norm clipping | 0.8642 ± 0.0523 | 0.8447 ± 0.1306 | 0.7608 ± 0.2151 |
 | FLAME | 0.9563 ± 0.0033 | 0.7946 ± 0.1222 | 0.5638 ± 0.4361 |
-| HDBSCAN (ours) | 0.8799 ± 0.0977 | 0.9021 ± 0.0502 | 0.5586 ± 0.4394 |
+| HDBSCAN (ours) | 0.9217 ± 0.0914 | 0.9021 ± 0.0502 | 0.5586 ± 0.4394 |
 
 ### Rejected updates
 
@@ -106,8 +106,8 @@ One sequence covers 288 CAN frames. Latency is for one sequence at a time; throu
 
 | Model | Params | Size (KB) | Upload per client per round (KB) | CPU latency, 1 thread (ms/sequence) | GPU latency (ms/sequence) | Throughput (sequences/s) |
 |---|---|---|---|---|---|---|
-| GraMa | 78,819 | 307.9 | 307.9 | 6.21 | 3.73 | 4,663 |
-| CNN-BiGRU | 39,895 | 155.8 | 155.8 | 1.55 | 0.92 | 43,435 |
+| GraMa | 78,819 | 307.9 | 307.9 | 5.60 | 6.82 | 5,231 |
+| CNN-BiGRU | 39,895 | 155.8 | 155.8 | 1.36 | 2.57 | 115,249 |
 
 ## Figures
 
