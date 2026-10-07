@@ -25,6 +25,9 @@ from grama.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
+LATENT_METHODS = ("autoencoder", "pca", "raw")
+
+
 class DeltaAutoencoder(nn.Module):
     """phi: flattened Δw -> latent u_k ∈ R^d (eq. 11). Trained per-round on the
     incoming batch of client updates (unsupervised, reconstruction loss) so it
@@ -103,10 +106,13 @@ class LatentDensityAggregator(Aggregator):
         allow_single_cluster: bool = True,
         standardize_latent: bool = True,
         phi_input: str = "all",
+        latent_method: str = "autoencoder",
         device: str = "cpu",
     ):
         if phi_input not in ("all", "last_layer"):
             raise ValueError(f"phi_input must be 'all' or 'last_layer', got {phi_input!r}")
+        if latent_method not in LATENT_METHODS:
+            raise ValueError(f"latent_method must be one of {LATENT_METHODS}, got {latent_method!r}")
         self.latent_dim = latent_dim
         self.autoencoder_hidden = autoencoder_hidden
         self.autoencoder_epochs = autoencoder_epochs
@@ -118,7 +124,22 @@ class LatentDensityAggregator(Aggregator):
         self.allow_single_cluster = allow_single_cluster
         self.standardize_latent = standardize_latent
         self.phi_input = phi_input
+        self.latent_method = latent_method
         self.device = device
+
+    def _latent(self, flat: torch.Tensor) -> np.ndarray:
+        """The points HDBSCAN clusters: phi(updates), their PCA projection, or the updates as they are."""
+        if self.latent_method == "raw":
+            return flat.cpu().numpy()
+        if self.latent_method == "pca":
+            centred = flat - flat.mean(dim=0, keepdim=True)
+            u, s, _ = torch.linalg.svd(centred, full_matrices=False)
+            k = max(1, min(self.latent_dim, s.shape[0]))
+            return (u[:, :k] * s[:k]).cpu().numpy()
+        ae = self._train_autoencoder(flat)
+        with torch.no_grad():
+            latent, _ = ae(flat)
+        return latent.cpu().numpy()
 
     def _train_autoencoder(self, flat_deltas: torch.Tensor) -> DeltaAutoencoder:
         input_dim = flat_deltas.shape[1]
@@ -157,11 +178,9 @@ class LatentDensityAggregator(Aggregator):
             median_norm = flat.norm(dim=1).median().clamp(min=1e-12)
             flat = flat * (flat.shape[1] ** 0.5) / median_norm
 
-        # eq. 11: project to latent space.
-        ae = self._train_autoencoder(flat)
-        with torch.no_grad():
-            latent, _ = ae(flat)
-        latent_np = latent.cpu().numpy()
+        # eq. 11: project to latent space. The ablation can swap the autoencoder for PCA or skip the
+        # projection and cluster the updates themselves (latent_method).
+        latent_np = self._latent(flat)
         if self.standardize_latent:
             # Express the latent points in units of their typical spread (median
             # distance to the median point). phi is refitted every round, so its
