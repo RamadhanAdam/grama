@@ -15,6 +15,10 @@ update before sending it:
     density based defences find it hard to tell apart, yet it pulls every
     coordinate the same way. We give the attackers full knowledge of the
     round's honest updates, the strong setting of Fang et al. (2020).
+  - alie_noisy: ALIE where each colluder adds its own Gaussian noise, the
+    size of the honest spread, to the shared vector. The colluders then no
+    longer send identical updates, which separates a defence that finds
+    duplicates (FoolsGold) from one that finds a shifted cluster.
   - adaptive: an attacker who knows the defence (Fang et al., 2020;
     Shejwalkar and Houmansadr, NDSS 2021). The attackers train like
     targeted_flip, then all send mean(honest) + gamma * d, with
@@ -75,21 +79,29 @@ def alie_z(num_clients: int, num_malicious: int) -> float:
     return max(NormalDist().inv_cdf(p), 0.0)
 
 
-def alie_attack(updates: list[ClientUpdate], malicious_idx: list[int]) -> list[ClientUpdate]:
-    """Replace the colluding clients' updates with mean - z * std of all honest updates this round."""
+def alie_attack(updates: list[ClientUpdate], malicious_idx: list[int], noise: float = 0.0,
+                generator: torch.Generator | None = None) -> list[ClientUpdate]:
+    """Replace the colluding clients' updates with mean - z * std of all honest updates this round.
+
+    With noise > 0 each colluder adds N(0, (noise * std)^2) of its own, so no two send the same vector.
+    """
     if not malicious_idx:
         return updates
     z = alie_z(len(updates), len(malicious_idx))
     names = list(updates[0].delta_w)
-    crafted = {}
+    crafted, spread = {}, {}
     for name in names:
         stack = torch.stack([u.delta_w[name].float() for u in updates])
-        crafted[name] = stack.mean(dim=0) - z * stack.std(dim=0, unbiased=False)
+        spread[name] = stack.std(dim=0, unbiased=False)
+        crafted[name] = stack.mean(dim=0) - z * spread[name]
     out = list(updates)
     for i in malicious_idx:
         u = updates[i]
-        out[i] = ClientUpdate(u.client_id, {k: v.clone() for k, v in crafted.items()},
-                              u.num_samples, u.local_loss, malicious=True)
+        if noise > 0.0:
+            delta = {k: v + noise * spread[k] * torch.randn(v.shape, generator=generator) for k, v in crafted.items()}
+        else:
+            delta = {k: v.clone() for k, v in crafted.items()}
+        out[i] = ClientUpdate(u.client_id, delta, u.num_samples, u.local_loss, malicious=True)
     return out
 
 

@@ -22,6 +22,7 @@ AGG_LABEL = {"hdbscan": "HDBSCAN (ours)", "fedavg": "FedAvg", "median": "Median"
              "flame": "FLAME", "central": "centralised"}
 ATTACK_LABEL = {"label_flip": "Label flipping", "targeted_flip": "Targeted flipping (attack -> benign)",
                 "magnitude_poison": "Magnitude poisoning", "alie": "ALIE (crafted to look honest)",
+                "alie_noisy": "ALIE with noise (attackers differ)",
                 "adaptive": "Adaptive (knows the defence)"}
 METRIC_LABEL = {"accuracy": "Accuracy", "precision_macro": "Macro-P", "recall_macro": "Macro-R",
                 "f1_macro": "Macro-F1", "roc_auc": "ROC-AUC", "detection_rate": "Detection rate",

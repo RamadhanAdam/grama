@@ -10,6 +10,7 @@ A client can be compromised (Sec 6.2.3). Then it poisons its own update:
   magnitude_poison trains honestly, then scales Δw by poison_scale
   alie             trains honestly; the server loop then swaps in the update
                    the attackers craft together (see attacks/poisoning.py)
+  alie_noisy       like alie, each attacker adds its own noise, so the updates differ
   adaptive         trains like targeted_flip; the server loop then scales the
                    poison to the most the aggregation rule still accepts
                    (see attacks/poisoning.py)
@@ -22,7 +23,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset, Subset
 
-ATTACKS = ("label_flip", "targeted_flip", "magnitude_poison", "alie", "adaptive")
+ATTACKS = ("label_flip", "targeted_flip", "magnitude_poison", "alie", "alie_noisy", "adaptive")
 
 
 @dataclass

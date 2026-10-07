@@ -49,11 +49,13 @@ class FederatedServer:
     eval_every: int = 1
     adaptive_max_scale: float = 10.0   # adaptive attack: largest poison scale it tries
     adaptive_steps: int = 7            # adaptive attack: bisection steps per round
+    alie_noise: float = 1.0            # alie_noisy: each attacker's noise, in units of the honest spread
     history: list[RoundHistory] = field(default_factory=list)
     last_round_num: int = field(default=0, init=False, repr=False)
 
     def __post_init__(self):
         self.rng = random.Random(self.seed)
+        self.alie_generator = torch.Generator().manual_seed(self.seed)
         self.global_model = self.model_factory()
         self.global_state = {k: v.clone() for k, v in self.global_model.state_dict().items()}
 
@@ -76,6 +78,9 @@ class FederatedServer:
         colluders = [i for i, c in enumerate(selected) if getattr(c, "attack", None) == "alie"]
         if colluders:
             updates = alie_attack(updates, colluders)
+        noisy = [i for i, c in enumerate(selected) if getattr(c, "attack", None) == "alie_noisy"]
+        if noisy:
+            updates = alie_attack(updates, noisy, self.alie_noise, self.alie_generator)
 
         param_shapes = {k: v.shape for k, v in self.global_state.items()}
         attack_scale = None
