@@ -15,6 +15,16 @@
                 averaged, and Gaussian noise of scale lambda * median norm is
                 added. The closest prior defence to the latent density one.
 
+  foolsgold     FoolsGold (Fung et al., RAID 2020): clients whose summed updates point
+                the same way as another client's get less weight (sybil resistance)
+  deepsight     DeepSight (Rieger et al., NDSS 2022), simplified: update clusters
+                are accepted or dropped by how many output neurons carry the update's
+                energy (threshold exceedings), then clipped. Omits the DDifs measure,
+                which needs forward passes on random inputs
+  freqfed       FreqFed (Fereidooni et al., NDSS 2024): the low-frequency part of the
+                discrete cosine transform of each update is clustered with HDBSCAN,
+                the majority cluster is kept, clipped and averaged
+
 All of them return the same AggregationResult as LatentDensityAggregator,
 so the server and the experiments treat every rule the same way.
 """
@@ -171,7 +181,171 @@ class FlameAggregator(Aggregator):
         )
 
 
-AGGREGATORS = ("fedavg", "median", "trimmed_mean", "krum", "norm_clip", "flame", "hdbscan")
+class FoolsGoldAggregator(Aggregator):
+    """FoolsGold. Keeps each client's summed update over the rounds it took part in; the more a client's
+    history points the same way as another's, the less weight it gets. Colluders with identical
+    updates get weight 0."""
+
+    name = "foolsgold"
+    detects_clients = True
+
+    def __init__(self, confidence: float = 1.0):
+        self.confidence = confidence
+        self.history: dict[int, torch.Tensor] = {}
+
+    def aggregate(self, updates, param_shapes):
+        flat = _stack(updates)
+        k = len(updates)
+        for i, u in enumerate(updates):
+            self.history[u.client_id] = self.history.get(u.client_id, torch.zeros_like(flat[i])) + flat[i]
+        hist = torch.stack([self.history[u.client_id] for u in updates])
+        unit = hist / hist.norm(dim=1, keepdim=True).clamp(min=1e-12)
+        cs = unit @ unit.T - torch.eye(k)
+        max_cs = cs.max(dim=1).values
+        # Pardoning: a client that is less similar than its neighbour keeps its weight.
+        for i in range(k):
+            for j in range(k):
+                if i != j and max_cs[j] > max_cs[i]:
+                    cs[i, j] = cs[i, j] * max_cs[i] / max_cs[j]
+        wv = (1.0 - cs.max(dim=1).values).clamp(0.0, 1.0)
+        if wv.max() > 0:
+            wv = wv / wv.max()
+        wv = torch.where(wv >= 1.0, torch.full_like(wv, 0.99), wv)
+        wv = self.confidence * (torch.log(wv / (1.0 - wv)) + 0.5)    # -inf where wv is 0, cleaned below
+        wv = torch.nan_to_num(wv, nan=0.0, neginf=0.0, posinf=1.0).clamp(0.0, 1.0)
+        total = float(wv.sum())
+        if total <= 0.0:
+            weights = torch.zeros(k)
+            delta = torch.zeros(flat.shape[1])
+        else:
+            weights = wv / total
+            delta = (weights.unsqueeze(1) * flat).sum(0)
+        return AggregationResult(
+            global_delta=unflatten_delta(delta, param_shapes),
+            trust_weights={u.client_id: float(w) for u, w in zip(updates, weights)},
+            cluster_labels={}, benign_cluster_id=None,
+        )
+
+
+class DeepSightAggregator(Aggregator):
+    """DeepSight without DDifs. Per update: the share of its energy on each output neuron (NEUPs) and
+    the number of neurons above a threshold (threshold exceedings, TE). Few exceedings mean the update
+    was trained on one label, which is how poisoned updates look. Updates are clustered on cosine
+    distance and NEUP distance; a cluster is dropped when a third or more of it looks suspicious."""
+
+    name = "deepsight"
+    detects_clients = True
+
+    def __init__(self, suspicious_share: float = 1.0 / 3.0, noise_lambda: float = 0.0, seed: int = 0):
+        self.suspicious_share = suspicious_share
+        self.noise_lambda = noise_lambda
+        self.generator = torch.Generator().manual_seed(seed)
+
+    def aggregate(self, updates, param_shapes):
+        flat = _stack(updates)
+        k = len(updates)
+        names = list(updates[0].delta_w)[-2:]          # output layer: weights and bias
+        neups = []
+        for u in updates:
+            w, b = u.delta_w[names[0]].float(), u.delta_w[names[1]].float()
+            energy = w.reshape(w.shape[0], -1).pow(2).sum(1) + b.reshape(-1).pow(2)
+            neups.append(energy / energy.sum().clamp(min=1e-12))
+        neup = torch.stack(neups)                       # (K, classes)
+        threshold = (neup.max(dim=1, keepdim=True).values / 2).clamp(min=0.01)
+        te = (neup > threshold).sum(dim=1).float()
+        suspicious = (te <= te.median() / 2).numpy()
+
+        unit = flat / flat.norm(dim=1, keepdim=True).clamp(min=1e-12)
+        d_cos = (1.0 - unit @ unit.T).clamp(min=0.0)
+        d_neup = torch.cdist(neup, neup)
+        dist = (d_cos / d_cos.max().clamp(min=1e-12) + d_neup / d_neup.max().clamp(min=1e-12)) / 2
+        dist = dist.double().numpy()
+        np.fill_diagonal(dist, 0.0)
+        labels = HDBSCAN(metric="precomputed", min_cluster_size=2, min_samples=1,
+                         allow_single_cluster=False).fit_predict(dist)
+        keep = np.zeros(k, dtype=bool)
+        for lbl in set(labels.tolist()):
+            members = labels == lbl
+            if lbl == -1:                               # noise points are judged one by one
+                keep |= members & ~suspicious
+            elif suspicious[members].mean() < self.suspicious_share:
+                keep |= members
+        if not keep.any():
+            keep = ~suspicious if (~suspicious).any() else np.ones(k, dtype=bool)
+        clipped, bound = _clip_to_median(flat)
+        delta = clipped[torch.from_numpy(keep)].mean(dim=0)
+        if self.noise_lambda:
+            delta = delta + torch.randn(delta.shape, generator=self.generator) * (self.noise_lambda * float(bound))
+        m = int(keep.sum())
+        return AggregationResult(
+            global_delta=unflatten_delta(delta, param_shapes),
+            trust_weights={u.client_id: (1.0 / m if keep[i] else 0.0) for i, u in enumerate(updates)},
+            cluster_labels={u.client_id: int(labels[i]) for i, u in enumerate(updates)},
+            benign_cluster_id=None,
+        )
+
+
+class FreqFedAggregator(Aggregator):
+    """FreqFed: HDBSCAN on the low-frequency discrete cosine transform of each update."""
+
+    name = "freqfed"
+    detects_clients = True
+
+    def __init__(self, low_fraction: float = 0.05, noise_lambda: float = 0.0, seed: int = 0):
+        self.low_fraction = low_fraction
+        self.noise_lambda = noise_lambda
+        self.generator = torch.Generator().manual_seed(seed)
+
+    def aggregate(self, updates, param_shapes):
+        from scipy.fft import dct
+
+        flat = _stack(updates)
+        k = len(updates)
+        spectrum = dct(flat.double().numpy(), norm="ortho", axis=1)
+        low = torch.from_numpy(spectrum[:, : max(2, int(self.low_fraction * spectrum.shape[1]))]).float()
+        unit = low / low.norm(dim=1, keepdim=True).clamp(min=1e-12)
+        dist = (1.0 - unit @ unit.T).clamp(min=0.0).double().numpy()
+        np.fill_diagonal(dist, 0.0)
+        labels = HDBSCAN(metric="precomputed", min_cluster_size=k // 2 + 1, min_samples=1,
+                         allow_single_cluster=True).fit_predict(dist)
+        non_noise = labels[labels != -1]
+        if len(non_noise):
+            values, counts = np.unique(non_noise, return_counts=True)
+            keep = labels == values[np.argmax(counts)]
+        else:
+            keep = np.ones(k, dtype=bool)
+        clipped, bound = _clip_to_median(flat)
+        delta = clipped[torch.from_numpy(keep)].mean(dim=0)
+        if self.noise_lambda:
+            delta = delta + torch.randn(delta.shape, generator=self.generator) * (self.noise_lambda * float(bound))
+        m = int(keep.sum())
+        return AggregationResult(
+            global_delta=unflatten_delta(delta, param_shapes),
+            trust_weights={u.client_id: (1.0 / m if keep[i] else 0.0) for i, u in enumerate(updates)},
+            cluster_labels={u.client_id: int(labels[i]) for i, u in enumerate(updates)},
+            benign_cluster_id=None,
+        )
+
+
+# Variants of the latent density defence, for the ablation and the sensitivity grid
+# (config names are hdbscan_<suffix>). Each entry overrides one or two settings.
+HDBSCAN_VARIANTS = {
+    "hdbscan_pca": {"latent_method": "pca"},
+    "hdbscan_raw": {"latent_method": "raw"},
+    "hdbscan_no_rescale": {"normalize": False, "standardize_latent": False},
+    "hdbscan_no_normalize": {"normalize": False},
+    "hdbscan_no_standardize": {"standardize_latent": False},
+    "hdbscan_last_layer": {"phi_input": "last_layer"},
+    "hdbscan_eps1": {"cluster_selection_epsilon": 1.0},
+    "hdbscan_eps4": {"cluster_selection_epsilon": 4.0},
+    "hdbscan_eps8": {"cluster_selection_epsilon": 8.0},
+    "hdbscan_mcs2": {"min_cluster_size": 2},
+    "hdbscan_mcs5": {"min_cluster_size": 5},
+}
+
+
+AGGREGATORS = ("fedavg", "median", "trimmed_mean", "krum", "norm_clip", "flame", "foolsgold", "deepsight",
+               "freqfed", "hdbscan") + tuple(HDBSCAN_VARIANTS)
 
 
 def make_aggregator(name: str, fed_cfg: dict, device: str = "cpu", seed: int = 0) -> Aggregator:
@@ -189,15 +363,22 @@ def make_aggregator(name: str, fed_cfg: dict, device: str = "cpu", seed: int = 0
         return NormClipAggregator()
     if name == "flame":
         return FlameAggregator(agg_cfg.get("flame_noise_lambda", 0.001), seed=seed)
-    if name == "hdbscan":
-        return LatentDensityAggregator(
+    if name == "foolsgold":
+        return FoolsGoldAggregator(agg_cfg.get("foolsgold_confidence", 1.0))
+    if name == "deepsight":
+        return DeepSightAggregator(noise_lambda=agg_cfg.get("deepsight_noise_lambda", 0.0), seed=seed)
+    if name == "freqfed":
+        return FreqFedAggregator(agg_cfg.get("freqfed_low_fraction", 0.05), agg_cfg.get("freqfed_noise_lambda", 0.0), seed=seed)
+    if name == "hdbscan" or name in HDBSCAN_VARIANTS:
+        params = dict(
             latent_dim=agg_cfg["latent_dim"],
             autoencoder_hidden=agg_cfg["autoencoder_hidden"],
             autoencoder_epochs=agg_cfg["autoencoder_epochs"],
             autoencoder_lr=agg_cfg.get("autoencoder_lr", 1e-3),
             normalize=agg_cfg.get("normalize_updates", True),
             phi_input=agg_cfg.get("phi_input", "all"),
-            device=device,
             **agg_cfg["hdbscan"],
         )
+        params.update(HDBSCAN_VARIANTS.get(name, {}))
+        return LatentDensityAggregator(device=device, **params)
     raise ValueError(f"Unknown aggregator {name!r}; expected one of {AGGREGATORS}")
