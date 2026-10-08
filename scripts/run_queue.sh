@@ -17,6 +17,10 @@ fi
 NAME=$1
 shift
 PYTHON=${PYTHON:-python3}
+# Torch starts one thread per core it sees. On a shared machine that reports many cores but limits the CPU
+# time (the hub shows 80 and allows 8), that makes every run slower. Four threads per queue is enough.
+export OMP_NUM_THREADS=${OMP_NUM_THREADS:-4}
+export MKL_NUM_THREADS=${MKL_NUM_THREADS:-4}
 cd "$(dirname "$0")/.." || exit 1
 mkdir -p results
 STATUS=results/queue_$NAME.status
