@@ -208,8 +208,8 @@ profiles:
   # ------------------------------------------------------------------ the defence paper
   # Runs for the paper on the defence (the density rule on the latent space of the updates).
   # All on CIC-IoV2024 at the `full` setting unless the name says otherwise; each profile
-  # copies the runs it shares with `full` and with earlier profiles. `scripts/run_queue.sh`
-  # runs them in order of importance.
+  # copies the runs it shares with `full` and with the profiles before it in the queue
+  # (`make paper1-background` runs them in that order, which is the order of importance).
 
   new_baselines:
     about: >-
@@ -256,7 +256,7 @@ profiles:
     federated: *paper_federated
     eval_every: 5
     seeds: [0, 1, 2]
-    reuse_runs_from: [full]
+    reuse_runs_from: [full, new_baselines, def_ablation, alie_duplicates]
     poisoning:
       seeds: [0, 1, 2]
       seeds_by_fraction: {0.3: [0, 1, 2, 3, 4], 0.4: [0, 1, 2, 3, 4]}
@@ -274,7 +274,7 @@ profiles:
     federated: *paper_federated
     eval_every: 5
     seeds: [0, 1, 2]
-    reuse_runs_from: [full, def_ablation]
+    reuse_runs_from: [full, def_ablation, cic_seeds]
     poisoning:
       seeds: [0, 1, 2]
       attacks: [targeted_flip, alie]
@@ -291,7 +291,7 @@ profiles:
     federated: *paper_federated
     eval_every: 5
     seeds: [0, 1, 2]
-    reuse_runs_from: [full, new_baselines, cic_seeds]
+    reuse_runs_from: [full, new_baselines, def_ablation]
     poisoning:
       seeds: [0, 1, 2]
       attacks: [alie, alie_noisy]
@@ -359,3 +359,114 @@ profiles:
       attacks: [targeted_flip, alie]
       fractions: [0.2, 0.4]
       aggregators: [foolsgold, deepsight, freqfed]
+
+  # ------------------------------------------------------------------ the detector paper
+  # GraMa as a CAN intrusion detector against four other detectors (CNN-BiGRU, a GCN on the window
+  # graphs, the same GCN with a GRU over the windows, a Transformer), on ROAD first, then
+  # can-train-and-test for other cars and unseen attacks, and CIC-IoV2024 as a sanity check (every
+  # model scores close to 1 there). The comparison is trained centrally, which removes the
+  # federated noise; a federated run of each model (FedAvg) shows the ranking holds there.
+  # Ten seeds for the central comparison, so that a signed-rank test can reach p < 0.01.
+  # scripts/stats.py turns the runs into confidence intervals and paired tests.
+
+  det_road_central:
+    about: >-
+      ROAD, centralised training: GraMa and four detectors, ten seeds (50 runs, about 9 hours on
+      one A100). Every run is also tested on ROAD's masquerade set.
+    data: road
+    data_overrides: {}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    reuse_runs_from: [road]
+    main:
+      methods: &det_central [grama_central, cnn_bigru_central, gcn_ids_central, gcn_gru_central, transformer_ids_central]
+
+  det_road_ablation:
+    about: >-
+      ROAD, centralised training: what each part of GraMa contributes. The full model against
+      eight variants (no residual connections, no CAN-ID embeddings, mean pooling, co-occurrence
+      edges, GRU instead of Mamba, no temporal model, one attention head), five seeds
+      (about 45 runs, 7 hours on one A100).
+    data: road
+    data_overrides: {}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1, 2, 3, 4]
+    reuse_runs_from: [road, det_road_central]
+    ablation:
+      aggregator: central
+      variants: [no_residual, no_id_embedding, mean_pool, cooccurrence_edges, gru_instead_of_mamba, no_temporal, one_head]
+
+  det_road_fedavg:
+    about: >-
+      ROAD, federated training with FedAvg (20 clients): the same five models, five seeds
+      (25 runs, about 4 hours on one A100).
+    data: road
+    data_overrides: {}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1, 2, 3, 4]
+    reuse_runs_from: [road]
+    main:
+      methods: [grama_fedavg, cnn_bigru_fedavg, gcn_ids_fedavg, gcn_gru_fedavg, transformer_ids_fedavg]
+
+  det_cantt1:
+    about: >-
+      can-train-and-test set_01 (trains on a Chevrolet Impala; tests on the Impala, unknown attacks
+      and a Chevrolet Silverado), centralised, five models, five seeds (25 runs, about 2 hours).
+    data: can_train_test
+    data_overrides: {set: set_01}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1, 2, 3, 4]
+    reuse_runs_from: [cantt1]
+    main: {methods: *det_central}
+
+  det_cantt2:
+    about: >-
+      can-train-and-test set_02 (trains on a Chevrolet Traverse, unknown car Subaru Forester),
+      centralised, five models, five seeds (25 runs).
+    data: can_train_test
+    data_overrides: {set: set_02}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1, 2, 3, 4]
+    reuse_runs_from: [cantt2]
+    main: {methods: *det_central}
+
+  det_cantt3:
+    about: >-
+      can-train-and-test set_03 (trains on a Chevrolet Silverado, unknown car Subaru Forester),
+      centralised, five models, five seeds (25 runs).
+    data: can_train_test
+    data_overrides: {set: set_03}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1, 2, 3, 4]
+    reuse_runs_from: [cantt3]
+    main: {methods: *det_central}
+
+  det_cantt4:
+    about: >-
+      can-train-and-test set_04 (trains on a Subaru Forester, unknown car Chevrolet Traverse),
+      centralised, five models, five seeds (25 runs).
+    data: can_train_test
+    data_overrides: {set: set_04}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1, 2, 3, 4]
+    reuse_runs_from: [cantt4]
+    main: {methods: *det_central}
+
+  det_cic:
+    about: >-
+      CIC-IoV2024, centralised, five models, three seeds (15 runs). A sanity check: the dataset is
+      easy and every model is expected to score close to 1.
+    data: real
+    data_overrides: {}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1, 2]
+    reuse_runs_from: [full]
+    main: {methods: *det_central}
