@@ -32,3 +32,12 @@ def test_shared_runs_are_copied_once(tmp_path):
 def test_runs_with_another_setting_or_data_file_are_not_copied(tmp_path):
     assert setup(tmp_path / "a", simulation={"num_clients": 99}).reuse_runs([CLEAN]) == 0
     assert setup(tmp_path / "b", data_file="cic_iov2024_other.pt").reuse_runs([CLEAN]) == 0
+
+
+def test_seeds_by_fraction_gives_some_cells_more_seeds(tmp_path):
+    exp = Experiment("smoke", device="cpu", results_dir=tmp_path / "results" / "mine")
+    exp.profile["poisoning"] = {"seeds": [0, 1], "seeds_by_fraction": {0.4: [0, 1, 2]}, "attacks": ["alie"],
+                                "fractions": [0.2, 0.4], "aggregators": ["fedavg"]}
+    specs = exp.plan(only=["poisoning"])
+    cells = {(s.fraction, s.seed) for s in specs}
+    assert cells == {(0.0, 0), (0.0, 1), (0.0, 2), (0.2, 0), (0.2, 1), (0.4, 0), (0.4, 1), (0.4, 2)}

@@ -217,12 +217,18 @@ class Experiment:
                     for alpha in p["noniid"]["alphas"]:
                         add(RunSpec("grama", agg, float(alpha), None, 0.0, seed))
         if "poisoning" in groups and "poisoning" in p:
-            for seed in p["poisoning"].get("seeds", seeds):
-                for agg in p["poisoning"]["aggregators"]:
+            pois = p["poisoning"]
+            default_seeds = list(pois.get("seeds", seeds))
+            # seeds_by_fraction: more seeds for some shares of compromised clients (the 30% and 40% cells vary most).
+            by_fraction = {float(f): list(s) for f, s in (pois.get("seeds_by_fraction") or {}).items()}
+            all_seeds = sorted(set(default_seeds).union(*by_fraction.values()))
+            for seed in all_seeds:
+                for agg in pois["aggregators"]:
                     add(RunSpec("grama", agg, alpha0, None, 0.0, seed))  # 0% compromised reference
-                    for attack in p["poisoning"]["attacks"]:
-                        for frac in p["poisoning"]["fractions"]:
-                            add(RunSpec("grama", agg, alpha0, attack, float(frac), seed))
+                    for attack in pois["attacks"]:
+                        for frac in pois["fractions"]:
+                            if seed in by_fraction.get(float(frac), default_seeds):
+                                add(RunSpec("grama", agg, alpha0, attack, float(frac), seed))
         if "ablation" in groups and "ablation" in p:
             agg = p["ablation"].get("aggregator", "fedavg")
             for seed in p["ablation"].get("seeds", seeds):
@@ -337,7 +343,7 @@ class Experiment:
             eval_every = max(1, rounds // 10)
         else:
             aggregator = make_aggregator(spec.aggregator, self.fed_cfg, self.device, seed=spec.seed)
-            if spec.aggregator == "hdbscan" and sim["clients_per_round"] < 5:
+            if spec.aggregator.startswith("hdbscan") and sim["clients_per_round"] < 5:
                 logger.warning("HDBSCAN with %d clients per round often finds no cluster at all; "
                                "use 5 or more.", sim["clients_per_round"])
             rounds, per_round, local_epochs = sim["num_rounds"], sim["clients_per_round"], sim["local_epochs"]

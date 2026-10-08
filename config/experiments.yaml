@@ -10,8 +10,10 @@
 # aggregators hdbscan | fedavg | median | trimmed_mean | krum, or "central"
 # for one model trained on all the data with the same budget (upper bound).
 #
-# Aggregators: fedavg | median | trimmed_mean | krum | norm_clip | flame | hdbscan (ours).
-# Attacks: label_flip | targeted_flip | magnitude_poison | alie | adaptive (Sec 6.2.3).
+# Aggregators: fedavg | median | trimmed_mean | krum | norm_clip | flame | hdbscan (ours),
+# foolsgold | deepsight | freqfed, and the hdbscan_* variants (robust.HDBSCAN_VARIANTS).
+# Attacks: label_flip | targeted_flip | magnitude_poison | alie | alie_noisy | adaptive (Sec 6.2.3).
+# A poisoning section may add seeds_by_fraction: {0.3: [0, 1, 2, 3, 4]} for more seeds in some cells.
 #
 # reuse_runs_from: other profiles whose finished runs this one may copy
 # (same dataset file and federated setting only), so shared runs aren't
@@ -201,3 +203,158 @@ profiles:
     seeds: [0, 1]
     reuse_runs_from: [cantt1]
     poisoning: *adaptive_poisoning
+
+  # ------------------------------------------------------------------ the defence paper
+  # Runs for the paper on the defence (the density rule on the latent space of the updates).
+  # All on CIC-IoV2024 at the `full` setting unless the name says otherwise; each profile
+  # copies the runs it shares with `full` and with earlier profiles. `scripts/run_queue.sh`
+  # runs them in order of importance.
+
+  new_baselines:
+    about: >-
+      FoolsGold, DeepSight (simplified) and FreqFed on the grid of `full`: four attacks,
+      20/30/40% of clients, three seeds (five at 30% and 40%). About 170 runs.
+    data: real
+    data_overrides: {}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1, 2]
+    reuse_runs_from: [full]
+    poisoning:
+      seeds: [0, 1, 2]
+      seeds_by_fraction: {0.3: [0, 1, 2, 3, 4], 0.4: [0, 1, 2, 3, 4]}
+      attacks: [label_flip, targeted_flip, magnitude_poison, alie]
+      fractions: [0.2, 0.3, 0.4]
+      aggregators: [foolsgold, deepsight, freqfed]
+
+  def_ablation:
+    about: >-
+      What each part of the defence contributes: the autoencoder against PCA and against
+      clustering the raw updates, with and without the rescaling of the updates and of the
+      latent space, and the last layer only. Targeted flipping and ALIE at 20% and 40%,
+      three seeds. About 100 runs.
+    data: real
+    data_overrides: {}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1, 2]
+    reuse_runs_from: [full]
+    poisoning:
+      seeds: [0, 1, 2]
+      attacks: [targeted_flip, alie]
+      fractions: [0.2, 0.4]
+      aggregators: [hdbscan, hdbscan_pca, hdbscan_raw, hdbscan_no_rescale, hdbscan_no_normalize,
+                    hdbscan_no_standardize, hdbscan_last_layer]
+
+  cic_seeds:
+    about: >-
+      The grid of `full` with at least three seeds in every cell and five seeds at 30% and 40%
+      of compromised clients. About 250 new runs.
+    data: real
+    data_overrides: {}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1, 2]
+    reuse_runs_from: [full]
+    poisoning:
+      seeds: [0, 1, 2]
+      seeds_by_fraction: {0.3: [0, 1, 2, 3, 4], 0.4: [0, 1, 2, 3, 4]}
+      attacks: [label_flip, targeted_flip, magnitude_poison, alie]
+      fractions: [0.1, 0.2, 0.3, 0.4]
+      aggregators: [fedavg, median, trimmed_mean, krum, norm_clip, flame, hdbscan]
+
+  def_grid:
+    about: >-
+      Sensitivity of the defence to its two clustering settings: the cluster selection
+      epsilon (1, 2, 4, 8) and the smallest cluster size (2, 3, 5). Targeted flipping and ALIE
+      at 20% and 40%, three seeds. About 90 runs.
+    data: real
+    data_overrides: {}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1, 2]
+    reuse_runs_from: [full, def_ablation]
+    poisoning:
+      seeds: [0, 1, 2]
+      attacks: [targeted_flip, alie]
+      fractions: [0.2, 0.4]
+      aggregators: [hdbscan, hdbscan_eps1, hdbscan_eps4, hdbscan_eps8, hdbscan_mcs2, hdbscan_mcs5]
+
+  alie_duplicates:
+    about: >-
+      Does the defence only catch ALIE because the colluders send identical vectors? The same
+      attack with noise added by each colluder (alie_noisy), against the rules that matter.
+      20% and 40%, three seeds. About 45 runs.
+    data: real
+    data_overrides: {}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1, 2]
+    reuse_runs_from: [full, new_baselines, cic_seeds]
+    poisoning:
+      seeds: [0, 1, 2]
+      attacks: [alie, alie_noisy]
+      fractions: [0.2, 0.4]
+      aggregators: [fedavg, norm_clip, flame, foolsgold, hdbscan]
+
+  clients40:
+    about: >-
+      The same comparison with 40 clients, 20 per round, so the clustering sees twice as many
+      updates. Targeted flipping and ALIE at 20% and 40%, three seeds. About 60 runs, each
+      about twice as long as a run of `full`.
+    data: real
+    data_overrides: {}
+    federated: {num_clients: 40, clients_per_round: 20, num_rounds: 30, local_epochs: 2, local_batch_size: 64}
+    eval_every: 5
+    seeds: [0, 1, 2]
+    poisoning:
+      seeds: [0, 1, 2]
+      attacks: [targeted_flip, alie]
+      fractions: [0.2, 0.4]
+      aggregators: [fedavg, norm_clip, flame, hdbscan]
+
+  cic_adaptive_new:
+    about: >-
+      The adaptive attack against FoolsGold, DeepSight and FreqFed, same grid as cic_adaptive
+      (18 runs).
+    data: real
+    data_overrides: {}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1]
+    reuse_runs_from: [full, new_baselines]
+    poisoning:
+      seeds: [0, 1]
+      attacks: [adaptive]
+      fractions: [0.2, 0.4]
+      aggregators: [foolsgold, deepsight, freqfed]
+
+  road_new_baselines:
+    about: >-
+      FoolsGold, DeepSight and FreqFed on ROAD, same grid as `road` (30 runs).
+    data: road
+    data_overrides: {}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1]
+    reuse_runs_from: [road]
+    poisoning:
+      seeds: [0, 1]
+      attacks: [targeted_flip, alie]
+      fractions: [0.2, 0.4]
+      aggregators: [foolsgold, deepsight, freqfed]
+
+  cantt1_new_baselines:
+    about: >-
+      FoolsGold, DeepSight and FreqFed on can-train-and-test set_01, same grid as `cantt1` (30 runs).
+    data: can_train_test
+    data_overrides: {set: set_01}
+    federated: *paper_federated
+    eval_every: 5
+    seeds: [0, 1]
+    reuse_runs_from: [cantt1]
+    poisoning:
+      seeds: [0, 1]
+      attacks: [targeted_flip, alie]
+      fractions: [0.2, 0.4]
+      aggregators: [foolsgold, deepsight, freqfed]
