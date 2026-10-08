@@ -19,7 +19,13 @@ import numpy as np
 MODEL_LABEL = {"grama": "GraMa", "cnn_bigru": "CNN-BiGRU"}
 AGG_LABEL = {"hdbscan": "HDBSCAN (ours)", "fedavg": "FedAvg", "median": "Median",
              "trimmed_mean": "Trimmed mean", "krum": "Multi-Krum", "norm_clip": "Norm clipping",
-             "flame": "FLAME", "central": "centralised"}
+             "flame": "FLAME", "central": "centralised",
+             "foolsgold": "FoolsGold", "deepsight": "DeepSight (simplified)", "freqfed": "FreqFed",
+             "hdbscan_pca": "HDBSCAN, PCA latent", "hdbscan_raw": "HDBSCAN, raw updates",
+             "hdbscan_no_rescale": "HDBSCAN, no rescaling", "hdbscan_no_normalize": "HDBSCAN, no update normalisation",
+             "hdbscan_no_standardize": "HDBSCAN, no latent standardising", "hdbscan_last_layer": "HDBSCAN, last layer only",
+             "hdbscan_eps1": "HDBSCAN, epsilon 1", "hdbscan_eps4": "HDBSCAN, epsilon 4", "hdbscan_eps8": "HDBSCAN, epsilon 8",
+             "hdbscan_mcs2": "HDBSCAN, min cluster 2", "hdbscan_mcs5": "HDBSCAN, min cluster 5"}
 ATTACK_LABEL = {"label_flip": "Label flipping", "targeted_flip": "Targeted flipping (attack -> benign)",
                 "magnitude_poison": "Magnitude poisoning", "alie": "ALIE (crafted to look honest)",
                 "alie_noisy": "ALIE with noise (attackers differ)",
@@ -47,6 +53,34 @@ COLORS = {"hdbscan": "#000000", "fedavg": "#E69F00", "median": "#56B4E9", "trimm
           "krum": "#D55E00", "norm_clip": "#0072B2", "flame": "#CC79A7", "central": "#777777"}
 MARKERS = {"hdbscan": "o", "fedavg": "s", "median": "^", "trimmed_mean": "v", "krum": "D",
            "norm_clip": "X", "flame": "P", "central": "x"}
+# Rules added later (FoolsGold, DeepSight, FreqFed and the HDBSCAN variants) take colours and markers
+# from these lists, in a fixed order by name, so a figure looks the same every time it is drawn.
+_EXTRA_COLORS = ["#882255", "#117733", "#332288", "#88CCEE", "#AA4499", "#999933", "#44AA99", "#DDCC77",
+                 "#661100", "#6699CC", "#AA4466", "#888888"]
+_EXTRA_MARKERS = ["*", "h", "<", ">", "p", "H", "d", "8", "1", "2", "3", "4"]
+_EXTRA_ORDER = ["foolsgold", "deepsight", "freqfed", "hdbscan_pca", "hdbscan_raw", "hdbscan_no_rescale",
+                "hdbscan_no_normalize", "hdbscan_no_standardize", "hdbscan_last_layer", "hdbscan_eps1",
+                "hdbscan_eps4", "hdbscan_eps8", "hdbscan_mcs2", "hdbscan_mcs5"]
+
+
+def _extra_index(agg: str) -> int:
+    return _EXTRA_ORDER.index(agg) if agg in _EXTRA_ORDER else sum(map(ord, agg))
+
+
+def agg_color(agg: str) -> str:
+    return COLORS.get(agg) or _EXTRA_COLORS[_extra_index(agg) % len(_EXTRA_COLORS)]
+
+
+def agg_marker(agg: str) -> str:
+    return MARKERS.get(agg) or _EXTRA_MARKERS[_extra_index(agg) % len(_EXTRA_MARKERS)]
+
+
+def agg_name(agg: str) -> str:
+    return AGG_LABEL.get(agg, agg)
+
+
+def attack_name(attack: str) -> str:
+    return ATTACK_LABEL.get(attack, attack)
 
 
 def method_label(model: str, agg: str) -> str:
@@ -280,8 +314,8 @@ def make_report(results_dir: str | Path) -> Path:
     # ---------------------------------------------------------------- 2. non-IID
     noniid = profile.get("noniid")
     if noniid:
-        header = ["Dirichlet alpha"] + [f"{AGG_LABEL[a]} macro-F1" for a in noniid["aggregators"]] \
-                 + [f"{AGG_LABEL[a]} accuracy" for a in noniid["aggregators"]]
+        header = ["Dirichlet alpha"] + [f"{agg_name(a)} macro-F1" for a in noniid["aggregators"]] \
+                 + [f"{agg_name(a)} accuracy" for a in noniid["aggregators"]]
         rows = []
         for alpha in noniid["alphas"]:
             row = [f"{alpha:g}"]
@@ -304,8 +338,8 @@ def make_report(results_dir: str | Path) -> Path:
                     ys.append(np.mean(v))
                     es.append(np.std(v))
             if xs:
-                ax.errorbar(xs, ys, yerr=es, color=COLORS[agg], marker=MARKERS[agg], ms=4, lw=1.2,
-                            capsize=2, label=f"GraMa + {AGG_LABEL[agg]}")
+                ax.errorbar(xs, ys, yerr=es, color=agg_color(agg), marker=agg_marker(agg), ms=4, lw=1.2,
+                            capsize=2, label=f"GraMa + {agg_name(agg)}")
         ax.set_xscale("log")
         ax.set_xlabel("Dirichlet alpha (log scale; lower = more skewed)")
         ax.set_ylabel("Test macro-F1")
@@ -325,14 +359,14 @@ def make_report(results_dir: str | Path) -> Path:
                 header = ["Aggregator"] + [f"{int(round(f * 100))}%" for f in fractions]
                 rows = []
                 for agg in pois["aggregators"]:
-                    row = [AGG_LABEL[agg]]
+                    row = [agg_name(agg)]
                     for f in fractions:
                         att = None if f == 0 else attack
                         row.append(mean_std(_vals(select(runs, model="grama", aggregator=agg, alpha=alpha0,
                                                          attack=att, fraction=f), key)))
                     rows.append(row)
                 write_csv(tables / f"poisoning_{attack}_{key}.csv", header, rows)
-                out.append(f"### {ATTACK_LABEL[attack]}: {METRIC_LABEL[key]}\n\n"
+                out.append(f"### {attack_name(attack)}: {METRIC_LABEL[key]}\n\n"
                            + md_table(header, rows) + "\n")
             ax = axes[0][ai]
             for agg in pois["aggregators"]:
@@ -341,20 +375,21 @@ def make_report(results_dir: str | Path) -> Path:
                     v = _vals(select(runs, model="grama", aggregator=agg, alpha=alpha0,
                                      attack=None if f == 0 else attack, fraction=f), "f1_macro")
                     ys.append(np.mean(v) if v else np.nan)
-                ax.plot([f * 100 for f in fractions], ys, color=COLORS[agg], marker=MARKERS[agg], ms=4,
-                        lw=1.2, label=AGG_LABEL[agg])
-            ax.set_title(ATTACK_LABEL[attack].split(" (")[0])
+                ax.plot([f * 100 for f in fractions], ys, color=agg_color(agg), marker=agg_marker(agg), ms=4,
+                        lw=1.2, label=agg_name(agg))
+            ax.set_title(attack_name(attack).split(" (")[0])
             ax.set_xlabel("Compromised clients (%)")
             ax.set_xticks([round(f * 100) for f in fractions])
             if ai == 0:
                 ax.set_ylabel("Test macro-F1")
         handles, labels = axes[0][0].get_legend_handles_labels()
-        fig.legend(handles, labels, frameon=False, loc="upper center", ncol=len(labels),
+        fig.legend(handles, labels, frameon=False, loc="upper center", ncol=min(len(labels), 6),
                    bbox_to_anchor=(0.5, -0.07))
         figures.append(("Macro-F1 under poisoning", _save(fig, fig_dir, "poisoning")))
 
         # defence quality for the rules that name clients
-        detecting = [a for a in pois["aggregators"] if a in ("hdbscan", "krum", "flame")]
+        detecting = [a for a in pois["aggregators"]
+                     if a.startswith("hdbscan") or a in ("krum", "flame", "foolsgold", "deepsight", "freqfed")]
         if detecting:
             header = ["Attack", "Aggregator"] + [f"{int(round(f * 100))}% TPR / FPR" for f in fractions[1:]]
             rows = []
@@ -363,7 +398,7 @@ def make_report(results_dir: str | Path) -> Path:
             for ai, attack in enumerate(pois["attacks"]):
                 ax = axes[0][ai]
                 for agg in detecting:
-                    row = [ATTACK_LABEL[attack].split(" (")[0], AGG_LABEL[agg]]
+                    row = [attack_name(attack).split(" (")[0], agg_name(agg)]
                     tprs, fprs = [], []
                     for f in fractions[1:]:
                         rs = select(runs, model="grama", aggregator=agg, alpha=alpha0, attack=attack, fraction=f)
@@ -374,11 +409,11 @@ def make_report(results_dir: str | Path) -> Path:
                         row.append(f"{tprs[-1]:.2f} / {fprs[-1]:.2f}" if t else "–")
                     rows.append(row)
                     xs = [f * 100 for f in fractions[1:]]
-                    ax.plot(xs, tprs, color=COLORS[agg], marker=MARKERS[agg], ms=4, lw=1.2,
-                            label=f"{AGG_LABEL[agg]} TPR")
-                    ax.plot(xs, fprs, color=COLORS[agg], marker=MARKERS[agg], ms=4, lw=1.0, ls="--",
-                            mfc="white", label=f"{AGG_LABEL[agg]} FPR")
-                ax.set_title(ATTACK_LABEL[attack].split(" (")[0])
+                    ax.plot(xs, tprs, color=agg_color(agg), marker=agg_marker(agg), ms=4, lw=1.2,
+                            label=f"{agg_name(agg)} TPR")
+                    ax.plot(xs, fprs, color=agg_color(agg), marker=agg_marker(agg), ms=4, lw=1.0, ls="--",
+                            mfc="white", label=f"{agg_name(agg)} FPR")
+                ax.set_title(attack_name(attack).split(" (")[0])
                 ax.set_xlabel("Compromised clients (%)")
                 ax.set_xticks([round(f * 100) for f in fractions[1:]])
                 ax.set_xlim(0, max(f * 100 for f in fractions) + 5)
@@ -400,7 +435,7 @@ def make_report(results_dir: str | Path) -> Path:
             header = ["Aggregator"] + [f"{int(round(f * 100))}%" for f in fractions[1:]]
             rows = []
             for agg in pois["aggregators"]:
-                row = [AGG_LABEL[agg]]
+                row = [agg_name(agg)]
                 for f in fractions[1:]:
                     rs = select(runs, model="grama", aggregator=agg, alpha=alpha0, attack="adaptive", fraction=f)
                     s = [h["attack_scale"] for r in rs for h in r["history"] if h.get("attack_scale") is not None]
@@ -431,7 +466,7 @@ def make_report(results_dir: str | Path) -> Path:
                          mean_std(_vals(rs, "accuracy")), mean_std(_vals(rs, "detection_rate")),
                          mean_std(_vals(rs, "false_alarm_rate")), f"{rs[0]['params']:,}"])
         write_csv(tables / "ablation.csv", header, rows)
-        out.append(f"## 4. Ablation\n\nGraMa + {AGG_LABEL[agg]}, no attack, alpha {alpha0}. "
+        out.append(f"## 4. Ablation\n\nGraMa + {agg_name(agg)}, no attack, alpha {alpha0}. "
                    f"Default edges: {profile.get('edge_mode', 'transition')}. Each row changes one thing.\n\n"
                    + md_table(header, rows) + "\n")
 
