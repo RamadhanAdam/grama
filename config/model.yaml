@@ -1,4 +1,4 @@
-# GAT + Mamba + classifier head, and the CNN-BiGRU baseline.
+# GAT + Mamba + classifier head, and the baselines (CNN-BiGRU, GCN, Transformer).
 #
 # Graph nodes are CAN IDs, learned from the data: CIC-IoV2024 does not
 # publish which ECU sends which ID. Edges: see config/data.yaml build.edge_mode.
@@ -39,3 +39,20 @@ baseline:                 # CNN-BiGRU (src/grama/models/baseline.py)
   gru_hidden: 32
   head_hidden: 32
   dropout: 0.1
+
+gcn_ids:                  # src/grama/models/baselines_extra.py; "temporal" is set by the model name
+  hidden_features: 64     # (gcn_ids = last window only, gcn_gru = a GRU over the windows)
+  id_dim: 8
+  layers: 2
+  dropout: 0.1
+  head_hidden: 32
+
+transformer_ids:          # frames of a window, then the windows of a sequence
+  id_dim: 16
+  d_model: 64
+  heads: 4
+  frame_layers: 1
+  window_layers: 2
+  ff_mult: 2
+  dropout: 0.1
+  head_hidden: 32

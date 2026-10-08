@@ -34,6 +34,7 @@ from grama.federated.client import LocalClient
 from grama.federated.robust import FedAvgAggregator, make_aggregator
 from grama.federated.server import FederatedServer
 from grama.models.baseline import CNNBiGRUBaseline
+from grama.models.baselines_extra import GCNWindowIDS, TransformerIDS
 from grama.models.classifier_head import GraMaLocalModel
 from grama.utils.config import Config
 from grama.utils.device import describe_device, pick_device
@@ -42,7 +43,8 @@ from grama.utils.seed import set_seed
 
 logger = get_logger("grama.experiments")
 
-MODELS = {"grama": "graph", "cnn_bigru": "frames"}   # model -> dataset view
+MODELS = {"grama": "graph", "cnn_bigru": "frames", "gcn_ids": "graph", "gcn_gru": "graph",
+          "transformer_ids": "frames"}   # model -> dataset view
 
 # Ablation variants: what each one changes in config/model.yaml, or the edge type.
 VARIANTS = {
@@ -53,14 +55,17 @@ VARIANTS = {
     "transition_edges": {"edge_mode": "transition"},
     "gru_instead_of_mamba": {"mamba_block": {"temporal": "gru"}},
     "no_temporal": {"mamba_block": {"temporal": "none"}},
+    "one_head": {"gat_encoder": {"num_heads": 1}},
 }
+MODEL_LABELS = {"grama": "GraMa", "cnn_bigru": "CNN-BiGRU", "gcn_ids": "GCN (single window)",
+               "gcn_gru": "GCN + GRU", "transformer_ids": "Transformer"}
 SCALAR_KEYS = ("accuracy", "precision_macro", "recall_macro", "f1_macro", "roc_auc",
                "detection_rate", "false_alarm_rate")
 
 
 @dataclass(frozen=True)
 class RunSpec:
-    model: str             # grama | cnn_bigru
+    model: str             # grama | cnn_bigru | gcn_ids | gcn_gru | transformer_ids
     aggregator: str        # hdbscan | fedavg | median | trimmed_mean | krum | central
     alpha: float
     attack: str | None
@@ -150,14 +155,20 @@ class Experiment:
         self.train, self.test = {}, {}
         # Extra test sets (ROAD's masquerade set, can-train-and-test's unknown car and attacks).
         self.extra = {name: {} for name in self.meta.get("extra_tests", [])}
+        by_view = {}     # one copy of each view's data, shared by every model that reads that view
         for model, view in MODELS.items():
-            self.train[model] = dataset_from_payload(payload, "train", view=view)
-            self.test[model] = dataset_from_payload(payload, "test", view=view)
+            if view not in by_view:
+                sets = {"train": dataset_from_payload(payload, "train", view=view),
+                        "test": dataset_from_payload(payload, "test", view=view),
+                        **{name: dataset_from_payload(payload, name, view=view) for name in self.extra}}
+                if self.device.startswith("cuda"):
+                    for ds in sets.values():
+                        ds.to(self.device)
+                by_view[view] = sets
+            self.train[model] = by_view[view]["train"]
+            self.test[model] = by_view[view]["test"]
             for name in self.extra:
-                self.extra[name][model] = dataset_from_payload(payload, name, view=view)
-            if self.device.startswith("cuda"):
-                for ds in (self.train[model], self.test[model], *(e[model] for e in self.extra.values())):
-                    ds.to(self.device)
+                self.extra[name][model] = by_view[view][name]
         info = {
             "profile": self.profile_name,
             "data_file": path.name,
@@ -191,6 +202,13 @@ class Experiment:
         if model == "cnn_bigru":
             b = dict(cfg.get("baseline", {}))
             return lambda: CNNBiGRUBaseline(meta["num_nodes"], meta["num_classes"], **b)
+        if model in ("gcn_ids", "gcn_gru"):
+            g = dict(cfg.get("gcn_ids", {}))
+            g["temporal"] = "gru" if model == "gcn_gru" else "last"
+            return lambda: GCNWindowIDS(meta["in_features"], meta["num_nodes"], meta["num_classes"], **g)
+        if model == "transformer_ids":
+            t = dict(cfg.get("transformer_ids", {}))
+            return lambda: TransformerIDS(meta["num_nodes"], meta["num_classes"], seq_len=meta["seq_len"], **t)
         raise ValueError(f"Unknown model {model!r}")
 
     # ------------------------------------------------------------------ plan
@@ -459,11 +477,14 @@ class Experiment:
     # ------------------------------------------------------------------ efficiency
 
     def efficiency(self) -> dict:
-        """Parameters, size, latency and throughput of GraMa and the baseline (Sec 6.1, 8.1)."""
+        """Parameters, size, latency and throughput of the models the profile uses (Sec 6.1, 8.1)."""
         if self.meta is None:
             self.prepare_data()
         out = {}
-        for model_name, label in (("grama", "GraMa"), ("cnn_bigru", "CNN-BiGRU")):
+        used = [parse_method(m)[0] for m in self.profile.get("main", {}).get("methods", [])]
+        models = ["grama", "cnn_bigru"] + [m for m in dict.fromkeys(used) if m not in ("grama", "cnn_bigru")]
+        for model_name in models:
+            label = MODEL_LABELS.get(model_name, model_name)
             ds = self.test[model_name]
             one = tuple(t.cpu() for t in ds.get_batch(torch.tensor([0]))[:-1])
             n = min(256, len(ds))

@@ -33,7 +33,8 @@ profiles:
     eval_every: 1
     seeds: [0]
     main:
-      methods: [grama_hdbscan, grama_fedavg, cnn_bigru_fedavg, grama_central]
+      methods: [grama_hdbscan, grama_fedavg, cnn_bigru_fedavg, grama_central, gcn_ids_fedavg, gcn_gru_fedavg,
+                transformer_ids_fedavg]
     noniid:
       alphas: [0.1, 100.0]
       aggregators: [hdbscan]

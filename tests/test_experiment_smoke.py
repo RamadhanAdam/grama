@@ -18,6 +18,10 @@ def test_tiny_profile_end_to_end(tmp_path):
         RunSpec("grama", "krum", 0.5, "magnitude_poison", 0.25, 0),
         RunSpec("grama", "central", 0.5, None, 0.0, 0),
         RunSpec("grama", "fedavg", 0.5, None, 0.0, 0, "no_temporal"),
+        RunSpec("grama", "central", 0.5, None, 0.0, 0, "one_head"),
+        RunSpec("gcn_ids", "fedavg", 0.5, None, 0.0, 0),
+        RunSpec("gcn_gru", "central", 0.5, None, 0.0, 0),
+        RunSpec("transformer_ids", "fedavg", 0.5, None, 0.0, 0),
     ]
     with exp.runs_path.open("w") as f:
         for spec in specs:
@@ -30,6 +34,7 @@ def test_tiny_profile_end_to_end(tmp_path):
     exp.efficiency()
     summary = make_report(exp.out_dir).read_text()
     assert "Main comparison" in summary and "Efficiency" in summary
+    assert "Transformer" in summary and "GCN" in summary
     assert (exp.out_dir / "figures" / "convergence.png").exists()
 
 

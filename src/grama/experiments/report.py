@@ -16,7 +16,8 @@ from pathlib import Path
 
 import numpy as np
 
-MODEL_LABEL = {"grama": "GraMa", "cnn_bigru": "CNN-BiGRU"}
+MODEL_LABEL = {"grama": "GraMa", "cnn_bigru": "CNN-BiGRU", "gcn_ids": "GCN (single window)",
+               "gcn_gru": "GCN + GRU", "transformer_ids": "Transformer"}
 AGG_LABEL = {"hdbscan": "HDBSCAN (ours)", "fedavg": "FedAvg", "median": "Median",
              "trimmed_mean": "Trimmed mean", "krum": "Multi-Krum", "norm_clip": "Norm clipping",
              "flame": "FLAME", "central": "centralised",
@@ -42,6 +43,7 @@ VARIANT_LABEL = {
     "transition_edges": "transition edges instead of co-occurrence edges",
     "gru_instead_of_mamba": "GRU instead of Mamba",
     "no_temporal": "no temporal model (last window only)",
+    "one_head": "one attention head instead of four",
 }
 DATA_LABEL = {"road": "ROAD", "can_train_test": "can-train-and-test"}
 TEST_LABEL = {"masquerade": "Masquerade attacks only",
