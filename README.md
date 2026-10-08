@@ -142,6 +142,11 @@ The repo is created private unless you add `--public`. This needs `huggingface_h
 - Ablation: residual connections, CAN-ID embeddings, attention pooling, edge type, and the
   temporal model, each removed or replaced in turn.
 - Efficiency: parameters, model size, latency and throughput.
+- Defence ablation, settings grid, FoolsGold, DeepSight, FreqFed, ALIE with noise and 40 clients (profiles
+  listed in `config/experiments.yaml`; `make paper1-background`).
+- Detector comparison against CNN-BiGRU, a GCN, a GCN with a GRU and a Transformer on ROAD,
+  can-train-and-test and CIC-IoV2024, with ten seeds for the central comparison (`make paper2-background`).
+- `make stats-paper1` and `make stats-paper2` write confidence intervals and paired tests to `results/stats/`.
 
 Metrics: accuracy, macro precision, recall and F1, ROC-AUC, detection rate, false alarm rate,
 per-class F1 and confusion matrices. For defences that reject clients, the share of compromised and

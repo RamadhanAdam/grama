@@ -1,5 +1,33 @@
 # Changes
 
+## October 2026: runs for two papers (the defence and the detector)
+
+Defence paper (`make paper1-background`, about 740 runs, about 45 hours on one A100):
+- New aggregation rules: FoolsGold, a simplified DeepSight (without the DDifs measure) and FreqFed.
+- The defence can build its latent space with PCA or the raw updates (`latent_method`), and named variants
+  (`hdbscan_pca`, `hdbscan_raw`, `hdbscan_no_rescale`, `hdbscan_no_normalize`, `hdbscan_no_standardize`,
+  `hdbscan_last_layer`, `hdbscan_eps1/4/8`, `hdbscan_mcs2/5`) change one setting each, for the ablation and
+  the settings grid.
+- Attack `alie_noisy`: the colluders add their own noise to the shared ALIE vector, so they no longer send
+  identical updates.
+- Profiles `new_baselines`, `def_ablation`, `alie_duplicates`, `cic_adaptive_new`, `cic_seeds`, `def_grid`,
+  `clients40`, `road_new_baselines`, `cantt1_new_baselines`. A poisoning section may give `seeds_by_fraction`
+  (more seeds in the 30% and 40% cells).
+
+Detector paper (`make paper2-background`, about 220 runs, about 27 hours on one A100):
+- Baselines `gcn_ids` (graph convolution on the last window), `gcn_gru` (the same with a GRU over the windows)
+  and `transformer_ids` (frames of a window, then the windows of a sequence), and the ablation variant `one_head`.
+- Profiles `det_road_central` (ten seeds), `det_road_ablation`, `det_road_fedavg`, `det_cantt1`-`det_cantt4`,
+  `det_cic`.
+
+Both:
+- `scripts/stats.py`: mean with a 95% bootstrap interval, the difference to a reference method with a paired
+  bootstrap interval, Wilcoxon and paired t-test, Holm correction (`make stats-paper1`, `make stats-paper2`).
+- `scripts/run_queue.sh`: runs profiles in order, writes `results/queue_NAME.status`, goes on after a failure,
+  resumes where it stopped. `make queue-status` shows the last lines.
+- The runner keeps one copy of each data view on the GPU for all models that read it; the report names, colours
+  and detection tables cover the new rules.
+
 ## October 2026: adaptive attack and more seeds
 
 - Adaptive attack (`adaptive`): the attackers train like targeted flipping, then all send

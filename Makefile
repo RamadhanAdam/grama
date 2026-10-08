@@ -7,7 +7,10 @@ PROFILE ?= quick
 SOURCE ?= cic
 export PYTHONPATH := $(CURDIR)/src:$(PYTHONPATH)
 
-.PHONY: help setup setup-cuda check-data data smoke quick full full-background road cantt others-background extra-background report test lint notebook pack hf clean
+PAPER1 = new_baselines def_ablation alie_duplicates cic_adaptive_new cic_seeds def_grid clients40 road_new_baselines cantt1_new_baselines
+PAPER2 = det_road_central det_road_ablation det_road_fedavg det_cantt1 det_cantt2 det_cantt3 det_cantt4 det_cic
+
+.PHONY: paper1-background paper2-background papers-background queue-status stats-paper1 stats-paper2 help setup setup-cuda check-data data smoke quick full full-background road cantt others-background extra-background report test lint notebook pack hf clean
 
 help:
 	@echo "make setup            install the dependencies (once)"
@@ -22,6 +25,12 @@ help:
 	@echo "make cantt            the can-train-and-test runs, sets 1 to 4 (about 100 runs)"
 	@echo "make others-background  road then cantt, detached, logging to results/others.log"
 	@echo "make extra-background   adaptive attack (CIC, cantt1) and extra road/cantt1 seeds, detached, logging to results/extra.log"
+	@echo "make paper1-background   the defence paper's profiles in order, detached (status: results/queue_paper1.status)"
+	@echo "make paper2-background   the detector paper's profiles in order, detached (status: results/queue_paper2.status)"
+	@echo "make papers-background   both queues at once on the same GPU"
+	@echo "make queue-status        last lines of every queue's status file"
+	@echo "make stats-paper1        confidence intervals and paired tests for the defence paper (after its runs)"
+	@echo "make stats-paper2        the same for the detector paper"
 	@echo "make report           rebuild tables and figures for PROFILE from saved runs"
 	@echo "make notebook         run GraMa.ipynb top to bottom without opening it"
 	@echo "make pack             pack results/PROFILE into results_PROFILE.tar.gz for download"
@@ -75,6 +84,27 @@ extra-background:
 	  echo "=== $$p ==="; $(PYTHON) scripts/run_experiments.py --profile $$p --no-progress || echo "=== $$p FAILED ==="; done; \
 	  echo "=== all done ==="' > results/extra.log 2>&1 &
 	@echo "Started. Follow it with: tail -f results/extra.log"
+
+paper1-background:
+	nohup sh scripts/run_queue.sh paper1 $(PAPER1) > /dev/null 2>&1 &
+	@echo "Started. Follow it with: tail -f results/queue_paper1.status"
+
+paper2-background:
+	nohup sh scripts/run_queue.sh paper2 $(PAPER2) > /dev/null 2>&1 &
+	@echo "Started. Follow it with: tail -f results/queue_paper2.status"
+
+papers-background: paper1-background paper2-background
+
+queue-status:
+	@for f in results/queue_*.status; do echo "== $$f"; tail -n 6 $$f; done
+
+stats-paper1:
+	$(PYTHON) scripts/stats.py results/full results/new_baselines results/def_ablation results/alie_duplicates results/cic_seeds results/def_grid results/clients40 \
+	  --metric final.f1_macro defence.tpr defence.fpr --reference grama_hdbscan --out results/stats/paper1_defence
+
+stats-paper2:
+	$(PYTHON) scripts/stats.py results/det_road_central results/det_road_fedavg results/det_road_ablation results/det_cantt1 results/det_cantt2 results/det_cantt3 results/det_cantt4 results/det_cic \
+	  --metric final.f1_macro tests.masquerade.f1_macro tests.unknown_vehicle.f1_macro tests.unknown_attack.f1_macro tests.unknown_vehicle_and_attack.f1_macro --reference grama_central --out results/stats/paper2_detector
 
 report:
 	$(PYTHON) -m grama.experiments.report results/$(PROFILE)
