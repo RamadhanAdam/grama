@@ -2,21 +2,21 @@
 
 Differences are method minus reference, paired on the seed. `*` marks a Holm-adjusted Wilcoxon p below 0.05. At n = 5 the smallest possible Wilcoxon p is 0.0625, so no `*` can appear; read the interval of the difference.
 
-## data_source real, alpha 0.05  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, alpha 0.05  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
 | grama_fedavg | 3 | 0.871 [0.742, 0.976] | 0.170 [0.039, 0.398] | 0.250 | 0.250 | 0.276 |
 | grama_hdbscan (reference) | 3 | 0.701 [0.578, 0.855] | | | | |
 
-## data_source real, alpha 0.1  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, alpha 0.1  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
 | grama_fedavg | 3 | 0.869 [0.797, 1.000] | -0.102 [-0.203, 0.049] | 0.500 | 0.500 | 0.317 |
 | grama_hdbscan (reference) | 3 | 0.971 [0.951, 1.000] | | | | |
 
-## data_source real, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -51,21 +51,21 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_norm_clip | 5 | 1.000 [1.000, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 | grama_trimmed_mean | 5 | 0.996 [0.987, 1.000] | -0.004 [-0.013, 0.000] | 0.317 | 1.000 | 0.374 |
 
-## data_source real, alpha 1.0  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, alpha 1.0  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
 | grama_fedavg | 3 | 1.000 [1.000, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 | grama_hdbscan (reference) | 3 | 1.000 [1.000, 1.000] | | | | |
 
-## data_source real, alpha 100.0  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, alpha 100.0  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
 | grama_fedavg | 3 | 1.000 [1.000, 1.000] | 0.001 [0.000, 0.002] | 0.317 | 0.317 | 0.423 |
 | grama_hdbscan (reference) | 3 | 0.999 [0.998, 1.000] | | | | |
 
-## data_source real, attack alie, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -77,7 +77,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_norm_clip | 3 | 1.000 [1.000, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 | grama_trimmed_mean | 3 | 1.000 [1.000, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 
-## data_source real, attack alie, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -103,7 +103,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_norm_clip | 3 | 1.000 [1.000, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 | grama_trimmed_mean | 3 | 1.000 [1.000, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 
-## data_source real, attack alie, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -118,7 +118,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_norm_clip | 5 | 1.000 [0.999, 1.000] | 0.097 [0.017, 0.187] | 0.068 | 0.562 | 0.120 |
 | grama_trimmed_mean | 5 | 0.999 [0.997, 1.000] | 0.096 [0.016, 0.187] | 0.068 | 0.562 | 0.122 |
 
-## data_source real, attack alie, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -144,7 +144,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_norm_clip | 5 | 0.749 [0.599, 0.900] | 0.177 [0.087, 0.267] | 0.062 | 1.000 | 0.033 |
 | grama_trimmed_mean | 5 | 0.577 [0.383, 0.792] | 0.005 [-0.099, 0.092] | 1.000 | 1.000 | 0.932 |
 
-## data_source real, attack alie_noisy, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie_noisy, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -154,7 +154,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 3 | 1.000 [1.000, 1.000] | | | | |
 | grama_norm_clip | 3 | 1.000 [1.000, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 
-## data_source real, attack alie_noisy, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie_noisy, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -164,7 +164,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 3 | 0.675 [0.398, 1.000] | | | | |
 | grama_norm_clip | 3 | 0.888 [0.814, 1.000] | 0.214 [0.000, 0.452] | 0.180 | 0.719 | 0.245 |
 
-## data_source real, attack label_flip, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack label_flip, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -176,7 +176,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_norm_clip | 3 | 1.000 [1.000, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 | grama_trimmed_mean | 3 | 1.000 [1.000, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 
-## data_source real, attack label_flip, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack label_flip, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -191,7 +191,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_norm_clip | 3 | 1.000 [1.000, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 | grama_trimmed_mean | 3 | 1.000 [1.000, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 
-## data_source real, attack label_flip, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack label_flip, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -206,7 +206,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_norm_clip | 5 | 0.938 [0.823, 1.000] | -0.062 [-0.177, 0.000] | 0.180 | 1.000 | 0.339 |
 | grama_trimmed_mean | 5 | 0.938 [0.822, 1.000] | -0.062 [-0.178, 0.000] | 0.180 | 1.000 | 0.336 |
 
-## data_source real, attack label_flip, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack label_flip, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -221,7 +221,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_norm_clip | 5 | 0.833 [0.609, 0.996] | -0.065 [-0.160, -0.004] | 0.109 | 0.653 | 0.240 |
 | grama_trimmed_mean | 5 | 0.823 [0.610, 0.993] | -0.074 [-0.187, -0.007] | 0.109 | 0.653 | 0.260 |
 
-## data_source real, attack magnitude_poison, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack magnitude_poison, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -233,7 +233,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_norm_clip | 3 | 1.000 [1.000, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 | grama_trimmed_mean | 3 | 1.000 [1.000, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 
-## data_source real, attack magnitude_poison, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack magnitude_poison, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -248,7 +248,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_norm_clip | 3 | 1.000 [1.000, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 | grama_trimmed_mean | 3 | 1.000 [1.000, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 
-## data_source real, attack magnitude_poison, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack magnitude_poison, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -263,7 +263,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_norm_clip | 5 | 0.990 [0.970, 1.000] | -0.010 [-0.030, 0.001] | 0.655 | 1.000 | 0.391 |
 | grama_trimmed_mean | 5 | 0.971 [0.912, 1.000] | -0.029 [-0.087, 0.001] | 0.285 | 1.000 | 0.372 |
 
-## data_source real, attack magnitude_poison, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack magnitude_poison, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -278,7 +278,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_norm_clip | 5 | 1.000 [1.000, 1.000] | 0.098 [0.004, 0.255] | 0.109 | 0.870 | 0.277 |
 | grama_trimmed_mean | 5 | 0.815 [0.631, 0.939] | -0.088 [-0.335, 0.164] | 0.438 | 1.000 | 0.558 |
 
-## data_source real, attack targeted_flip, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack targeted_flip, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -290,7 +290,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_norm_clip | 3 | 1.000 [1.000, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 | grama_trimmed_mean | 3 | 1.000 [1.000, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 
-## data_source real, attack targeted_flip, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack targeted_flip, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -316,7 +316,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_norm_clip | 3 | 0.999 [0.998, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 | grama_trimmed_mean | 3 | 0.999 [0.998, 1.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 
-## data_source real, attack targeted_flip, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack targeted_flip, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -331,7 +331,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_norm_clip | 5 | 0.896 [0.813, 0.970] | -0.093 [-0.177, -0.009] | 0.144 | 1.000 | 0.129 |
 | grama_trimmed_mean | 5 | 0.904 [0.823, 0.984] | -0.086 [-0.169, -0.004] | 0.188 | 1.000 | 0.151 |
 
-## data_source real, attack targeted_flip, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack targeted_flip, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -362,7 +362,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 
 Differences are method minus reference, paired on the seed. `*` marks a Holm-adjusted Wilcoxon p below 0.05. At n = 5 the smallest possible Wilcoxon p is 0.0625, so no `*` can appear; read the interval of the difference.
 
-## data_source real, attack alie, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -370,7 +370,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 3 | 0.014 [0.000, 0.042] | | | | |
 | grama_krum | 3 | 0.000 [0.000, 0.000] | -0.014 [-0.042, 0.000] | 0.317 | 0.635 | 0.423 |
 
-## data_source real, attack alie, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -392,7 +392,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan_raw | 3 | 0.012 [0.000, 0.018] | 0.012 [0.000, 0.018] | 0.180 | 1.000 | 0.184 |
 | grama_krum | 3 | 0.000 [0.000, 0.000] | 0.000 [0.000, 0.000] | 1.000 | 1.000 | 1.000 |
 
-## data_source real, attack alie, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -403,7 +403,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 5 | 0.000 [0.000, 0.000] | | | | |
 | grama_krum | 5 | 0.002 [0.000, 0.007] | 0.002 [0.000, 0.007] | 0.317 | 0.635 | 0.374 |
 
-## data_source real, attack alie, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -425,7 +425,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan_raw | 3 | 0.000 [0.000, 0.000] | -0.027 [-0.081, 0.000] | 0.317 | 1.000 | 0.423 |
 | grama_krum | 5 | 0.011 [0.008, 0.018] | -0.005 [-0.031, 0.008] | 0.625 | 1.000 | 0.730 |
 
-## data_source real, attack alie_noisy, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie_noisy, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -433,7 +433,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_foolsgold | 3 | 0.362 [0.304, 0.450] | 0.327 [0.214, 0.433] | 0.250 | 0.500 | 0.036 |
 | grama_hdbscan (reference) | 3 | 0.035 [0.000, 0.089] | | | | |
 
-## data_source real, attack alie_noisy, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie_noisy, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -441,7 +441,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_foolsgold | 3 | 0.985 [0.956, 1.000] | 0.971 [0.939, 0.992] | 0.250 | 0.500 | <0.001 |
 | grama_hdbscan (reference) | 3 | 0.014 [0.008, 0.018] | | | | |
 
-## data_source real, attack label_flip, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack label_flip, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -449,7 +449,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 3 | 0.693 [0.417, 0.889] | | | | |
 | grama_krum | 3 | 0.758 [0.375, 0.963] | 0.065 [-0.042, 0.161] | 0.500 | 0.500 | 0.387 |
 
-## data_source real, attack label_flip, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack label_flip, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -460,7 +460,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 3 | 0.698 [0.643, 0.767] | | | | |
 | grama_krum | 3 | 0.743 [0.696, 0.783] | 0.046 [-0.017, 0.100] | 0.500 | 1.000 | 0.311 |
 
-## data_source real, attack label_flip, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack label_flip, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -471,7 +471,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 5 | 0.611 [0.545, 0.670] | | | | |
 | grama_krum | 5 | 0.654 [0.587, 0.720] | 0.043 [0.005, 0.080] | 0.188 | 0.375 | 0.126 |
 
-## data_source real, attack label_flip, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack label_flip, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -482,7 +482,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 5 | 0.449 [0.316, 0.582] | | | | |
 | grama_krum | 5 | 0.568 [0.478, 0.658] | 0.119 [0.053, 0.173] | 0.068 | 0.312 | 0.026 |
 
-## data_source real, attack magnitude_poison, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack magnitude_poison, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -490,7 +490,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 3 | 0.881 [0.792, 1.000] | | | | |
 | grama_krum | 3 | 0.986 [0.958, 1.000] | 0.105 [0.000, 0.167] | 0.180 | 0.359 | 0.185 |
 
-## data_source real, attack magnitude_poison, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack magnitude_poison, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -501,7 +501,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 3 | 0.884 [0.786, 0.983] | | | | |
 | grama_krum | 3 | 0.937 [0.929, 0.950] | 0.053 [-0.050, 0.143] | 0.500 | 1.000 | 0.443 |
 
-## data_source real, attack magnitude_poison, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack magnitude_poison, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -512,7 +512,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 5 | 0.813 [0.798, 0.832] | | | | |
 | grama_krum | 5 | 0.783 [0.733, 0.811] | -0.030 [-0.081, 0.007] | 0.625 | 0.625 | 0.305 |
 
-## data_source real, attack magnitude_poison, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack magnitude_poison, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -523,7 +523,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 5 | 0.712 [0.652, 0.774] | | | | |
 | grama_krum | 5 | 0.703 [0.680, 0.735] | -0.009 [-0.047, 0.041] | 0.625 | 0.625 | 0.757 |
 
-## data_source real, attack targeted_flip, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack targeted_flip, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -531,7 +531,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 3 | 0.597 [0.292, 0.871] | | | | |
 | grama_krum | 3 | 0.761 [0.417, 0.963] | 0.164 [0.032, 0.333] | 0.250 | 0.500 | 0.208 |
 
-## data_source real, attack targeted_flip, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack targeted_flip, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -553,7 +553,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan_raw | 3 | 0.085 [0.067, 0.100] | -0.490 [-0.633, -0.283] | 0.250 | 1.000 | 0.044 |
 | grama_krum | 3 | 0.694 [0.650, 0.717] | 0.118 [0.017, 0.267] | 0.250 | 1.000 | 0.259 |
 
-## data_source real, attack targeted_flip, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack targeted_flip, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -564,7 +564,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 5 | 0.563 [0.434, 0.680] | | | | |
 | grama_krum | 5 | 0.608 [0.535, 0.682] | 0.045 [-0.040, 0.113] | 0.465 | 0.938 | 0.358 |
 
-## data_source real, attack targeted_flip, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack targeted_flip, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -591,19 +591,19 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 
 Differences are method minus reference, paired on the seed. `*` marks a Holm-adjusted Wilcoxon p below 0.05. At n = 5 the smallest possible Wilcoxon p is 0.0625, so no `*` can appear; read the interval of the difference.
 
-## data_source real, alpha 0.05  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, alpha 0.05  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
 | grama_hdbscan (reference) | 3 | 0.292 [0.267, 0.317] | | | | |
 
-## data_source real, alpha 0.1  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, alpha 0.1  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
 | grama_hdbscan (reference) | 3 | 0.228 [0.213, 0.250] | | | | |
 
-## data_source real, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -626,19 +626,19 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan_raw | 3 | 0.053 [0.040, 0.073] | -0.110 [-0.143, -0.077] | 0.250 | 1.000 | 0.029 |
 | grama_krum | 5 | 0.300 [0.300, 0.300] | 0.118 [0.095, 0.141] | 0.062 | 1.000 | <0.001 |
 
-## data_source real, alpha 1.0  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, alpha 1.0  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
 | grama_hdbscan (reference) | 3 | 0.188 [0.183, 0.193] | | | | |
 
-## data_source real, alpha 100.0  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, alpha 100.0  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
 | grama_hdbscan (reference) | 3 | 0.177 [0.133, 0.223] | | | | |
 
-## data_source real, attack alie, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -646,7 +646,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 3 | 0.202 [0.179, 0.225] | | | | |
 | grama_krum | 3 | 0.330 [0.326, 0.335] | 0.128 [0.101, 0.150] | 0.250 | 0.500 | 0.012 |
 
-## data_source real, attack alie, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -668,7 +668,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan_raw | 3 | 0.268 [0.230, 0.304] | -0.048 [-0.100, 0.025] | 0.500 | 1.000 | 0.329 |
 | grama_krum | 3 | 0.373 [0.369, 0.375] | 0.057 [0.004, 0.096] | 0.250 | 1.000 | 0.174 |
 
-## data_source real, attack alie, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -679,7 +679,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 5 | 0.429 [0.398, 0.460] | | | | |
 | grama_krum | 5 | 0.433 [0.423, 0.441] | 0.004 [-0.028, 0.036] | 0.812 | 0.812 | 0.836 |
 
-## data_source real, attack alie, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -701,7 +701,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan_raw | 3 | 0.526 [0.415, 0.656] | 0.002 [-0.085, 0.102] | 1.000 | 1.000 | 0.976 |
 | grama_krum | 5 | 0.502 [0.488, 0.516] | -0.036 [-0.109, 0.030] | 0.438 | 1.000 | 0.422 |
 
-## data_source real, attack alie_noisy, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie_noisy, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -709,7 +709,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_foolsgold | 3 | 0.261 [0.192, 0.308] | 0.054 [-0.012, 0.113] | 0.500 | 0.500 | 0.276 |
 | grama_hdbscan (reference) | 3 | 0.207 [0.196, 0.221] | | | | |
 
-## data_source real, attack alie_noisy, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack alie_noisy, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -717,7 +717,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_foolsgold | 3 | 0.285 [0.193, 0.333] | -0.006 [-0.068, 0.113] | 1.000 | 1.000 | 0.931 |
 | grama_hdbscan (reference) | 3 | 0.291 [0.215, 0.395] | | | | |
 
-## data_source real, attack label_flip, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack label_flip, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -725,7 +725,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 3 | 0.146 [0.119, 0.185] | | | | |
 | grama_krum | 3 | 0.252 [0.227, 0.293] | 0.105 [0.099, 0.109] | 0.250 | 0.500 | <0.001 |
 
-## data_source real, attack label_flip, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack label_flip, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -736,7 +736,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 3 | 0.095 [0.075, 0.108] | | | | |
 | grama_krum | 3 | 0.192 [0.179, 0.209] | 0.097 [0.079, 0.107] | 0.250 | 1.000 | 0.008 |
 
-## data_source real, attack label_flip, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack label_flip, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -747,7 +747,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 5 | 0.077 [0.062, 0.092] | | | | |
 | grama_krum | 5 | 0.143 [0.113, 0.168] | 0.066 [0.047, 0.080] | 0.062 | 0.312 | 0.003 |
 
-## data_source real, attack label_flip, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack label_flip, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -758,7 +758,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 5 | 0.045 [0.028, 0.076] | | | | |
 | grama_krum | 5 | 0.115 [0.059, 0.173] | 0.070 [0.025, 0.128] | 0.068 | 0.312 | 0.080 |
 
-## data_source real, attack magnitude_poison, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack magnitude_poison, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -766,7 +766,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 3 | 0.099 [0.072, 0.123] | | | | |
 | grama_krum | 3 | 0.231 [0.219, 0.243] | 0.132 [0.097, 0.170] | 0.250 | 0.500 | 0.025 |
 
-## data_source real, attack magnitude_poison, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack magnitude_poison, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -777,7 +777,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 3 | 0.058 [0.045, 0.067] | | | | |
 | grama_krum | 3 | 0.145 [0.138, 0.156] | 0.087 [0.071, 0.111] | 0.250 | 1.000 | 0.019 |
 
-## data_source real, attack magnitude_poison, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack magnitude_poison, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -788,7 +788,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 5 | 0.052 [0.031, 0.073] | | | | |
 | grama_krum | 5 | 0.085 [0.066, 0.105] | 0.033 [0.001, 0.054] | 0.125 | 0.312 | 0.116 |
 
-## data_source real, attack magnitude_poison, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack magnitude_poison, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -799,7 +799,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 5 | 0.016 [0.010, 0.023] | | | | |
 | grama_krum | 5 | 0.019 [0.010, 0.030] | 0.003 [-0.011, 0.015] | 0.715 | 0.715 | 0.709 |
 
-## data_source real, attack targeted_flip, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack targeted_flip, fraction 0.1, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -807,7 +807,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 3 | 0.148 [0.134, 0.159] | | | | |
 | grama_krum | 3 | 0.252 [0.230, 0.290] | 0.104 [0.084, 0.130] | 0.250 | 0.500 | 0.017 |
 
-## data_source real, attack targeted_flip, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack targeted_flip, fraction 0.2, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -829,7 +829,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan_raw | 3 | 0.022 [0.008, 0.046] | -0.077 [-0.098, -0.062] | 0.250 | 1.000 | 0.019 |
 | grama_krum | 3 | 0.204 [0.196, 0.212] | 0.105 [0.096, 0.121] | 0.250 | 1.000 | 0.006 |
 
-## data_source real, attack targeted_flip, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack targeted_flip, fraction 0.3, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|
@@ -840,7 +840,7 @@ Differences are method minus reference, paired on the seed. `*` marks a Holm-adj
 | grama_hdbscan (reference) | 5 | 0.065 [0.044, 0.085] | | | | |
 | grama_krum | 5 | 0.163 [0.130, 0.192] | 0.098 [0.079, 0.114] | 0.062 | 0.312 | <0.001 |
 
-## data_source real, attack targeted_flip, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
+## data_source real, data_file cic_iov2024_1427a6ad.pt, attack targeted_flip, fraction 0.4, alpha 0.5  (reference: grama_hdbscan)
 
 | Method | n | Mean [95% CI] | Difference [95% CI] | Wilcoxon p | Holm p | t-test p |
 |---|---|---|---|---|---|---|

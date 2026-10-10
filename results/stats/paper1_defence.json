@@ -3,6 +3,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": null,
     "fraction": 0.0,
     "alpha": 0.05
@@ -38,6 +39,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": null,
     "fraction": 0.0,
     "alpha": 0.1
@@ -73,6 +75,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": null,
     "fraction": 0.0,
     "alpha": 0.5
@@ -584,6 +587,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": null,
     "fraction": 0.0,
     "alpha": 1.0
@@ -619,6 +623,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": null,
     "fraction": 0.0,
     "alpha": 100.0
@@ -654,6 +659,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie",
     "fraction": 0.1,
     "alpha": 0.5
@@ -774,6 +780,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie",
     "fraction": 0.2,
     "alpha": 0.5
@@ -1132,6 +1139,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie",
     "fraction": 0.3,
     "alpha": 0.5
@@ -1303,6 +1311,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie",
     "fraction": 0.4,
     "alpha": 0.5
@@ -1661,6 +1670,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie_noisy",
     "fraction": 0.2,
     "alpha": 0.5
@@ -1747,6 +1757,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie_noisy",
     "fraction": 0.4,
     "alpha": 0.5
@@ -1833,6 +1844,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "label_flip",
     "fraction": 0.1,
     "alpha": 0.5
@@ -1953,6 +1965,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "label_flip",
     "fraction": 0.2,
     "alpha": 0.5
@@ -2124,6 +2137,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "label_flip",
     "fraction": 0.3,
     "alpha": 0.5
@@ -2295,6 +2309,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "label_flip",
     "fraction": 0.4,
     "alpha": 0.5
@@ -2438,10 +2453,10 @@
       "mean_diff": -0.06491038048292665,
       "ci_lo": -0.16033533015897256,
       "ci_hi": -0.003937499999999994,
-      "wilcoxon_p": 0.10880943004054568,
+      "wilcoxon_p": 0.10880943004054569,
       "ttest_p": 0.2395477479717783,
       "min_wilcoxon_p": 0.0625,
-      "wilcoxon_p_holm": 0.6528565802432741
+      "wilcoxon_p_holm": 0.6528565802432742
      }
     },
     {
@@ -2455,10 +2470,10 @@
       "mean_diff": -0.07429017324378849,
       "ci_lo": -0.18672725918640948,
       "ci_hi": -0.006956853451318401,
-      "wilcoxon_p": 0.10880943004054568,
+      "wilcoxon_p": 0.10880943004054569,
       "ttest_p": 0.2598770300867101,
       "min_wilcoxon_p": 0.0625,
-      "wilcoxon_p_holm": 0.6528565802432741
+      "wilcoxon_p_holm": 0.6528565802432742
      }
     }
    ]
@@ -2466,6 +2481,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "magnitude_poison",
     "fraction": 0.1,
     "alpha": 0.5
@@ -2586,6 +2602,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "magnitude_poison",
     "fraction": 0.2,
     "alpha": 0.5
@@ -2757,6 +2774,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "magnitude_poison",
     "fraction": 0.3,
     "alpha": 0.5
@@ -2842,10 +2860,10 @@
       "mean_diff": -0.021799105668840645,
       "ci_lo": -0.0444403947588284,
       "ci_hi": -0.00041261420571767624,
-      "wilcoxon_p": 0.10880943004054568,
+      "wilcoxon_p": 0.10880943004054569,
       "ttest_p": 0.16889083535958313,
       "min_wilcoxon_p": 0.0625,
-      "wilcoxon_p_holm": 0.7616660102838197
+      "wilcoxon_p_holm": 0.7616660102838199
      }
     },
     {
@@ -2928,6 +2946,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "magnitude_poison",
     "fraction": 0.4,
     "alpha": 0.5
@@ -2945,10 +2964,10 @@
       "mean_diff": 0.0972458919458272,
       "ci_lo": 0.004448146894714467,
       "ci_hi": 0.2539298771605685,
-      "wilcoxon_p": 0.10880943004054568,
+      "wilcoxon_p": 0.10880943004054569,
       "ttest_p": 0.27632509961421187,
       "min_wilcoxon_p": 0.0625,
-      "wilcoxon_p_holm": 0.8704754403243654
+      "wilcoxon_p_holm": 0.8704754403243655
      }
     },
     {
@@ -2999,7 +3018,7 @@
       "wilcoxon_p": 0.125,
       "ttest_p": 0.04712786370394115,
       "min_wilcoxon_p": 0.0625,
-      "wilcoxon_p_holm": 0.8704754403243654
+      "wilcoxon_p_holm": 0.8704754403243655
      }
     },
     {
@@ -3071,10 +3090,10 @@
       "mean_diff": 0.09765850615154488,
       "ci_lo": 0.004448146894714467,
       "ci_hi": 0.25516771977772146,
-      "wilcoxon_p": 0.10880943004054568,
+      "wilcoxon_p": 0.10880943004054569,
       "ttest_p": 0.27675150145748173,
       "min_wilcoxon_p": 0.0625,
-      "wilcoxon_p_holm": 0.8704754403243654
+      "wilcoxon_p_holm": 0.8704754403243655
      }
     },
     {
@@ -3099,6 +3118,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "targeted_flip",
     "fraction": 0.1,
     "alpha": 0.5
@@ -3219,6 +3239,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "targeted_flip",
     "fraction": 0.2,
     "alpha": 0.5
@@ -3577,6 +3598,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "targeted_flip",
     "fraction": 0.3,
     "alpha": 0.5
@@ -3662,7 +3684,7 @@
       "mean_diff": 0.009379962493587657,
       "ci_lo": -0.0006045047169461526,
       "ci_hi": 0.02813988748076297,
-      "wilcoxon_p": 0.4142161782425252,
+      "wilcoxon_p": 0.4142161782425251,
       "ttest_p": 0.3744574727120249,
       "min_wilcoxon_p": 0.0625,
       "wilcoxon_p_holm": 1.0
@@ -3748,6 +3770,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "targeted_flip",
     "fraction": 0.4,
     "alpha": 0.5
@@ -4108,6 +4131,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie",
     "fraction": 0.1,
     "alpha": 0.5
@@ -4160,6 +4184,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie",
     "fraction": 0.2,
     "alpha": 0.5
@@ -4450,6 +4475,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie",
     "fraction": 0.3,
     "alpha": 0.5
@@ -4553,6 +4579,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie",
     "fraction": 0.4,
     "alpha": 0.5
@@ -4843,6 +4870,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie_noisy",
     "fraction": 0.2,
     "alpha": 0.5
@@ -4895,6 +4923,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie_noisy",
     "fraction": 0.4,
     "alpha": 0.5
@@ -4947,6 +4976,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "label_flip",
     "fraction": 0.1,
     "alpha": 0.5
@@ -4999,6 +5029,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "label_flip",
     "fraction": 0.2,
     "alpha": 0.5
@@ -5102,6 +5133,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "label_flip",
     "fraction": 0.3,
     "alpha": 0.5
@@ -5205,6 +5237,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "label_flip",
     "fraction": 0.4,
     "alpha": 0.5
@@ -5308,6 +5341,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "magnitude_poison",
     "fraction": 0.1,
     "alpha": 0.5
@@ -5360,6 +5394,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "magnitude_poison",
     "fraction": 0.2,
     "alpha": 0.5
@@ -5463,6 +5498,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "magnitude_poison",
     "fraction": 0.3,
     "alpha": 0.5
@@ -5566,6 +5602,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "magnitude_poison",
     "fraction": 0.4,
     "alpha": 0.5
@@ -5669,6 +5706,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "targeted_flip",
     "fraction": 0.1,
     "alpha": 0.5
@@ -5721,6 +5759,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "targeted_flip",
     "fraction": 0.2,
     "alpha": 0.5
@@ -6011,6 +6050,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "targeted_flip",
     "fraction": 0.3,
     "alpha": 0.5
@@ -6114,6 +6154,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "targeted_flip",
     "fraction": 0.4,
     "alpha": 0.5
@@ -6406,6 +6447,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": null,
     "fraction": 0.0,
     "alpha": 0.05
@@ -6424,6 +6466,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": null,
     "fraction": 0.0,
     "alpha": 0.1
@@ -6442,6 +6485,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": null,
     "fraction": 0.0,
     "alpha": 0.5
@@ -6749,6 +6793,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": null,
     "fraction": 0.0,
     "alpha": 1.0
@@ -6767,6 +6812,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": null,
     "fraction": 0.0,
     "alpha": 100.0
@@ -6785,6 +6831,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie",
     "fraction": 0.1,
     "alpha": 0.5
@@ -6837,6 +6884,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie",
     "fraction": 0.2,
     "alpha": 0.5
@@ -7127,6 +7175,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie",
     "fraction": 0.3,
     "alpha": 0.5
@@ -7230,6 +7279,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie",
     "fraction": 0.4,
     "alpha": 0.5
@@ -7520,6 +7570,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie_noisy",
     "fraction": 0.2,
     "alpha": 0.5
@@ -7572,6 +7623,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "alie_noisy",
     "fraction": 0.4,
     "alpha": 0.5
@@ -7624,6 +7676,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "label_flip",
     "fraction": 0.1,
     "alpha": 0.5
@@ -7676,6 +7729,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "label_flip",
     "fraction": 0.2,
     "alpha": 0.5
@@ -7779,6 +7833,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "label_flip",
     "fraction": 0.3,
     "alpha": 0.5
@@ -7882,6 +7937,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "label_flip",
     "fraction": 0.4,
     "alpha": 0.5
@@ -7985,6 +8041,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "magnitude_poison",
     "fraction": 0.1,
     "alpha": 0.5
@@ -8037,6 +8094,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "magnitude_poison",
     "fraction": 0.2,
     "alpha": 0.5
@@ -8140,6 +8198,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "magnitude_poison",
     "fraction": 0.3,
     "alpha": 0.5
@@ -8243,6 +8302,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "magnitude_poison",
     "fraction": 0.4,
     "alpha": 0.5
@@ -8346,6 +8406,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "targeted_flip",
     "fraction": 0.1,
     "alpha": 0.5
@@ -8398,6 +8459,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "targeted_flip",
     "fraction": 0.2,
     "alpha": 0.5
@@ -8688,6 +8750,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "targeted_flip",
     "fraction": 0.3,
     "alpha": 0.5
@@ -8791,6 +8854,7 @@
   {
    "condition": {
     "data_source": "real",
+    "data_file": "cic_iov2024_1427a6ad.pt",
     "attack": "targeted_flip",
     "fraction": 0.4,
     "alpha": 0.5
