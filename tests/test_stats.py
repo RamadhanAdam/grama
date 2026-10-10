@@ -76,6 +76,20 @@ def test_compare_keeps_attack_cells_apart_and_reads_other_metrics():
     assert {r["method"] for r in attack["rows"]} == {"grama_hdbscan", "grama_flame"}
 
 
+def test_datasets_with_one_source_name_stay_apart():
+    # The four sets of can-train-and-test share a source name and run ids; only the data file differs.
+    records = []
+    for data_file, base in (("cantt_set_01.pt", 0.95), ("cantt_set_04.pt", 0.80)):
+        for seed in range(3):
+            records.append(rec("grama", "central", seed, base, data_file=data_file))
+            records.append(rec("cnn_bigru", "central", seed, base + 0.05, data_file=data_file))
+    out = compare(records, "final.f1_macro", "grama_central", n_boot=200)
+    assert len(out) == 2
+    means = sorted(r["mean"] for o in out for r in o["rows"] if r["method"] == "grama_central")
+    assert means == pytest.approx([0.80, 0.95])
+    assert all(r["n"] == 3 for o in out for r in o["rows"])
+
+
 def test_variants_are_separate_methods_and_missing_metrics_are_skipped():
     assert method_name(rec("grama", "central", 0, 0.9, variant="no_temporal")) == "grama_central+no_temporal"
     assert metric_value({"final": {}}, "final.f1_macro") is None

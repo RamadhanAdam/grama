@@ -23,7 +23,9 @@ from pathlib import Path
 
 import numpy as np
 
-CONDITION_KEYS = ("data_source", "attack", "fraction", "alpha")
+# data_file keeps apart the datasets that share a source name, such as the four sets of can-train-and-test,
+# whose runs have the same run ids.
+CONDITION_KEYS = ("data_source", "data_file", "attack", "fraction", "alpha")
 
 
 def load_records(dirs) -> list[dict]:
