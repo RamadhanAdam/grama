@@ -104,7 +104,9 @@ The experiments serve two papers: one on the defence against poisoned updates, o
 Each folder below is one profile, with all its tables and figures in `summary.md` and one record per
 training run in `runs.jsonl`. The trained weights are on Hugging Face:
 [RamadhanZome/grama](https://huggingface.co/RamadhanZome/grama). The tags `paper1-defence-v1` and
-`paper2-detector-v1` mark this state of the results.
+`paper2-detector-v1` mark the results as first pushed; `paper1-defence-v2` and `paper2-detector-v2` add
+`scripts/paper_tables.py` and `scripts/paper_figures.py`, which print every table and draw every figure of
+the two papers from the runs, and the statistics with can-train-and-test split by set.
 
 ### Paper 1: the defence against poisoned updates
 
