@@ -99,23 +99,46 @@ builds these inputs from the CIC-IoV2024 CSVs.
   unusual, and then does worse than FedAvg. See the non-IID table.
 - ALIE, an attack built to look like an honest update, lowers macro-F1 for every defence at 30–40%
   compromised clients, this one included.
-- Results on two more datasets, ROAD and can-train-and-test, are in their own folders (see Other
-  datasets below).
+- The results on ROAD and can-train-and-test, and every newer experiment, are in their own folders
+  (see Folders by paper below).
 
-## Other datasets
+## Folders by paper
 
-The same detector and defence were also trained on two more datasets. Each folder has its own card,
-weights, tables, figures and per-run records.
+The experiments serve two papers. The top level of this repo is the `full` profile on CIC-IoV2024; every
+other profile is in its own folder, with its own card, tables, figures, per-run records and, where runs
+without an attack exist, weights. Confidence intervals and paired tests are in the GitHub repo under
+`results/stats/`.
 
-| Folder | Dataset |
+**Paper 1: the defence against poisoned updates**
+
+| Folder | What it answers |
 |---|---|
-| `road/` | ROAD (Verma et al., 2024): one car, real injected attacks and their masquerade versions; split by recording |
-| `cantt1/` … `cantt4/` | can-train-and-test (Lampe and Meng, 2024), sets 1 to 4: one training car per set, tested on known and unknown cars and attacks |
-| `cic_adaptive/`, `cantt1_adaptive/` | the adaptive attack, which knows the defence, on CIC-IoV2024 and on can-train-and-test set 1; results only |
+| (top level) | the main grid on CIC-IoV2024: seven aggregation rules, four attacks, 10 to 40% of clients compromised |
+| `cic_seeds/` | the same grid with at least three seeds in every cell, five at 30 and 40% |
+| `new_baselines/` | FoolsGold, DeepSight (simplified) and FreqFed on the same grid |
+| `def_ablation/` | what each part of the defence adds (autoencoder, PCA or raw updates; rescaling; last layer only) |
+| `def_grid/` | how sensitive the defence is to its two clustering settings |
+| `alie_duplicates/` | ALIE with noise added, to check the defence does not rely on identical colluding updates |
+| `clients40/` | 40 clients, 20 per round |
+| `cic_adaptive/`, `cic_adaptive_new/` | the adaptive attack, which knows the defence, against every aggregation rule |
+| `road/`, `road_new_baselines/` | ROAD (Verma et al., 2024): poisoning, and the three newer baselines |
+| `cantt1/`, `cantt1_adaptive/`, `cantt1_new_baselines/` | can-train-and-test set 1 (Lampe and Meng, 2024): poisoning, the adaptive attack, the newer baselines |
+
+**Paper 2: the detector**
+
+| Folder | What it answers |
+|---|---|
+| `det_road_central/` | ROAD, centralised: GraMa against CNN-BiGRU, a GCN, a GCN with a GRU and a Transformer, ten seeds |
+| `det_road_fedavg/` | the same five models trained federated with FedAvg |
+| `det_road_ablation/` | what each part of GraMa adds: the full model against eight variants |
+| `det_cantt1/` … `det_cantt4/` | can-train-and-test sets 1 to 4, centralised, also scored on an unknown car and unknown attacks |
+| `det_cic/` | CIC-IoV2024, a sanity check |
+| `cantt2/` … `cantt4/` | the earlier federated comparison on sets 2 to 4, without attacks |
 
 ## Citation
 
-A paper describing GraMa is in preparation. Until it is published, please cite the GitHub repository.
+Two papers are in preparation, one on the defence and one on the detector. Until they are published,
+please cite the GitHub repository.
 The dataset:
 
 > E. C. P. Neto, H. Taslimasa, S. Dadkhah, S. Iqbal, P. Xiong, T. Rahman and A. A. Ghorbani.
@@ -132,16 +155,17 @@ DATASET_NAME = {"road": "ROAD (Verma et al., 2024)",
                 "can_train_test": "can-train-and-test (Lampe and Meng, 2024)",
                 "real": "CIC-IoV2024 (Neto et al., 2024)"}
 
-SUB_CARD = """# GraMa on {dataset}
+SUB_CARD = """# GraMa: `{profile}` on {dataset}
 
-{what} of GraMa trained on {dataset}. The main card, one folder up, describes the model,
-the defence and the CIC-IoV2024 results; the code is at https://github.com/RamadhanAdam/grama.
+{what} of the `{profile}` profile, part of {paper}. {about}
+
+The main card, one folder up, describes the model, the defence and the CIC-IoV2024 results; the code
+is at https://github.com/RamadhanAdam/grama.
 
 - {nodes} CAN IDs. Windows of {window} messages with stride {stride}; one sequence is {seq_len} windows.
 - Classes: {classes}.
 - Split: {split}.
-- Federated setting: {clients} clients, {per_round} per round, {rounds} rounds, {local_epochs} local
-  epochs, Dirichlet alpha {alpha} unless a table says otherwise.
+- {setting}
 - Hardware: {device}.
 
 | Path | Contents |
@@ -152,6 +176,17 @@ the defence and the CIC-IoV2024 results; the code is at https://github.com/Ramad
 
 {results}
 """
+
+
+# Which paper each profile belongs to (the folders on the main card).
+PAPER_1 = {"full", "cic_seeds", "new_baselines", "def_ablation", "def_grid", "alie_duplicates", "clients40",
+           "cic_adaptive", "cic_adaptive_new", "road", "road_new_baselines", "cantt1", "cantt1_adaptive",
+           "cantt1_new_baselines"}
+PAPER_NAME = {1: "paper 1 (the defence against poisoned updates)", 2: "paper 2 (the detector)"}
+
+
+def paper_of(profile: str) -> str:
+    return PAPER_NAME[1 if profile in PAPER_1 else 2]
 
 
 def results_section(summary: str) -> str:
@@ -196,8 +231,15 @@ def make_sub_card(out: Path) -> str:
     dataset = json.loads((out / "dataset.json").read_text())
     profile = json.loads((out / "profile.json").read_text())
     sim = profile["simulation"]
-    runs = sum(1 for line in (out / "runs.jsonl").read_text().splitlines() if line.strip())
+    records = [json.loads(line) for line in (out / "runs.jsonl").read_text().splitlines() if line.strip()]
+    runs = len(records)
     has_weights = any((out / "models").glob("*.pt"))
+    if {r["aggregator"] for r in records} == {"central"}:
+        setting = "Training: centralised, one model on all the training data."
+    else:
+        setting = (f"Federated setting: {sim['num_clients']} clients, {sim['clients_per_round']} per round, "
+                   f"{sim['num_rounds']} rounds, {sim['local_epochs']} local epochs, Dirichlet alpha "
+                   f"{profile['alpha']:g} unless a table says otherwise.")
     rows = ([f"| `models/` | weights of every run without an attack at Dirichlet alpha {profile['alpha']:g} |"]
             if has_weights else [])
     rows += ["| `summary.md` | all tables and figures; the same content is under Results below |",
@@ -208,9 +250,9 @@ def make_sub_card(out: Path) -> str:
         dataset=DATASET_NAME.get(dataset["source"], dataset["source"]),
         nodes=dataset["num_nodes"], window=dataset["window_size"], stride=dataset["stride"],
         seq_len=dataset["seq_len"], classes=", ".join(dataset["class_names"]),
-        split=dataset.get("split_note", dataset.get("split", "")), clients=sim["num_clients"],
-        per_round=sim["clients_per_round"], rounds=sim["num_rounds"], local_epochs=sim["local_epochs"],
-        alpha=f"{profile['alpha']:g}", device=dataset["device"], runs=runs,
+        split=dataset.get("split_note", dataset.get("split", "")), setting=setting,
+        profile=out.name, paper=paper_of(out.name), about=" ".join(str(profile.get("about", "")).split()),
+        device=dataset["device"], runs=runs,
         results=results_section((out / "summary.md").read_text()),
     )
 
