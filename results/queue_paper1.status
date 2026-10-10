@@ -1,0 +1,20 @@
+2026-10-08 07:39:23 queue paper1 started: new_baselines def_ablation alie_duplicates cic_adaptive_new cic_seeds def_grid clients40 road_new_baselines cantt1_new_baselines
+2026-10-08 07:39:23 start new_baselines
+2026-10-08 21:13:22 done new_baselines
+2026-10-08 21:13:22 start def_ablation
+2026-10-09 04:23:40 done def_ablation
+2026-10-09 04:23:40 start alie_duplicates
+2026-10-09 06:26:56 done alie_duplicates
+2026-10-09 06:26:56 start cic_adaptive_new
+2026-10-09 06:56:40 done cic_adaptive_new
+2026-10-09 06:56:40 start cic_seeds
+2026-10-09 15:48:19 done cic_seeds
+2026-10-09 15:48:19 start def_grid
+2026-10-09 19:17:14 done def_grid
+2026-10-09 19:17:14 start clients40
+2026-10-09 21:53:32 done clients40
+2026-10-09 21:53:32 start road_new_baselines
+2026-10-10 04:11:02 done road_new_baselines
+2026-10-10 04:11:02 start cantt1_new_baselines
+2026-10-10 06:00:43 done cantt1_new_baselines
+2026-10-10 06:00:43 queue paper1 finished

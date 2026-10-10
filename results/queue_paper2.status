@@ -1,0 +1,18 @@
+2026-10-08 07:39:23 queue paper2 started: det_road_central det_road_ablation det_road_fedavg det_cantt1 det_cantt2 det_cantt3 det_cantt4 det_cic
+2026-10-08 07:39:23 start det_road_central
+2026-10-08 12:58:59 done det_road_central
+2026-10-08 12:58:59 start det_road_ablation
+2026-10-09 00:04:13 done det_road_ablation
+2026-10-09 00:04:13 start det_road_fedavg
+2026-10-09 01:27:09 done det_road_fedavg
+2026-10-09 01:27:09 start det_cantt1
+2026-10-09 01:58:55 done det_cantt1
+2026-10-09 01:58:55 start det_cantt2
+2026-10-09 03:42:20 done det_cantt2
+2026-10-09 03:42:20 start det_cantt3
+2026-10-09 04:51:14 done det_cantt3
+2026-10-09 04:51:14 start det_cantt4
+2026-10-09 05:46:15 done det_cantt4
+2026-10-09 05:46:15 start det_cic
+2026-10-09 05:59:40 done det_cic
+2026-10-09 05:59:40 queue paper2 finished
