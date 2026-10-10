@@ -1,0 +1,5 @@
+Attack,Aggregator,20% TPR / FPR,40% TPR / FPR
+Targeted flipping,FLAME,0.92 / 0.25,0.63 / 0.17
+Targeted flipping,HDBSCAN (ours),0.60 / 0.06,0.33 / 0.02
+ALIE,FLAME,0.14 / 0.45,0.18 / 0.34
+ALIE,HDBSCAN (ours),0.00 / 0.20,0.17 / 0.17

@@ -1,0 +1,40 @@
+{
+  "profile": "clients40",
+  "about": "The same comparison with 40 clients, 20 per round, so the clustering sees twice as many updates. Targeted flipping and ALIE at 20% and 40%, three seeds. About 60 runs, each about twice as long as a run of `full`.",
+  "alpha": 0.5,
+  "simulation": {
+    "num_clients": 40,
+    "clients_per_round": 20,
+    "num_rounds": 30,
+    "local_epochs": 2,
+    "local_batch_size": 64,
+    "local_lr": 0.001,
+    "non_iid_alpha": 0.5,
+    "class_weighting": "none"
+  },
+  "main_methods": [],
+  "noniid": null,
+  "poisoning": {
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "attacks": [
+      "targeted_flip",
+      "alie"
+    ],
+    "fractions": [
+      0.2,
+      0.4
+    ],
+    "aggregators": [
+      "fedavg",
+      "norm_clip",
+      "flame",
+      "hdbscan"
+    ]
+  },
+  "ablation": null,
+  "edge_mode": "transition"
+}
