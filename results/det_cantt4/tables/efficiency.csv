@@ -1,0 +1,6 @@
+Model,Params,Size (KB),Upload per client per round (KB),"CPU latency, 1 thread (ms/sequence)",GPU latency (ms/sequence),Throughput (sequences/s)
+GraMa,"78,239",305.6,305.6,2.95,3.14,"5,867"
+CNN-BiGRU,"38,867",151.8,151.8,1.21,3.16,"41,286"
+GCN (single window),"7,930",31.0,31.0,0.32,1.31,"476,808"
+GCN + GRU,"32,890",128.5,128.5,0.73,0.82,"116,168"
+Transformer,"105,618",412.6,412.6,1.58,1.57,"15,488"

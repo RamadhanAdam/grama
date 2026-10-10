@@ -1,0 +1,57 @@
+{
+  "GraMa": {
+    "params": 78255,
+    "size_kb": 305.68359375,
+    "upload_per_round_kb": 305.68359375,
+    "cpu_1thread_ms_per_sequence": 3.0482125468552113,
+    "cpu_1thread_p95_ms": 3.142730798572302,
+    "sequence_covers_frames": 288,
+    "gpu_ms_per_sequence": 3.4352005273103714,
+    "gpu_peak_memory_mb": 511.73779296875,
+    "gpu_sequences_per_second": 5379.857950940238
+  },
+  "CNN-BiGRU": {
+    "params": 38899,
+    "size_kb": 151.94921875,
+    "upload_per_round_kb": 151.94921875,
+    "cpu_1thread_ms_per_sequence": 1.194412400946021,
+    "cpu_1thread_p95_ms": 1.2761978432536125,
+    "sequence_covers_frames": 288,
+    "gpu_ms_per_sequence": 2.9349520802497864,
+    "gpu_peak_memory_mb": 525.78564453125,
+    "gpu_sequences_per_second": 37801.71492812201
+  },
+  "GCN (single window)": {
+    "params": 7946,
+    "size_kb": 31.0390625,
+    "upload_per_round_kb": 31.0390625,
+    "cpu_1thread_ms_per_sequence": 0.3151275683194399,
+    "cpu_1thread_p95_ms": 0.3286106511950493,
+    "sequence_covers_frames": 288,
+    "gpu_ms_per_sequence": 2.053727190941572,
+    "gpu_peak_memory_mb": 510.515625,
+    "gpu_sequences_per_second": 318590.7570934445
+  },
+  "GCN + GRU": {
+    "params": 32906,
+    "size_kb": 128.5390625,
+    "upload_per_round_kb": 128.5390625,
+    "cpu_1thread_ms_per_sequence": 0.7731575674066941,
+    "cpu_1thread_p95_ms": 0.8210712112486362,
+    "sequence_covers_frames": 288,
+    "gpu_ms_per_sequence": 3.2698199059814215,
+    "gpu_peak_memory_mb": 517.9013671875,
+    "gpu_sequences_per_second": 27117.340836814976
+  },
+  "Transformer": {
+    "params": 105650,
+    "size_kb": 412.6953125,
+    "upload_per_round_kb": 412.6953125,
+    "cpu_1thread_ms_per_sequence": 1.5629071897516649,
+    "cpu_1thread_p95_ms": 1.6352590173482895,
+    "sequence_covers_frames": 288,
+    "gpu_ms_per_sequence": 3.062077108770609,
+    "gpu_peak_memory_mb": 511.6455078125,
+    "gpu_sequences_per_second": 7069.554481915375
+  }
+}

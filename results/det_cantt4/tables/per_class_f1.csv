@@ -1,0 +1,6 @@
+Method,benign,attack
+"GraMa, centralised",0.8972,0.7723
+"CNN-BiGRU, centralised",0.9604,0.9310
+"GCN (single window), centralised",0.8591,0.6681
+"GCN + GRU, centralised",0.8542,0.6413
+"Transformer, centralised",0.9308,0.8685

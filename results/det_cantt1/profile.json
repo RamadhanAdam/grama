@@ -1,0 +1,41 @@
+{
+  "profile": "det_cantt1",
+  "about": "can-train-and-test set_01 (trains on a Chevrolet Impala; tests on the Impala, unknown attacks and a Chevrolet Silverado), centralised, five models, five seeds (25 runs, about 2 hours).",
+  "alpha": 0.5,
+  "simulation": {
+    "num_clients": 20,
+    "clients_per_round": 10,
+    "num_rounds": 30,
+    "local_epochs": 2,
+    "local_batch_size": 64,
+    "local_lr": 0.001,
+    "non_iid_alpha": 0.5,
+    "class_weighting": "none"
+  },
+  "main_methods": [
+    [
+      "grama",
+      "central"
+    ],
+    [
+      "cnn_bigru",
+      "central"
+    ],
+    [
+      "gcn_ids",
+      "central"
+    ],
+    [
+      "gcn_gru",
+      "central"
+    ],
+    [
+      "transformer_ids",
+      "central"
+    ]
+  ],
+  "noniid": null,
+  "poisoning": null,
+  "ablation": null,
+  "edge_mode": "transition"
+}

@@ -1,0 +1,6 @@
+Method,benign,DoS,spoofing-GAS,spoofing-RPM,spoofing-SPEED,spoofing-STEERING_WHEEL
+"GraMa, centralised",1.0000,1.0000,1.0000,0.9987,0.9972,1.0000
+"CNN-BiGRU, centralised",1.0000,1.0000,1.0000,1.0000,1.0000,1.0000
+"GCN (single window), centralised",1.0000,1.0000,1.0000,1.0000,1.0000,1.0000
+"GCN + GRU, centralised",1.0000,1.0000,1.0000,1.0000,1.0000,1.0000
+"Transformer, centralised",1.0000,1.0000,1.0000,1.0000,1.0000,1.0000
