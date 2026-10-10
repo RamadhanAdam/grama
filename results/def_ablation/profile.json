@@ -1,0 +1,43 @@
+{
+  "profile": "def_ablation",
+  "about": "What each part of the defence contributes: the autoencoder against PCA and against clustering the raw updates, with and without the rescaling of the updates and of the latent space, and the last layer only. Targeted flipping and ALIE at 20% and 40%, three seeds. About 100 runs.",
+  "alpha": 0.5,
+  "simulation": {
+    "num_clients": 20,
+    "clients_per_round": 10,
+    "num_rounds": 30,
+    "local_epochs": 2,
+    "local_batch_size": 64,
+    "local_lr": 0.001,
+    "non_iid_alpha": 0.5,
+    "class_weighting": "none"
+  },
+  "main_methods": [],
+  "noniid": null,
+  "poisoning": {
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "attacks": [
+      "targeted_flip",
+      "alie"
+    ],
+    "fractions": [
+      0.2,
+      0.4
+    ],
+    "aggregators": [
+      "hdbscan",
+      "hdbscan_pca",
+      "hdbscan_raw",
+      "hdbscan_no_rescale",
+      "hdbscan_no_normalize",
+      "hdbscan_no_standardize",
+      "hdbscan_last_layer"
+    ]
+  },
+  "ablation": null,
+  "edge_mode": "transition"
+}

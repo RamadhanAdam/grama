@@ -1,0 +1,15 @@
+Attack,Aggregator,20% TPR / FPR,40% TPR / FPR
+Targeted flipping,HDBSCAN (ours),0.58 / 0.10,0.43 / 0.07
+Targeted flipping,"HDBSCAN, PCA latent",0.52 / 0.08,0.22 / 0.03
+Targeted flipping,"HDBSCAN, raw updates",0.09 / 0.02,0.04 / 0.01
+Targeted flipping,"HDBSCAN, no rescaling",0.00 / 0.00,0.00 / 0.00
+Targeted flipping,"HDBSCAN, no update normalisation",0.22 / 0.04,0.11 / 0.04
+Targeted flipping,"HDBSCAN, no latent standardising",0.62 / 0.12,0.45 / 0.08
+Targeted flipping,"HDBSCAN, last layer only",0.17 / 0.09,0.02 / 0.12
+ALIE,HDBSCAN (ours),0.00 / 0.32,0.03 / 0.52
+ALIE,"HDBSCAN, PCA latent",0.02 / 0.18,0.00 / 0.28
+ALIE,"HDBSCAN, raw updates",0.01 / 0.27,0.00 / 0.53
+ALIE,"HDBSCAN, no rescaling",0.00 / 0.12,0.00 / 0.32
+ALIE,"HDBSCAN, no update normalisation",0.13 / 0.23,0.00 / 0.52
+ALIE,"HDBSCAN, no latent standardising",0.07 / 0.39,0.09 / 0.63
+ALIE,"HDBSCAN, last layer only",0.00 / 0.17,0.00 / 0.29

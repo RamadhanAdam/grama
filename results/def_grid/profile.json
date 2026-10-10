@@ -1,0 +1,42 @@
+{
+  "profile": "def_grid",
+  "about": "Sensitivity of the defence to its two clustering settings: the cluster selection epsilon (1, 2, 4, 8) and the smallest cluster size (2, 3, 5). Targeted flipping and ALIE at 20% and 40%, three seeds. About 90 runs.",
+  "alpha": 0.5,
+  "simulation": {
+    "num_clients": 20,
+    "clients_per_round": 10,
+    "num_rounds": 30,
+    "local_epochs": 2,
+    "local_batch_size": 64,
+    "local_lr": 0.001,
+    "non_iid_alpha": 0.5,
+    "class_weighting": "none"
+  },
+  "main_methods": [],
+  "noniid": null,
+  "poisoning": {
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "attacks": [
+      "targeted_flip",
+      "alie"
+    ],
+    "fractions": [
+      0.2,
+      0.4
+    ],
+    "aggregators": [
+      "hdbscan",
+      "hdbscan_eps1",
+      "hdbscan_eps4",
+      "hdbscan_eps8",
+      "hdbscan_mcs2",
+      "hdbscan_mcs5"
+    ]
+  },
+  "ablation": null,
+  "edge_mode": "transition"
+}

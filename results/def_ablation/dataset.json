@@ -1,0 +1,42 @@
+{
+  "profile": "def_ablation",
+  "data_file": "cic_iov2024_1427a6ad.pt",
+  "device": "NVIDIA A100 80GB PCIe (79 GB)",
+  "source": "real",
+  "class_names": [
+    "benign",
+    "DoS",
+    "spoofing-GAS",
+    "spoofing-RPM",
+    "spoofing-SPEED",
+    "spoofing-STEERING_WHEEL"
+  ],
+  "num_nodes": 78,
+  "in_features": 10,
+  "window_size": 64,
+  "stride": 32,
+  "seq_len": 8,
+  "seq_stride": 2,
+  "edge_mode": "transition",
+  "class_counts": {
+    "train": [
+      4720,
+      885,
+      118,
+      649,
+      295,
+      236
+    ],
+    "test": [
+      960,
+      174,
+      23,
+      130,
+      59,
+      47
+    ]
+  },
+  "injection": null,
+  "split": "blocks",
+  "block_rows": 1000
+}
