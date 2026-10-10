@@ -1,0 +1,7 @@
+Attack,Aggregator,20% TPR / FPR,40% TPR / FPR
+Targeted flipping,FoolsGold,0.71 / 0.44,0.89 / 0.48
+Targeted flipping,DeepSight (simplified),0.00 / 0.00,0.00 / 0.00
+Targeted flipping,FreqFed,0.53 / 0.27,0.37 / 0.26
+ALIE,FoolsGold,0.80 / 0.40,1.00 / 0.28
+ALIE,DeepSight (simplified),0.61 / 0.00,0.32 / 0.00
+ALIE,FreqFed,0.24 / 0.36,0.28 / 0.28

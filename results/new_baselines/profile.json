@@ -1,0 +1,58 @@
+{
+  "profile": "new_baselines",
+  "about": "FoolsGold, DeepSight (simplified) and FreqFed on the grid of `full`: four attacks, 20/30/40% of clients, three seeds (five at 30% and 40%). About 170 runs.",
+  "alpha": 0.5,
+  "simulation": {
+    "num_clients": 20,
+    "clients_per_round": 10,
+    "num_rounds": 30,
+    "local_epochs": 2,
+    "local_batch_size": 64,
+    "local_lr": 0.001,
+    "non_iid_alpha": 0.5,
+    "class_weighting": "none"
+  },
+  "main_methods": [],
+  "noniid": null,
+  "poisoning": {
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "seeds_by_fraction": {
+      "0.3": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "0.4": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "attacks": [
+      "label_flip",
+      "targeted_flip",
+      "magnitude_poison",
+      "alie"
+    ],
+    "fractions": [
+      0.2,
+      0.3,
+      0.4
+    ],
+    "aggregators": [
+      "foolsgold",
+      "deepsight",
+      "freqfed"
+    ]
+  },
+  "ablation": null,
+  "edge_mode": "transition"
+}

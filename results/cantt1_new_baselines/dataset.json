@@ -1,0 +1,55 @@
+{
+  "profile": "cantt1_new_baselines",
+  "data_file": "cantt_set_01_b0e5a072.pt",
+  "device": "NVIDIA A100 80GB PCIe (79 GB)",
+  "source": "can_train_test",
+  "class_names": [
+    "benign",
+    "attack"
+  ],
+  "num_nodes": 53,
+  "in_features": 10,
+  "window_size": 64,
+  "stride": 32,
+  "seq_len": 8,
+  "seq_stride": 2,
+  "edge_mode": "transition",
+  "class_counts": {
+    "train": [
+      9059,
+      2543
+    ],
+    "test": [
+      3852,
+      2635
+    ],
+    "unknown_vehicle": [
+      5673,
+      1868
+    ],
+    "unknown_attack": [
+      7449,
+      3324
+    ],
+    "unknown_vehicle_and_attack": [
+      7824,
+      1881
+    ]
+  },
+  "injection": null,
+  "split": "can_train_test",
+  "block_rows": null,
+  "extra_tests": [
+    "unknown_vehicle",
+    "unknown_attack",
+    "unknown_vehicle_and_attack"
+  ],
+  "split_note": "the dataset's own folders for set_01: train_01 trains, test_01 (known car, known attacks) tests, test_02-04 are the extra test sets",
+  "other_node_share": {
+    "train": 0.0,
+    "test": 0.0,
+    "unknown_vehicle": 0.6069,
+    "unknown_attack": 0.005,
+    "unknown_vehicle_and_attack": 0.2861
+  }
+}
