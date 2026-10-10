@@ -84,7 +84,8 @@ python scripts/run_experiments.py --profile quick
 
 Finished runs are saved as they complete, so an interrupted profile resumes where it stopped when the
 same command is run again. For long runs, start it in the background, for example with
-`nohup ... &` or inside `tmux`. Profiles are defined in `config/experiments.yaml`.
+`nohup ... &` or inside `tmux`. Profiles are defined in `config/experiments.yaml`; the ones behind
+each paper are listed under [Results](#results).
 `make others-background` runs `road` and then `cantt1` to `cantt4`, logging to `results/others.log`.
 `make extra-background` runs the two adaptive profiles and the extra `road` and `cantt1` seeds,
 logging to `results/extra.log`. A profile with `reuse_runs_from` copies the runs it shares with
@@ -99,11 +100,45 @@ python scripts/run_federated_train.py --profile quick --aggregator hdbscan --att
 
 ## Results
 
-The full run (291 training runs) is in [`results/full/`](results/full/summary.md): all tables and
-figures in `summary.md`, the tables as CSV, and one record per run in `runs.jsonl`. The trained
-weights are on Hugging Face: [RamadhanZome/grama](https://huggingface.co/RamadhanZome/grama).
+The experiments serve two papers: one on the defence against poisoned updates, one on the detector.
+Each folder below is one profile, with all its tables and figures in `summary.md` and one record per
+training run in `runs.jsonl`. The trained weights are on Hugging Face:
+[RamadhanZome/grama](https://huggingface.co/RamadhanZome/grama). The tags `paper1-defence-v1` and
+`paper2-detector-v1` mark this state of the results.
+
+### Paper 1: the defence against poisoned updates
+
+Confidence intervals and paired tests: [`results/stats/paper1_defence.md`](results/stats/paper1_defence.md).
+
+| Folder | What it answers |
+|---|---|
+| [`full`](results/full/summary.md) | The main grid on CIC-IoV2024: seven aggregation rules, four attacks, 10 to 40% of clients compromised, plus the non-IID sweep and the architecture ablation |
+| [`cic_seeds`](results/cic_seeds/summary.md) | The same grid with at least three seeds in every cell, five at 30 and 40% |
+| [`new_baselines`](results/new_baselines/summary.md) | FoolsGold, DeepSight (simplified) and FreqFed on the same grid |
+| [`def_ablation`](results/def_ablation/summary.md) | What each part of the defence adds: the autoencoder against PCA and against the raw updates, with and without rescaling, and the last layer only |
+| [`def_grid`](results/def_grid/summary.md) | How sensitive the defence is to its two clustering settings (cluster selection epsilon, smallest cluster size) |
+| [`alie_duplicates`](results/alie_duplicates/summary.md) | Whether the defence catches ALIE only because the colluders send identical updates (ALIE with noise added) |
+| [`clients40`](results/clients40/summary.md) | 40 clients, 20 per round |
+| [`cic_adaptive`](results/cic_adaptive/summary.md), [`cic_adaptive_new`](results/cic_adaptive_new/summary.md) | The adaptive attack, which knows the defence, against every aggregation rule |
+| [`road`](results/road/summary.md), [`road_new_baselines`](results/road_new_baselines/summary.md) | ROAD: poisoning, and the three newer baselines |
+| [`cantt1`](results/cantt1/summary.md), [`cantt1_adaptive`](results/cantt1_adaptive/summary.md), [`cantt1_new_baselines`](results/cantt1_new_baselines/summary.md) | can-train-and-test set 1: poisoning, the adaptive attack, the three newer baselines |
 
 ![Macro-F1 under poisoning](results/full/figures/poisoning.png)
+
+### Paper 2: the detector
+
+Confidence intervals and paired tests: [`results/stats/paper2_detector.md`](results/stats/paper2_detector.md).
+
+| Folder | What it answers |
+|---|---|
+| [`det_road_central`](results/det_road_central/summary.md) | ROAD, centralised: GraMa against CNN-BiGRU, a GCN, a GCN with a GRU and a Transformer, ten seeds, also scored on the masquerade attacks |
+| [`det_road_fedavg`](results/det_road_fedavg/summary.md) | The same five models trained federated with FedAvg |
+| [`det_road_ablation`](results/det_road_ablation/summary.md) | What each part of GraMa adds: the full model against eight variants |
+| [`det_cantt1`](results/det_cantt1/summary.md) to [`det_cantt4`](results/det_cantt4/summary.md) | can-train-and-test sets 1 to 4, centralised, also scored on an unknown car and on unknown attacks |
+| [`det_cic`](results/det_cic/summary.md) | CIC-IoV2024, a sanity check: every model is expected to score close to 1 |
+| [`cantt2`](results/cantt2/summary.md) to [`cantt4`](results/cantt4/summary.md) | The earlier federated comparison on sets 2 to 4 (GraMa and CNN-BiGRU, FedAvg and the defence, no attack) |
+
+### Files in each folder
 
 Each profile writes to `results/<profile>/`:
 
@@ -177,7 +212,8 @@ python -m pytest
 
 ## Citation
 
-A paper describing GraMa is in preparation. Until it is published, please cite this repository.
+Two papers are in preparation, one on the defence and one on the detector. Until they are published,
+please cite this repository.
 
 The dataset:
 
