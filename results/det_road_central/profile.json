@@ -1,0 +1,41 @@
+{
+  "profile": "det_road_central",
+  "about": "ROAD, centralised training: GraMa and four detectors, ten seeds (50 runs, about 9 hours on one A100). Every run is also tested on ROAD's masquerade set.",
+  "alpha": 0.5,
+  "simulation": {
+    "num_clients": 20,
+    "clients_per_round": 10,
+    "num_rounds": 30,
+    "local_epochs": 2,
+    "local_batch_size": 64,
+    "local_lr": 0.001,
+    "non_iid_alpha": 0.5,
+    "class_weighting": "none"
+  },
+  "main_methods": [
+    [
+      "grama",
+      "central"
+    ],
+    [
+      "cnn_bigru",
+      "central"
+    ],
+    [
+      "gcn_ids",
+      "central"
+    ],
+    [
+      "gcn_gru",
+      "central"
+    ],
+    [
+      "transformer_ids",
+      "central"
+    ]
+  ],
+  "noniid": null,
+  "poisoning": null,
+  "ablation": null,
+  "edge_mode": "transition"
+}

@@ -1,0 +1,41 @@
+{
+  "profile": "det_road_fedavg",
+  "about": "ROAD, federated training with FedAvg (20 clients): the same five models, five seeds (25 runs, about 4 hours on one A100).",
+  "alpha": 0.5,
+  "simulation": {
+    "num_clients": 20,
+    "clients_per_round": 10,
+    "num_rounds": 30,
+    "local_epochs": 2,
+    "local_batch_size": 64,
+    "local_lr": 0.001,
+    "non_iid_alpha": 0.5,
+    "class_weighting": "none"
+  },
+  "main_methods": [
+    [
+      "grama",
+      "fedavg"
+    ],
+    [
+      "cnn_bigru",
+      "fedavg"
+    ],
+    [
+      "gcn_ids",
+      "fedavg"
+    ],
+    [
+      "gcn_gru",
+      "fedavg"
+    ],
+    [
+      "transformer_ids",
+      "fedavg"
+    ]
+  ],
+  "noniid": null,
+  "poisoning": null,
+  "ablation": null,
+  "edge_mode": "transition"
+}

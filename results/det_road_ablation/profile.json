@@ -1,0 +1,31 @@
+{
+  "profile": "det_road_ablation",
+  "about": "ROAD, centralised training: what each part of GraMa contributes. The full model against eight variants (no residual connections, no CAN-ID embeddings, mean pooling, co-occurrence edges, GRU instead of Mamba, no temporal model, one attention head), five seeds (about 45 runs, 7 hours on one A100).",
+  "alpha": 0.5,
+  "simulation": {
+    "num_clients": 20,
+    "clients_per_round": 10,
+    "num_rounds": 30,
+    "local_epochs": 2,
+    "local_batch_size": 64,
+    "local_lr": 0.001,
+    "non_iid_alpha": 0.5,
+    "class_weighting": "none"
+  },
+  "main_methods": [],
+  "noniid": null,
+  "poisoning": null,
+  "ablation": {
+    "aggregator": "central",
+    "variants": [
+      "no_residual",
+      "no_id_embedding",
+      "mean_pool",
+      "cooccurrence_edges",
+      "gru_instead_of_mamba",
+      "no_temporal",
+      "one_head"
+    ]
+  },
+  "edge_mode": "transition"
+}

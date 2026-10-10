@@ -1,0 +1,6 @@
+Method,Masquerade attacks only: Macro-F1,Masquerade attacks only: Detection rate,Masquerade attacks only: False alarm rate
+"GraMa, centralised",0.9548 ± 0.0395,0.9886 ± 0.0097,0.0033 ± 0.0025
+"CNN-BiGRU, centralised",0.7024 ± 0.0791,0.9721 ± 0.0242,0.0206 ± 0.0256
+"GCN (single window), centralised",0.5669 ± 0.0514,0.8337 ± 0.0669,0.0473 ± 0.0403
+"GCN + GRU, centralised",0.5308 ± 0.0879,0.8869 ± 0.1150,0.0785 ± 0.0666
+"Transformer, centralised",0.6875 ± 0.0822,0.7784 ± 0.0700,0.0500 ± 0.0303
