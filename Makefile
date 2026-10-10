@@ -98,9 +98,12 @@ papers-background: paper1-background paper2-background
 queue-status:
 	@for f in results/queue_*.status; do echo "== $$f"; tail -n 6 $$f; done
 
+# The 40-vehicle runs share run ids with the 20-vehicle ones, so they get their own file.
 stats-paper1:
-	$(PYTHON) scripts/stats.py results/full results/new_baselines results/def_ablation results/alie_duplicates results/cic_seeds results/def_grid results/clients40 \
+	$(PYTHON) scripts/stats.py results/full results/new_baselines results/def_ablation results/alie_duplicates results/cic_seeds results/def_grid \
 	  --metric final.f1_macro defence.tpr defence.fpr --reference grama_hdbscan --out results/stats/paper1_defence
+	$(PYTHON) scripts/stats.py results/clients40 \
+	  --metric final.f1_macro defence.tpr defence.fpr --reference grama_hdbscan --out results/stats/paper1_clients40
 
 stats-paper2:
 	$(PYTHON) scripts/stats.py results/det_road_central results/det_road_fedavg results/det_road_ablation results/det_cantt1 results/det_cantt2 results/det_cantt3 results/det_cantt4 results/det_cic \
