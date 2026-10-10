@@ -1,0 +1,4 @@
+Attack,Aggregator,20% TPR / FPR,40% TPR / FPR
+Adaptive,FoolsGold,0.27 / 0.52,0.87 / 0.17
+Adaptive,DeepSight (simplified),0.00 / 0.03,0.01 / 0.08
+Adaptive,FreqFed,0.00 / 0.32,0.00 / 0.36
